@@ -41,6 +41,7 @@ export async function searchMultipleCompanies(args: SearchMultipleCompaniesArgs)
         locations: j.locations,
         level: j.level,
         applyUrl: j.applyUrl,
+        postedDate: j.postedDate,
       })),
     })),
   };

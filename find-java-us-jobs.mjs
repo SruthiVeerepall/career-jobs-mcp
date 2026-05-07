@@ -199,9 +199,11 @@ function isRejected(text) {
   for (const title of TITLE_QUERIES) {
     process.stdout.write(`  - "${title}"... `);
     try {
+      const titleArgs = { companyList: COMPANIES, jobTitle: title };
+      if (process.env.POSTED_SINCE) titleArgs.postedSince = process.env.POSTED_SINCE;
       const resp = await call('tools/call', {
         name: 'searchMultipleCompanies',
-        arguments: { companyList: COMPANIES, jobTitle: title },
+        arguments: titleArgs,
       }, 300000);
       if (!resp.result) { console.log('FAIL', JSON.stringify(resp.error)); continue; }
       const data = JSON.parse(resp.result.content[0].text);
@@ -273,12 +275,13 @@ function isRejected(text) {
 
   console.log(`[4/4] Java-mentioning, no-rejection: ${scored.length}; top ${top.length}:`);
   console.log();
-  console.log('| # | Company | Title | Location | Yrs req | Score | Top stack matches |');
-  console.log('|---|---------|-------|----------|---------|-------|-------------------|');
+  console.log('| # | Company | Title | Location | Posted | Yrs req | Score | Top stack matches |');
+  console.log('|---|---------|-------|----------|--------|---------|-------|-------------------|');
   top.forEach((j, i) => {
     const loc = j.usLocations.slice(0, 2).join('; ');
     const stack = j.hits.filter(h => h !== 'java (req)').slice(0, 6).join(', ');
-    console.log(`| ${i+1} | ${j.company} | [${j.title.replace(/\|/g,'\\|')}](${j.applyUrl}) | ${loc} | ${j.years ?? '?'} | ${j.score} | ${stack} |`);
+    const posted = j.postedDate ? new Date(j.postedDate).toISOString().slice(0, 10) : '?';
+    console.log(`| ${i+1} | ${j.company} | [${j.title.replace(/\|/g,'\\|')}](${j.applyUrl}) | ${loc} | ${posted} | ${j.years ?? '?'} | ${j.score} | ${stack} |`);
   });
   console.log();
   console.log('--- Plain URL list ---');

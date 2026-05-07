@@ -7,3 +7,6 @@ data/*.db-shm
 .env
 *.log
 .DS_Store
+.claude/
+discovered-companies.json
+new-registry-entries.ts

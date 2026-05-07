@@ -9,4 +9,9 @@ data/*.db-shm
 .DS_Store
 .claude/
 discovered-companies.json
+discovered-*.json
 new-registry-entries.ts
+new-*-entries.ts
+scrape-results.log
+scrape-err.log
+batch2-progress.log

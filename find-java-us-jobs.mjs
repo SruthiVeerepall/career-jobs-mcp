@@ -2,18 +2,15 @@ import { spawn } from 'node:child_process';
 
 const MCP = 'dist/index.js';
 
-// Companies that returned data successfully in the prior test run.
-const COMPANIES = [
-  // Greenhouse (working)
-  'Stripe', 'Airbnb', 'Discord', 'GitLab', 'Reddit', 'Twilio',
-  'Pinterest', 'Anthropic', 'Robinhood', 'Figma', 'Databricks', 'Instacart',
-  // Lever (working)
-  'Netflix',
-  // Ashby (working)
-  'Linear', 'PostHog', 'Ramp', 'Replicate',
-  // Workday (working)
-  'Adobe', 'Citi', 'NVIDIA',
-];
+// COMPANIES is loaded dynamically from listCompanies() at runtime.
+// Some Workday tenants (Bank of America, JPMorgan, Wells Fargo class) return
+// huge job catalogs the synchronous paginator can't finish in <2 min — skip them.
+const SKIP = new Set([
+  'bank-of-america', 'jpmorgan', 'wells-fargo', 'citi', 'goldman-sachs',
+  'morgan-stanley', 'us-bancorp', 'capital-one-careers',
+  'cisco', 'boeing', 'lockheed-martin', 'northrop-grumman', 'raytheon-technologies',
+  'amazon', 'apple', 'google', 'microsoft', 'meta', 'tesla', 'shopify', 'uber', // custom Puppeteer — flaky
+]);
 
 // Titles to query — the server filters by case-insensitive substring on the title.
 const TITLE_QUERIES = ['Java', 'Backend', 'Full Stack', 'Fullstack', 'Software Engineer'];
@@ -169,6 +166,14 @@ function isRejected(text) {
     clientInfo: { name: 'java-us-finder', version: '0' },
   });
   notify('notifications/initialized', {});
+
+  // Step 0: pull the full company list dynamically; filter out SKIP set.
+  const listResp = await call('tools/call', { name: 'listCompanies', arguments: {} });
+  const listData = JSON.parse(listResp.result.content[0].text);
+  const COMPANIES = listData.companies
+    .filter(c => !SKIP.has(c.slug))
+    .map(c => c.name);
+  console.log(`[0/4] Loaded ${COMPANIES.length} companies (skipped ${listData.total - COMPANIES.length})`);
 
   // Step 1a: cache should already be warm from prior run; only refresh if requested
   if (process.env.REFRESH === '1') {

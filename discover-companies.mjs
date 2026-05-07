@@ -2,16 +2,15 @@ import { promises as fs } from 'node:fs';
 import https from 'node:https';
 import http from 'node:http';
 
-// Existing slugs to skip (already in registry)
-const EXISTING = new Set([
-  'stripe','airbnb','coinbase','discord','gitlab','reddit','twilio','pinterest','doordash','instacart',
-  'anthropic','openai','robinhood','plaid','figma','snowflake','databricks',
-  'netflix','quora','brex','mixpanel',
-  'linear','posthog','replicate','ramp',
-  'visa','bosch',
-  'salesforce','adobe','jpmorgan','citi','goldman-sachs','vanguard','nvidia',
-  'apple','google','microsoft','amazon','meta','tesla','uber','shopify',
-]);
+// Existing slugs to skip — read live from src/scrapers/company-registry.ts
+const EXISTING = new Set();
+{
+  const reg = await fs.readFile('src/scrapers/company-registry.ts', 'utf8');
+  const re = /slug:\s*['"]([^'"]+)['"]/g;
+  let m;
+  while ((m = re.exec(reg)) !== null) EXISTING.add(m[1]);
+}
+console.log(`Loaded ${EXISTING.size} existing slugs from registry; will skip duplicates.`);
 
 function get(url, opts = {}, redirects = 0) {
   return new Promise((resolve) => {
@@ -162,7 +161,9 @@ function pLimit(n) {
 }
 
 (async () => {
-  const raw = await fs.readFile('companies-input.txt', 'utf8');
+  const inputFile = process.argv[2] || 'companies-input.txt';
+  const outBase = inputFile.replace(/\.txt$/, '');
+  const raw = await fs.readFile(inputFile, 'utf8');
   const inputs = raw.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
     const [name, url] = l.split('|');
     return [name.trim(), url.trim()];
@@ -202,8 +203,8 @@ function pLimit(n) {
   }
   console.log(`\nDeduped against ${dup.length} existing slugs`);
 
-  await fs.writeFile('discovered-companies.json', JSON.stringify({ verified, failed }, null, 2));
-  await fs.writeFile('new-registry-entries.ts', tsLines.join('\n') + '\n');
+  await fs.writeFile(`discovered-${outBase}.json`, JSON.stringify({ verified, failed }, null, 2));
+  await fs.writeFile(`new-${outBase}-entries.ts`, tsLines.join('\n') + '\n');
 
   console.log(`\nWrote discovered-companies.json (full results) and new-registry-entries.ts (${tsLines.length} new entries)`);
   console.log('\nFAILED COMPANIES (need manual handling, likely Taleo/iCIMS/SuccessFactors/bespoke):');

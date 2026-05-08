@@ -1,0 +1,230 @@
+Fortinet|https://www.fortinet.com/corporate/careers/careers
+Check Point|https://www.checkpoint.com/about-us/careers
+Akamai|https://www.akamai.com/careers
+Cybereason|https://www.cybereason.com/careers
+ExtraHop|https://www.extrahop.com/company/careers
+Vectra AI|https://www.vectra.ai/about/careers
+Netskope|https://www.netskope.com/company/careers
+Menlo Security|https://www.menlosecurity.com/careers
+Onapsis|https://onapsis.com/careers
+BigID|https://bigid.com/careers
+Cyera|https://www.cyera.com/company/careers
+Trustwave|https://www.trustwave.com/en-us/company/careers
+Optiv|https://www.optiv.com/careers
+HashiCorp|https://www.hashicorp.com/careers
+HCA Healthcare|https://careers.hcahealthcare.com
+Tenet Healthcare|https://careers.tenethealth.com
+Universal Health Services|https://uhscareers.com
+Oracle Health|https://www.oracle.com/health/careers
+McKesson|https://careers.mckesson.com
+Cardinal Health|https://www.cardinalhealth.com/en/about-us/careers.html
+Walgreens|https://jobs.walgreens.com
+CVS Health|https://jobs.cvshealth.com
+IQVIA|https://jobs.iqvia.com
+ICON plc|https://careers.iconplc.com
+Charles River Laboratories|https://jobs.criver.com
+Catalent|https://careers.catalent.com
+Anaplan|https://www.anaplan.com/company/careers
+Zoho|https://www.zoho.com/careers
+Pegasystems|https://www.pega.com/about/careers
+OpenText|https://careers.opentext.com
+Infor|https://careers.infor.com
+GitHub|https://github.com/about/careers
+Heroku|https://www.heroku.com/careers
+Tableau|https://www.tableau.com/about/careers
+Looker|https://looker.com/careers
+Qlik|https://www.qlik.com/us/company/careers
+Domo|https://www.domo.com/company/careers
+ThoughtSpot|https://www.thoughtspot.com/careers
+Sigma Computing|https://www.sigmacomputing.com/careers
+Mode Analytics|https://mode.com/careers
+Metabase|https://www.metabase.com/jobs
+Preset|https://preset.io/careers
+Cube|https://cube.dev/careers
+Hugging Face|https://huggingface.co/jobs
+Mistral AI|https://mistral.ai/careers
+xAI|https://x.ai/careers
+Groq|https://groq.com/careers
+Mosaic|https://www.mosaicml.com/careers
+Weights & Biases|https://wandb.ai/site/careers
+Comet|https://www.comet.com/site/careers
+RunPod|https://www.runpod.io/careers
+Lambda|https://lambdalabs.com/about/careers
+CoreWeave|https://www.coreweave.com/careers
+Cerebras|https://cerebras.ai/careers
+SambaNova|https://sambanova.ai/careers
+Tenstorrent|https://tenstorrent.com/careers
+Snap|https://careers.snap.com
+TikTok|https://careers.tiktok.com
+Match Group|https://careers.matchgroup.com
+Hinge|https://hinge.co/careers
+Yelp|https://www.yelp.careers
+Strava|https://www.strava.com/careers
+eBay|https://careers.ebayinc.com
+Etsy|https://careers.etsy.com
+Wayfair|https://www.aboutwayfair.com/careers
+Chewy|https://careers.chewy.com
+Walmart|https://careers.walmart.com
+Target|https://corporate.target.com/careers
+Costco|https://www.costco.com/jobs.html
+Best Buy|https://corporate.bestbuy.com/careers
+Sephora|https://www.sephora.com/about-us/careers
+Ulta Beauty|https://careers.ulta.com
+Nordstrom|https://careers.nordstrom.com
+Macy's|https://www.macysjobs.com
+Kroger|https://jobs.kroger.com
+Lululemon|https://careers.lululemon.com
+Nike|https://jobs.nike.com
+Adidas|https://careers.adidas.com
+Under Armour|https://careers.underarmour.com
+Allbirds|https://www.allbirds.com/pages/careers
+Warby Parker|https://www.warbyparker.com/jobs
+Glossier|https://corporate.glossier.com/jobs
+Stitch Fix|https://www.stitchfix.com/careers
+Faire|https://www.faire.com/careers
+Mercari|https://careers.mercari.com
+OfferUp|https://about.offerup.com/careers
+Activision Blizzard|https://careers.activisionblizzard.com
+Electronic Arts|https://www.ea.com/careers
+Ubisoft|https://www.ubisoft.com/en-us/company/careers
+Sony Interactive|https://www.playstation.com/careers
+Niantic|https://nianticlabs.com/careers
+Square Enix|https://careers.square-enix-games.com
+Unity|https://careers.unity.com
+Razer|https://www.razer.com/careers
+Logitech|https://jobs.logitech.com
+Verizon|https://mycareer.verizon.com
+AT&T|https://www.att.jobs
+Comcast|https://jobs.comcast.com
+Charter Communications|https://jobs.spectrum.com
+Frontier Communications|https://careers.frontier.com
+Cox Communications|https://jobs.coxenterprises.com
+Arista Networks|https://www.arista.com/careers
+Extreme Networks|https://www.extremenetworks.com/about-extreme-networks/careers
+Samsung|https://www.samsung.com/us/careers
+Qualcomm|https://www.qualcomm.com/company/careers
+MediaTek|https://corp.mediatek.com/careers
+Marvell|https://www.marvell.com/company/careers.html
+UnitedHealth Group|https://careers.unitedhealthgroup.com
+Humana|https://careers.humana.com
+Kaiser Permanente|https://www.kaiserpermanentejobs.org
+Centene|https://jobs.centene.com
+Molina Healthcare|https://jobs.molinahealthcare.com
+Aetna|https://jobs.aetnacareers.com
+Independence Health Group|https://careers.ibx.com
+Morgan Stanley|https://www.morganstanley.com/people-opportunities
+HSBC|https://www.hsbc.com/careers
+Barclays|https://search.jobs.barclays
+Deutsche Bank|https://careers.db.com
+UBS|https://www.ubs.com/global/en/careers.html
+Santander|https://www.santandercareers.com
+ING|https://www.ing.jobs
+Shift4 Payments|https://www.shift4.com/about/careers
+Worldpay|https://careers.worldpay.com
+Toast Tax|https://careers.toasttab.com
+Bench|https://bench.co/careers
+Avalara|https://www.avalara.com/us/en/about/careers.html
+Sovos|https://sovos.com/careers
+Anrok|https://www.anrok.com/careers
+TaxBit|https://www.taxbit.com/careers
+eToro|https://www.etoro.com/about/careers
+Webull|https://www.webull.com/careers
+M1|https://m1.com/careers
+Empower|https://www.empower.com/careers
+Redfin|https://www.redfin.com/careers
+Compass|https://www.compass.com/careers
+Offerpad|https://www.offerpad.com/careers
+Realtor.com|https://realtor.com/careers
+Houzz|https://www.houzz.com/jobs
+Procore Technologies|https://careers.procore.com
+AppFolio|https://www.appfolioinc.com/careers
+RealPage|https://www.realpage.com/careers
+Yardi|https://www.yardi.com/careers
+Khan Academy|https://www.khanacademy.org/careers
+Chegg|https://www.chegg.com/about/working-at-chegg/current-openings
+Quizlet|https://quizlet.com/jobs
+Skillshare|https://www.skillshare.com/careers
+MasterClass|https://www.masterclass.com/jobs
+Outschool|https://outschool.com/careers
+Codecademy|https://www.codecademy.com/about/careers
+HackerRank|https://www.hackerrank.com/careers
+Accenture|https://www.accenture.com/us-en/careers
+Deloitte|https://www2.deloitte.com/us/en/pages/careers/topics/careers.html
+Capgemini|https://www.capgemini.com/careers
+Cognizant|https://careers.cognizant.com
+Infosys|https://www.infosys.com/careers
+Wipro|https://careers.wipro.com
+HCLTech|https://www.hcltech.com/careers
+Tech Mahindra|https://careers.techmahindra.com
+EPAM Systems|https://www.epam.com/careers
+Globant|https://www.globant.com/careers
+ThoughtWorks|https://www.thoughtworks.com/careers
+Persistent Systems|https://www.persistent.com/careers
+Mphasis|https://www.mphasis.com/home/careers.html
+Rippling|https://www.rippling.com/careers
+Deel|https://www.deel.com/careers
+Remote|https://remote.com/careers
+Paycor|https://careers.paycor.com
+Paylocity|https://www.paylocity.com/careers
+UKG|https://www.ukg.com/about-us/careers
+Cornerstone OnDemand|https://www.cornerstoneondemand.com/careers
+Next Insurance|https://www.nextinsurance.com/careers
+Newfront|https://www.newfront.com/careers
+Northwestern Mutual|https://careers.northwesternmutual.com
+MassMutual|https://www.massmutual.com/about-us/careers
+Pacific Life|https://www.pacificlife.com/careers
+Principal Financial|https://www.principal.com/about-us/careers
+Guardian Life|https://www.guardianlife.com/careers
+John Hancock|https://www.johnhancock.com/about-us/careers
+Sun Life|https://www.sunlife.com/en/about-us/careers
+Anduril|https://www.anduril.com/careers
+Shield AI|https://shield.ai/careers
+Skydio|https://www.skydio.com/careers
+Lockheed Martin|https://www.lockheedmartinjobs.com
+Northrop Grumman|https://www.northropgrumman.com/jobs
+Raytheon|https://careers.rtx.com
+L3Harris|https://careers.l3harris.com
+Hadrian|https://www.hadrian.co/careers
+Astranis|https://www.astranis.com/careers
+Relativity Space|https://relativityspace.com/careers
+Firefly Aerospace|https://fireflyspace.com/careers
+Axiom Space|https://axiomspace.com/careers
+Vast Space|https://www.vastspace.com/careers
+Saronic|https://www.saronic.com/careers
+Sketch|https://www.sketch.com/careers
+InVision|https://www.invisionapp.com/careers
+Frame.io|https://frame.io/careers
+Mural|https://www.mural.co/careers
+Whimsical|https://whimsical.com/jobs
+Wix|https://www.wix.com/jobs
+Framer|https://www.framer.com/careers
+Clio|https://www.clio.com/about/careers
+MyCase|https://www.mycase.com/careers
+Litera|https://www.litera.com/about/careers
+NetDocuments|https://www.netdocuments.com/careers
+iManage|https://imanage.com/about-us/careers
+Casetext|https://casetext.com/careers
+Spellbook|https://www.spellbook.legal/careers
+EvenUp|https://www.evenuplaw.com/careers
+H&R Block|https://www.hrblock.com/careers
+Intuit TurboTax|https://www.intuit.com/careers
+FICO|https://www.fico.com/en/careers
+Experian|https://www.experianplc.com/careers
+Equifax|https://www.equifax.com/about-equifax/careers
+TransUnion|https://www.transunion.com/careers
+Verisk Analytics|https://www.verisk.com/careers
+Fitch Ratings|https://www.fitchratings.com/site/careers
+Dun & Bradstreet|https://careers.dnb.com
+Cruise|https://www.getcruise.com/careers
+Mobileye|https://careers.mobileye.com
+Volvo Cars|https://www.volvocars.com/intl/v/careers
+Rivian|https://careers.rivian.com
+Lucid Motors|https://www.lucidmotors.com/careers
+Polestar|https://www.polestar.com/global/careers
+Whoop|https://www.whoop.com/careers
+Oura|https://ouraring.com/careers
+Eight Sleep|https://www.eightsleep.com/careers
+Headspace|https://www.headspace.com/careers
+Calm|https://www.calm.com/careers
+Hims & Hers|https://www.forhims.com/careers
+Ro|https://ro.co/careers

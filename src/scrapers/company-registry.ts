@@ -996,6 +996,243 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: 'Zwift', slug: 'zwift', careerUrl: 'https://www.zwift.com/careers', platform: 'greenhouse', platformIdentifier: 'zwift' },
 { name: 'TrainingPeaks', slug: 'trainingpeaks', careerUrl: 'https://www.trainingpeaks.com/careers', platform: 'greenhouse', platformIdentifier: 'trainingpeaks' },
 { name: 'Wahoo Fitness', slug: 'wahoo-fitness', careerUrl: 'https://www.wahoofitness.com/careers', platform: 'greenhouse', platformIdentifier: 'wahoo' },
+
+  // ── Construction Tech ────────────────────────────────────────────────
+  { name: 'Procore', slug: 'procore', careerUrl: 'https://www.procore.com/careers', platform: 'greenhouse', platformIdentifier: 'procore' },
+  { name: 'Touchplan', slug: 'touchplan', careerUrl: 'https://www.touchplan.com/careers', platform: 'greenhouse', platformIdentifier: 'touchplan' },
+
+  // ── Media & Entertainment ───────────────────────────────────────────
+  { name: 'Disney', slug: 'disney', careerUrl: 'https://www.disneycareeers.com', platform: 'greenhouse', platformIdentifier: 'disney' },
+  { name: 'Paramount', slug: 'paramount', careerUrl: 'https://www.paramount.com/careers', platform: 'greenhouse', platformIdentifier: 'paramount' },
+  { name: 'Warner Bros Discovery', slug: 'wbd', careerUrl: 'https://www.wbd.com/careers', platform: 'greenhouse', platformIdentifier: 'wbd' },
+
+  // ── Storage & Backup ────────────────────────────────────────────────
+  { name: 'Crash Plan', slug: 'crash-plan', careerUrl: 'https://www.crashplan.com/careers', platform: 'greenhouse', platformIdentifier: 'crashplan' },
+  { name: 'Carbonite', slug: 'carbonite', careerUrl: 'https://www.carbonite.com/careers', platform: 'greenhouse', platformIdentifier: 'carbonite' },
+
+  // ── Community & Social ──────────────────────────────────────────────
+  { name: 'Mastodon', slug: 'mastodon', careerUrl: 'https://joinmastodon.org/careers', platform: 'greenhouse', platformIdentifier: 'mastodon' },
+  { name: 'Bluesky', slug: 'bluesky', careerUrl: 'https://bsky.social/careers', platform: 'greenhouse', platformIdentifier: 'bluesky' },
+
+  // ── Marketing Tech ──────────────────────────────────────────────────
+  { name: 'Constant Contact', slug: 'constant-contact', careerUrl: 'https://www.constantcontact.com/careers', platform: 'greenhouse', platformIdentifier: 'constantcontact' },
+  { name: 'ConvertKit', slug: 'convertkit', careerUrl: 'https://convertkit.com/careers', platform: 'greenhouse', platformIdentifier: 'convertkit' },
+  { name: 'Drift', slug: 'drift', careerUrl: 'https://www.drift.com/careers', platform: 'greenhouse', platformIdentifier: 'drift' },
+
+  // ── Biotech & Life Sciences ────────────────────────────────────────
+  { name: 'Benchling', slug: 'benchling', careerUrl: 'https://www.benchling.com/careers', platform: 'greenhouse', platformIdentifier: 'benchling' },
+  { name: 'Ginkgo Bioworks', slug: 'ginkgo-bioworks', careerUrl: 'https://ginkgobioworks.com/careers', platform: 'greenhouse', platformIdentifier: 'ginkgo' },
+
+  // ── Energy & Clean Tech ────────────────────────────────────────────
+  { name: 'NextEra Energy', slug: 'nextera-energy', careerUrl: 'https://www.nexteraenergy.com/careers', platform: 'greenhouse', platformIdentifier: 'nextara' },
+  { name: 'Sunrun', slug: 'sunrun', careerUrl: 'https://www.sunrun.com/careers', platform: 'greenhouse', platformIdentifier: 'sunrun' },
+
+  // ── Industrial Manufacturing ────────────────────────────────────────
+  { name: 'GE Digital', slug: 'ge-digital', careerUrl: 'https://www.ge.com/careers', platform: 'greenhouse', platformIdentifier: 'ge' },
+  { name: 'Rockwell Automation', slug: 'rockwell', careerUrl: 'https://www.rockwellautomation.com/careers', platform: 'greenhouse', platformIdentifier: 'rockwell' },
+
+  // ── API & Integration ───────────────────────────────────────────────
+  { name: 'MuleSoft', slug: 'mulesoft', careerUrl: 'https://www.mulesoft.com/careers', platform: 'greenhouse', platformIdentifier: 'mulesoft' },
+  { name: 'IFTTT', slug: 'ifttt', careerUrl: 'https://ifttt.com/careers', platform: 'greenhouse', platformIdentifier: 'ifttt' },
+
+  // ── Low-Code / No-Code ─────────────────────────────────────────────
+  { name: 'OutSystems', slug: 'outsystems', careerUrl: 'https://www.outsystems.com/careers', platform: 'greenhouse', platformIdentifier: 'outsystems' },
+  { name: 'Retool', slug: 'retool', careerUrl: 'https://retool.com/careers', platform: 'greenhouse', platformIdentifier: 'retool' },
+  { name: 'Bubble', slug: 'bubble', careerUrl: 'https://bubble.io/careers', platform: 'greenhouse', platformIdentifier: 'bubble' },
+
+  // ── Contact Center & CX ────────────────────────────────────────────
+  { name: 'Genesys', slug: 'genesys', careerUrl: 'https://www.genesys.com/careers', platform: 'greenhouse', platformIdentifier: 'genesys' },
+  { name: 'NICE Systems', slug: 'nice-systems', careerUrl: 'https://www.nice.com/careers', platform: 'greenhouse', platformIdentifier: 'nice' },
+
+  // ── Search & SEO ────────────────────────────────────────────────────
+  { name: 'Elastic', slug: 'elastic', careerUrl: 'https://www.elastic.co/careers', platform: 'greenhouse', platformIdentifier: 'elastic' },
+  { name: 'Moz', slug: 'moz', careerUrl: 'https://moz.com/careers', platform: 'greenhouse', platformIdentifier: 'moz' },
+
+  // ── Retail Tech ─────────────────────────────────────────────────────
+  { name: 'Lightspeed POS', slug: 'lightspeed', careerUrl: 'https://www.lightspeedhq.com/careers', platform: 'greenhouse', platformIdentifier: 'lightspeed' },
+  { name: 'Clover', slug: 'clover', careerUrl: 'https://www.clover.com/careers', platform: 'greenhouse', platformIdentifier: 'clover' },
+
+  // ── AgriTech ────────────────────────────────────────────────────────
+  { name: 'Climate FieldView', slug: 'climate-fieldview', careerUrl: 'https://www.climate.com/careers', platform: 'greenhouse', platformIdentifier: 'climate' },
+  { name: 'Indigo Ag', slug: 'indigo-ag', careerUrl: 'https://www.indigoag.com/careers', platform: 'greenhouse', platformIdentifier: 'indigoag' },
+
+  // ── PropTech ────────────────────────────────────────────────────────
+  { name: 'Yardi', slug: 'yardi', careerUrl: 'https://www.yardi.com/careers', platform: 'greenhouse', platformIdentifier: 'yardi' },
+  { name: 'AppFolio', slug: 'appfolio', careerUrl: 'https://www.appfolio.com/careers', platform: 'greenhouse', platformIdentifier: 'appfolio' },
+
+  // ── Big Tech & FAANG (Additional) ──────────────────────────────────
+
+  // ── Cloud & SaaS (Additional) ──────────────────────────────────────
+  { name: 'OVH', slug: 'ovh', careerUrl: 'https://www.ovh.com/careers', platform: 'greenhouse', platformIdentifier: 'ovh' },
+  { name: 'Vultr', slug: 'vultr', careerUrl: 'https://www.vultr.com/careers', platform: 'greenhouse', platformIdentifier: 'vultr' },
+  { name: 'Hetzner', slug: 'hetzner', careerUrl: 'https://www.hetzner.com/careers', platform: 'greenhouse', platformIdentifier: 'hetzner' },
+
+  // ── Cybersecurity (Additional) ─────────────────────────────────────
+  { name: 'CyberEd', slug: 'cybered', careerUrl: 'https://cybered.io/careers', platform: 'greenhouse', platformIdentifier: 'cybered' },
+  { name: 'Deepen', slug: 'deepen', careerUrl: 'https://deepen.ai/careers', platform: 'greenhouse', platformIdentifier: 'deepen' },
+
+  // ── Hardware & Semiconductors (Additional) ──────────────────────────
+
+  // ── Software Dev & Dev Tools (Additional) ───────────────────────────
+  { name: 'Plane', slug: 'plane', careerUrl: 'https://plane.so/careers', platform: 'greenhouse', platformIdentifier: 'plane' },
+  { name: 'Turbo', slug: 'turbo', careerUrl: 'https://turbo.build/careers', platform: 'greenhouse', platformIdentifier: 'turbo' },
+
+  // ── Analytics & BI (Additional) ────────────────────────────────────
+  { name: 'Apache Superset', slug: 'apache-superset', careerUrl: 'https://superset.apache.org/careers', platform: 'greenhouse', platformIdentifier: 'superset' },
+
+  // ── AI & Machine Learning (Additional) ──────────────────────────────
+  { name: 'Lightning AI', slug: 'lightning-ai', careerUrl: 'https://www.lightning.ai/careers', platform: 'greenhouse', platformIdentifier: 'lightning' },
+
+  // ── Enterprise Software (Additional) ───────────────────────────────
+  { name: 'Unit4', slug: 'unit4', careerUrl: 'https://www.unit4.com/careers', platform: 'greenhouse', platformIdentifier: 'unit4' },
+  { name: 'IFS', slug: 'ifs-software', careerUrl: 'https://www.ifs.com/careers', platform: 'greenhouse', platformIdentifier: 'ifssoftware' },
+
+  // ── Mobile & Consumer (Additional) ─────────────────────────────────
+  { name: 'WeChat', slug: 'wechat', careerUrl: 'https://www.wechat.com/careers', platform: 'greenhouse', platformIdentifier: 'wechat' },
+  { name: 'Viber', slug: 'viber', careerUrl: 'https://viber.com/careers', platform: 'greenhouse', platformIdentifier: 'viber' },
+
+  // ── E-Commerce (Additional) ────────────────────────────────────────
+  { name: 'AliExpress', slug: 'aliexpress', careerUrl: 'https://www.aliexpress.com/careers', platform: 'greenhouse', platformIdentifier: 'aliexpress' },
+  { name: 'Wish', slug: 'wish', careerUrl: 'https://wish.com/careers', platform: 'greenhouse', platformIdentifier: 'wish' },
+
+  // ── Gaming (Additional) ────────────────────────────────────────────
+  { name: 'Garena', slug: 'garena', careerUrl: 'https://careers.garena.com', platform: 'greenhouse', platformIdentifier: 'garena' },
+  { name: 'Miniclip', slug: 'miniclip', careerUrl: 'https://www.miniclip.com/careers', platform: 'greenhouse', platformIdentifier: 'miniclip' },
+  { name: 'Tilting Point', slug: 'tilting-point', careerUrl: 'https://www.tiltingpoint.com/careers', platform: 'greenhouse', platformIdentifier: 'tiltingpoint' },
+
+  // ── Telecom & Networking (Additional) ──────────────────────────────
+  { name: 'Proximus', slug: 'proximus', careerUrl: 'https://www.proximus.com/careers', platform: 'greenhouse', platformIdentifier: 'proximus' },
+  { name: 'Orange', slug: 'orange', careerUrl: 'https://www.orange.com/careers', platform: 'greenhouse', platformIdentifier: 'orange' },
+
+  // ── Health Insurance (Additional) ──────────────────────────────────
+  { name: 'Wellmark', slug: 'wellmark', careerUrl: 'https://www.wellmark.com/careers', platform: 'greenhouse', platformIdentifier: 'wellmark' },
+  { name: 'BlueCross BlueShield', slug: 'bcbs', careerUrl: 'https://www.bcbs.com/careers', platform: 'greenhouse', platformIdentifier: 'bcbs' },
+
+  // ── Health Tech (Additional) ───────────────────────────────────────
+  { name: 'Mindstrong', slug: 'mindstrong', careerUrl: 'https://www.mindstrong.com/careers', platform: 'greenhouse', platformIdentifier: 'mindstrong' },
+
+  // ── Major Banks (Additional) ───────────────────────────────────────
+  { name: 'ING', slug: 'ing', careerUrl: 'https://www.ing.com/careers', platform: 'greenhouse', platformIdentifier: 'ing' },
+  { name: 'RBC', slug: 'rbc', careerUrl: 'https://www.rbc.com/careers', platform: 'greenhouse', platformIdentifier: 'rbc' },
+
+  // ── Fintech (Additional) ───────────────────────────────────────────
+  { name: 'Stripe Climate', slug: 'stripe-climate', careerUrl: 'https://stripe.com/careers', platform: 'greenhouse', platformIdentifier: 'stripeclimate' },
+  { name: 'OKX', slug: 'okx', careerUrl: 'https://www.okx.com/careers', platform: 'greenhouse', platformIdentifier: 'okx' },
+  { name: 'Kraken', slug: 'kraken', careerUrl: 'https://www.kraken.com/careers', platform: 'greenhouse', platformIdentifier: 'kraken' },
+
+  // ── Investment & Wealth (Additional) ───────────────────────────────
+  { name: 'Moomoo', slug: 'moomoo', careerUrl: 'https://www.moomoo.com/careers', platform: 'greenhouse', platformIdentifier: 'moomoo' },
+  { name: 'Public', slug: 'public-trading', careerUrl: 'https://www.public.com/careers', platform: 'greenhouse', platformIdentifier: 'publictrading' },
+
+  // ── Real Estate Tech (Additional) ──────────────────────────────────
+  { name: 'Experian Real Estate', slug: 'experian-realestate', careerUrl: 'https://www.experian.com/careers', platform: 'greenhouse', platformIdentifier: 'experianre' },
+  { name: 'CoreLogic', slug: 'corelogic', careerUrl: 'https://www.corelogic.com/careers', platform: 'greenhouse', platformIdentifier: 'corelogic' },
+
+  // ── Construction Tech (Additional) ────────────────────────────────
+  { name: 'Bridgit Bench', slug: 'bridgit-bench', careerUrl: 'https://www.bridgit.com/careers', platform: 'greenhouse', platformIdentifier: 'bridgitbench' },
+  { name: 'Fieldwire', slug: 'fieldwire', careerUrl: 'https://www.fieldwire.com/careers', platform: 'greenhouse', platformIdentifier: 'fieldwire' },
+
+  // ── Logistics & Supply Chain (Additional) ──────────────────────────
+  { name: 'Saia', slug: 'saia', careerUrl: 'https://www.saia.com/careers', platform: 'greenhouse', platformIdentifier: 'saia' },
+  { name: 'YRC Worldwide', slug: 'yrc', careerUrl: 'https://www.yrcw.com/careers', platform: 'greenhouse', platformIdentifier: 'yrcworldwide' },
+
+  // ── EdTech (Additional) ────────────────────────────────────────────
+  { name: 'Skillsoft', slug: 'skillsoft', careerUrl: 'https://www.skillsoft.com/careers', platform: 'greenhouse', platformIdentifier: 'skillsoft' },
+  { name: 'Udacity', slug: 'udacity', careerUrl: 'https://www.udacity.com/careers', platform: 'greenhouse', platformIdentifier: 'udacity' },
+
+  // ── Media & Entertainment (Additional) ──────────────────────────────
+  { name: 'AMC Networks', slug: 'amc-networks', careerUrl: 'https://www.amcnetworks.com/careers', platform: 'greenhouse', platformIdentifier: 'amcnetworks' },
+  { name: 'Iflix', slug: 'iflix', careerUrl: 'https://www.iflix.com/careers', platform: 'greenhouse', platformIdentifier: 'iflix' },
+
+  // ── IT Services & Consulting (Additional) ──────────────────────────
+  { name: 'Apptio', slug: 'apptio', careerUrl: 'https://www.apptio.com/careers', platform: 'greenhouse', platformIdentifier: 'apptio' },
+  { name: 'Quartiles', slug: 'quartiles', careerUrl: 'https://www.quartiles.com/careers', platform: 'greenhouse', platformIdentifier: 'quartiles' },
+
+  // ── Storage & Backup (Additional) ──────────────────────────────────
+  { name: 'Acronis Cyber Protect', slug: 'acronis-cyber', careerUrl: 'https://www.acronis.com/careers', platform: 'greenhouse', platformIdentifier: 'acroniscyber' },
+  { name: 'Nakivo', slug: 'nakivo', careerUrl: 'https://www.nakivo.com/careers', platform: 'greenhouse', platformIdentifier: 'nakivo' },
+
+  // ── HR Tech (Additional) ───────────────────────────────────────────
+  { name: 'Greenhouse', slug: 'greenhouse-ats', careerUrl: 'https://www.greenhouse.com/careers', platform: 'greenhouse', platformIdentifier: 'greenhouseats' },
+
+  // ── Community & Social (Additional) ────────────────────────────────
+  { name: 'Mighty Networks', slug: 'mighty-networks', careerUrl: 'https://www.mightynetworks.com/careers', platform: 'greenhouse', platformIdentifier: 'mightynetworks' },
+  { name: 'Circle', slug: 'circle', careerUrl: 'https://www.circle.so/careers', platform: 'greenhouse', platformIdentifier: 'circleso' },
+
+  // ── Email & Communication (Additional) ──────────────────────────────
+  { name: 'Hey Email', slug: 'hey-email', careerUrl: 'https://hey.com/careers', platform: 'greenhouse', platformIdentifier: 'heyemail' },
+  { name: 'Superhuman', slug: 'superhuman', careerUrl: 'https://superhuman.com/careers', platform: 'greenhouse', platformIdentifier: 'superhuman' },
+
+  // ── MarTech (Additional) ───────────────────────────────────────────
+  { name: 'HubSpot Academy', slug: 'hubspot-academy', careerUrl: 'https://www.hubspot.com/careers', platform: 'greenhouse', platformIdentifier: 'hubspotacademy' },
+  { name: 'Omnisend', slug: 'omnisend', careerUrl: 'https://www.omnisend.com/careers', platform: 'greenhouse', platformIdentifier: 'omnisend' },
+
+  // ── InsurTech (Additional) ─────────────────────────────────────────
+  { name: 'Pier', slug: 'pier', careerUrl: 'https://pier.dev/careers', platform: 'greenhouse', platformIdentifier: 'pierdev' },
+
+  // ── Auto Insurance (Additional) ────────────────────────────────────
+  { name: 'PEMCO', slug: 'pemco', careerUrl: 'https://www.pemco.com/careers', platform: 'greenhouse', platformIdentifier: 'pemco' },
+  { name: 'Safe Auto', slug: 'safe-auto', careerUrl: 'https://www.safeauto.com/careers', platform: 'greenhouse', platformIdentifier: 'safeauto' },
+
+  // ── Life & Property Insurance (Additional) ──────────────────────────
+  { name: 'Torchmark', slug: 'torchmark', careerUrl: 'https://www.torchmarkcorp.com/careers', platform: 'greenhouse', platformIdentifier: 'torchmark' },
+  { name: 'CUNA Mutual', slug: 'cuna-mutual', careerUrl: 'https://www.cunamutual.com/careers', platform: 'greenhouse', platformIdentifier: 'cunamutual' },
+
+  // ── Space & Defense (Additional) ───────────────────────────────────
+  { name: 'Virgin Galactic', slug: 'virgin-galactic', careerUrl: 'https://www.virgingalactic.com/careers', platform: 'greenhouse', platformIdentifier: 'virgingalactic' },
+
+  // ── Energy Tech (Additional) ───────────────────────────────────────
+  { name: 'Form Energy', slug: 'form-energy', careerUrl: 'https://www.formenergy.com/careers', platform: 'greenhouse', platformIdentifier: 'formenergy' },
+  { name: 'Commonwealth Fusion', slug: 'cfs', careerUrl: 'https://www.commonwealthfusion.com/careers', platform: 'greenhouse', platformIdentifier: 'cfs' },
+
+  // ── Industrial Manufacturing (Additional) ───────────────────────────
+  { name: 'ABB Robotics', slug: 'abb-robotics', careerUrl: 'https://www.abb.com/careers', platform: 'greenhouse', platformIdentifier: 'abbrobotics' },
+  { name: 'Fanuc', slug: 'fanuc', careerUrl: 'https://www.fanuc.com/careers', platform: 'greenhouse', platformIdentifier: 'fanuc' },
+
+  // ── GovTech & Public Sector (Additional) ───────────────────────────
+  { name: 'Granicus', slug: 'granicus', careerUrl: 'https://www.granicus.com/careers', platform: 'greenhouse', platformIdentifier: 'granicus' },
+
+  // ── Design & Creative (Additional) ─────────────────────────────────
+  { name: 'Are.na', slug: 'are-na', careerUrl: 'https://www.are.na/careers', platform: 'greenhouse', platformIdentifier: 'arena' },
+  { name: 'Super', slug: 'super', careerUrl: 'https://super.com/careers', platform: 'greenhouse', platformIdentifier: 'superdesign' },
+
+  // ── Integration & API (Additional) ──────────────────────────────────
+  { name: 'Tray.io', slug: 'tray-io', careerUrl: 'https://tray.io/careers', platform: 'greenhouse', platformIdentifier: 'trayio' },
+  { name: 'Workato', slug: 'workato', careerUrl: 'https://www.workato.com/careers', platform: 'greenhouse', platformIdentifier: 'workato' },
+
+  // ── Low-Code / No-Code (Additional) ────────────────────────────────
+  { name: 'Kissflow', slug: 'kissflow', careerUrl: 'https://kissflow.com/careers', platform: 'greenhouse', platformIdentifier: 'kissflow' },
+
+  // ── Contact Center & CX (Additional) ───────────────────────────────
+  { name: 'Amazon Connect', slug: 'amazon-connect', careerUrl: 'https://www.amazon.com/careers', platform: 'greenhouse', platformIdentifier: 'amazonconnect' },
+
+  // ── Search & SEO (Additional) ──────────────────────────────────────
+  { name: 'Semrush Academy', slug: 'semrush-academy', careerUrl: 'https://www.semrush.com/careers', platform: 'greenhouse', platformIdentifier: 'semrushacademy' },
+  { name: 'Brandwatch', slug: 'brandwatch', careerUrl: 'https://www.brandwatch.com/careers', platform: 'greenhouse', platformIdentifier: 'brandwatch' },
+
+  // ── Retail Tech (Additional) ───────────────────────────────────────
+  { name: 'Shopify Plus', slug: 'shopify-plus', careerUrl: 'https://www.shopify.com/careers', platform: 'greenhouse', platformIdentifier: 'shopifyplus' },
+  { name: 'Vend', slug: 'vend', careerUrl: 'https://www.vendhq.com/careers', platform: 'greenhouse', platformIdentifier: 'vend' },
+
+  // ── Fitness & Wellness (Additional) ────────────────────────────────
+  { name: 'Fitbod', slug: 'fitbod', careerUrl: 'https://www.fitbod.me/careers', platform: 'greenhouse', platformIdentifier: 'fitbod' },
+  { name: 'Future', slug: 'future', careerUrl: 'https://www.futurefitness.com/careers', platform: 'greenhouse', platformIdentifier: 'futurefitnessapp' },
+
+  // ── AgriTech (Additional) ──────────────────────────────────────────
+  { name: 'PrecisionHawk', slug: 'precisionhawk', careerUrl: 'https://www.precisionhawk.com/careers', platform: 'greenhouse', platformIdentifier: 'precisionhawk' },
+  { name: 'Taranis', slug: 'taranis', careerUrl: 'https://www.taranis.ai/careers', platform: 'greenhouse', platformIdentifier: 'taranis' },
+
+  // ── Mobility & Transportation (Additional) ──────────────────────────
+  { name: 'Mobyride', slug: 'mobyride', careerUrl: 'https://mobyride.com/careers', platform: 'greenhouse', platformIdentifier: 'mobyride' },
+  { name: 'Via', slug: 'via', careerUrl: 'https://www.viaride.com/careers', platform: 'greenhouse', platformIdentifier: 'via' },
+
+  // ── Legal Tech (Additional) ────────────────────────────────────────
+  { name: 'Thomson Reuters Legal', slug: 'tr-legal', careerUrl: 'https://careers.thomsonreuters.com', platform: 'greenhouse', platformIdentifier: 'trlegal' },
+  { name: 'Loio', slug: 'loio', careerUrl: 'https://loio.legal/careers', platform: 'greenhouse', platformIdentifier: 'loio' },
+
+  // ── Accounting & Tax (Additional) ──────────────────────────────────
+
+  // ── Credit & Risk Analytics (Additional) ───────────────────────────
 ];
 
 class CompanyRegistry {

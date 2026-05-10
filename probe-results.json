@@ -1,0 +1,3671 @@
+{
+  "timestamp": "2026-05-10T19:14:34.375Z",
+  "total": 1036,
+  "probed": 992,
+  "passed": 548,
+  "broken": 411,
+  "uncertain": 33,
+  "skipped": 44,
+  "passingCompanies": [
+    "discord",
+    "robinhood",
+    "twilio",
+    "instacart",
+    "figma",
+    "pinterest",
+    "gitlab",
+    "airbnb",
+    "reddit",
+    "stripe",
+    "linear",
+    "anthropic",
+    "posthog",
+    "cloudflare",
+    "beyondtrust",
+    "fastly",
+    "exabeam",
+    "tenable",
+    "ping-identity",
+    "recorded-future",
+    "pure-storage",
+    "pagerduty",
+    "circleci",
+    "new-relic",
+    "jetbrains",
+    "postman",
+    "databricks",
+    "sas-institute",
+    "sisense",
+    "dbt-labs",
+    "zscaler",
+    "c3-ai",
+    "fivetran",
+    "assemblyai",
+    "grafana-labs",
+    "amplitude",
+    "stockx",
+    "take-two-interactive",
+    "duolingo",
+    "scale-ai",
+    "epic-games",
+    "okta",
+    "netflix",
+    "x-corp",
+    "clover-health",
+    "doximity",
+    "ubiquiti",
+    "chime",
+    "inovalon",
+    "marqeta",
+    "natera",
+    "affirm",
+    "oscar-health",
+    "opendoor",
+    "betterment",
+    "riot-games",
+    "costar-group",
+    "fourkites",
+    "project44",
+    "root-insurance",
+    "embroker",
+    "roblox",
+    "datacamp",
+    "udemy",
+    "greenhouse",
+    "at-bay",
+    "hippo-insurance",
+    "coalition-inc",
+    "flexport",
+    "ethos-life",
+    "justworks",
+    "gusto",
+    "new-york-life",
+    "block",
+    "accela",
+    "general-dynamics",
+    "sofi",
+    "sage-intacct",
+    "ramp",
+    "lucidchart",
+    "modern-health",
+    "bill-com",
+    "everlaw",
+    "cerebral",
+    "betterhelp",
+    "peloton",
+    "upstart",
+    "bosch",
+    "wasabi",
+    "visa",
+    "talkspace",
+    "monzo",
+    "rocket-lab",
+    "vonage",
+    "nuro",
+    "aurora-innovation",
+    "appian",
+    "five9",
+    "waymo",
+    "tcs",
+    "wiz",
+    "esri",
+    "nutanix",
+    "nice",
+    "bumble",
+    "airbyte",
+    "acorns",
+    "docker",
+    "wealthfront",
+    "fullstory",
+    "pinecone",
+    "lumen-technologies",
+    "spacex",
+    "deepgram",
+    "planet-labs",
+    "expensify",
+    "lemonade",
+    "bestow",
+    "kin-insurance",
+    "applied-materials",
+    "veeva-systems",
+    "trinet",
+    "blue-yonder",
+    "buildium",
+    "blue-origin",
+    "instructure",
+    "zoox",
+    "xero",
+    "opengov",
+    "ironclad",
+    "lyra-health",
+    "adobe",
+    "micron-technology",
+    "qualys",
+    "atlassian",
+    "elevance-health",
+    "nvidia",
+    "devoted-health",
+    "alteryx",
+    "zebra-technologies",
+    "coupa-software",
+    "blue-cross-blue-shield",
+    "upmc-health-plan",
+    "epicor",
+    "kla-corporation",
+    "ptc",
+    "red-hat",
+    "rackspace",
+    "f5-networks",
+    "allscripts",
+    "nextgen-healthcare",
+    "teladoc-health",
+    "capital-one",
+    "bank-of-america",
+    "fis",
+    "exact-sciences",
+    "cigna",
+    "illumina",
+    "metlife",
+    "intel",
+    "t-mobile",
+    "palantir-technologies",
+    "mri-software",
+    "highmark-health",
+    "asana",
+    "dropbox",
+    "vercel",
+    "mongodb",
+    "netlify",
+    "algolia",
+    "honeycomb",
+    "cribl",
+    "planetscale",
+    "cockroach-labs",
+    "sumo-logic",
+    "materialize",
+    "fleetcor",
+    "zoominfo",
+    "apollo-io",
+    "nasdaq",
+    "hubspot",
+    "pendo",
+    "pluralsight",
+    "hex-technologies",
+    "inflection-ai",
+    "together-ai",
+    "fireworks-ai",
+    "unisys",
+    "stability-ai",
+    "sourcegraph",
+    "labelbox",
+    "zillow",
+    "citi",
+    "tailscale",
+    "buildkite",
+    "lastpass",
+    "veracode",
+    "tines",
+    "censys",
+    "western-union",
+    "abnormal-security",
+    "pie-insurance",
+    "mercury-insurance",
+    "carta",
+    "charles-schwab",
+    "public-com",
+    "mercury",
+    "credit-karma",
+    "lendingtree",
+    "lpl-financial",
+    "robinhood-crypto",
+    "gemini",
+    "fireblocks",
+    "snyk",
+    "sentry",
+    "relativity",
+    "confluent",
+    "supabase",
+    "anyscale",
+    "bitwarden",
+    "perplexity",
+    "modal-labs",
+    "roboflow",
+    "anchorage-digital",
+    "greenlight",
+    "secureframe",
+    "character-ai",
+    "chronosphere",
+    "sublime-security",
+    "neon",
+    "travelers",
+    "material-security",
+    "stytch",
+    "clerk",
+    "outreach",
+    "j-b-hunt",
+    "drata",
+    "dxc-technology",
+    "stash",
+    "workos",
+    "unum-group",
+    "elevenlabs",
+    "smartsheet",
+    "u-s-bancorp",
+    "cohere",
+    "klaviyo",
+    "intercom",
+    "1password",
+    "calendly",
+    "sonatype",
+    "carbon-black",
+    "tanium",
+    "launchdarkly",
+    "backblaze",
+    "split-io",
+    "rubrik",
+    "toast",
+    "commvault",
+    "hudson-river-trading",
+    "lincoln-financial",
+    "vanta",
+    "adyen",
+    "optiver",
+    "loom",
+    "aqr-capital-management",
+    "imc-trading",
+    "point72",
+    "statsig",
+    "zapier",
+    "railway",
+    "render",
+    "freshworks",
+    "clickup",
+    "boeing",
+    "illumio",
+    "replit",
+    "sysdig",
+    "booz-allen-hamilton",
+    "s-p-global",
+    "lendingclub",
+    "cybereason",
+    "invesco",
+    "usaa",
+    "lexisnexis",
+    "extrahop",
+    "onapsis",
+    "netskope",
+    "icon-plc",
+    "universal-health-services",
+    "charles-river-laboratories",
+    "bigid",
+    "blackrock",
+    "zendesk",
+    "thomson-reuters",
+    "anaplan",
+    "allbirds",
+    "comet",
+    "runpod",
+    "stitch-fix",
+    "sigma-computing",
+    "tenstorrent",
+    "xai",
+    "coreweave",
+    "td-bank",
+    "faire",
+    "mercari",
+    "offerup",
+    "sony-interactive",
+    "shift4-payments",
+    "leidos",
+    "taxbit",
+    "khan-academy",
+    "niantic",
+    "forcepoint",
+    "masterclass",
+    "outschool",
+    "toast-tax",
+    "remote",
+    "hackerrank",
+    "aig",
+    "astranis",
+    "thoughtworks",
+    "crowdstrike",
+    "relativity-space",
+    "mycase",
+    "servicetitan",
+    "netdocuments",
+    "sambanova",
+    "vast-space",
+    "t-rowe-price",
+    "headspace",
+    "cerebras",
+    "proofpoint",
+    "calm",
+    "oura",
+    "lucid-motors",
+    "mosaic",
+    "frontier-communications",
+    "cube",
+    "menlo-security",
+    "anduril",
+    "extreme-networks",
+    "whoop",
+    "anrok",
+    "cornerstone-ondemand",
+    "newfront",
+    "strava",
+    "lambda",
+    "mural",
+    "metabase",
+    "ro",
+    "houzz",
+    "workday",
+    "allstate",
+    "eight-sleep",
+    "mistral-ai",
+    "state-street",
+    "skydio",
+    "hadrian",
+    "deel",
+    "broadridge",
+    "keybank",
+    "mastercard",
+    "knowbe4",
+    "druva",
+    "dragos",
+    "nike",
+    "bugcrowd",
+    "nozomi-networks",
+    "synack",
+    "descript",
+    "omada-health",
+    "comcast",
+    "speechify",
+    "sage",
+    "brooklinen",
+    "paypal",
+    "recharge",
+    "bright-health",
+    "redfin",
+    "forter",
+    "riskified",
+    "equityzen",
+    "sezzle",
+    "roofstock",
+    "pacaso",
+    "crowdstreet",
+    "forge-global",
+    "optiv",
+    "d2l",
+    "newsela",
+    "course-hero",
+    "lattice",
+    "gostudent",
+    "built-in",
+    "empower",
+    "culture-amp",
+    "glassdoor",
+    "knock",
+    "indeed",
+    "ladder",
+    "branch",
+    "haven-life",
+    "rebellion-defense",
+    "epirus",
+    "helsing",
+    "cvs-health",
+    "the-hartford",
+    "pandadoc",
+    "complyadvantage",
+    "kodiak",
+    "wayve",
+    "uber-freight",
+    "future-fitness",
+    "archer-aviation",
+    "axiom-space",
+    "bird",
+    "mindbody",
+    "classpass",
+    "barclays",
+    "goat",
+    "myfitnesspal",
+    "cloudian",
+    "ziprecruiter",
+    "pacific-life",
+    "jumio",
+    "etsy",
+    "15five",
+    "entrata",
+    "spendesk",
+    "workramp",
+    "fundrise",
+    "docebo",
+    "hackerone",
+    "help-scout",
+    "color-health",
+    "runway",
+    "lightdash",
+    "front",
+    "centene",
+    "vellum",
+    "nordstrom",
+    "writer",
+    "weaviate",
+    "wells-fargo",
+    "modern-treasury",
+    "bolt",
+    "alltrails",
+    "guardian-life",
+    "gorgias",
+    "angellist",
+    "cadre",
+    "hinge-health",
+    "animoca-brands",
+    "top-hat",
+    "quantum-systems",
+    "sift",
+    "anima",
+    "langchain",
+    "juro",
+    "capsule",
+    "trulioo",
+    "jfrog",
+    "pleo",
+    "persona",
+    "sardine",
+    "zip",
+    "beta-technologies",
+    "360learning",
+    "socure",
+    "sierra-space",
+    "supercell",
+    "filevine",
+    "bandwidth",
+    "humana",
+    "interactivebrokers",
+    "figma-design",
+    "sword-health",
+    "iqvia",
+    "databricks-careers",
+    "hopper",
+    "discord-careers",
+    "reddit-careers",
+    "samsung",
+    "pinterest-careers",
+    "substack-careers",
+    "kickstarter-careers",
+    "medium-careers",
+    "thinkific-careers",
+    "robinhood-careers",
+    "scaler",
+    "logicmonitor",
+    "john-hancock",
+    "protondrive",
+    "cleveland-clinic",
+    "mcafee",
+    "kingston",
+    "gainsight",
+    "twitch",
+    "datadog",
+    "lyft",
+    "shein",
+    "23andme",
+    "coursera",
+    "vertex",
+    "target",
+    "aerovironment",
+    "rocket-lawyer",
+    "intermountain-healthcare",
+    "airtable",
+    "webflow",
+    "typeform",
+    "deepmind",
+    "nextdoor",
+    "krafton",
+    "scopely",
+    "parsley-health",
+    "n26",
+    "one-medical",
+    "public",
+    "adventhealth",
+    "code-org",
+    "shield-ai",
+    "insurify",
+    "rga",
+    "unbounce",
+    "varda-space",
+    "squarespace",
+    "disco",
+    "zwift",
+    "disney",
+    "crash-plan",
+    "constant-contact",
+    "elastic",
+    "apache-superset",
+    "nice-systems",
+    "okx",
+    "udacity",
+    "skillsoft",
+    "fieldwire",
+    "mighty-networks",
+    "circle",
+    "trend-micro",
+    "workato",
+    "brandwatch",
+    "via",
+    "lloyds",
+    "walmart"
+  ],
+  "brokenCompanies": [
+    {
+      "slug": "replicate",
+      "name": "Replicate",
+      "platform": "ashby",
+      "platformIdentifier": "replicate",
+      "httpStatus": 404
+    },
+    {
+      "slug": "xano",
+      "name": "Xano",
+      "platform": "ashby",
+      "platformIdentifier": "xano",
+      "httpStatus": 404
+    },
+    {
+      "slug": "fortanix",
+      "name": "Fortanix",
+      "platform": "ashby",
+      "platformIdentifier": "fortanix",
+      "httpStatus": 404
+    },
+    {
+      "slug": "countly",
+      "name": "Countly",
+      "platform": "ashby",
+      "platformIdentifier": "countly",
+      "httpStatus": 404
+    },
+    {
+      "slug": "wandb",
+      "name": "Weights & Biases",
+      "platform": "ashby",
+      "platformIdentifier": "wandb",
+      "httpStatus": 404
+    },
+    {
+      "slug": "bereal",
+      "name": "BeReal",
+      "platform": "ashby",
+      "platformIdentifier": "bereal",
+      "httpStatus": 404
+    },
+    {
+      "slug": "copyai",
+      "name": "Copy.ai",
+      "platform": "ashby",
+      "platformIdentifier": "copy",
+      "httpStatus": 404
+    },
+    {
+      "slug": "vinted",
+      "name": "Vinted",
+      "platform": "ashby",
+      "platformIdentifier": "vinted",
+      "httpStatus": 404
+    },
+    {
+      "slug": "checkout",
+      "name": "Checkout.com",
+      "platform": "ashby",
+      "platformIdentifier": "checkout",
+      "httpStatus": 404
+    },
+    {
+      "slug": "rapyd",
+      "name": "Rapyd",
+      "platform": "ashby",
+      "platformIdentifier": "rapyd",
+      "httpStatus": 404
+    },
+    {
+      "slug": "mirror",
+      "name": "Mirror",
+      "platform": "ashby",
+      "platformIdentifier": "mirror",
+      "httpStatus": 404
+    },
+    {
+      "slug": "sketch",
+      "name": "Sketch",
+      "platform": "ashby",
+      "platformIdentifier": "sketch",
+      "httpStatus": 404
+    },
+    {
+      "slug": "framer",
+      "name": "Framer",
+      "platform": "ashby",
+      "platformIdentifier": "framer",
+      "httpStatus": 404
+    },
+    {
+      "slug": "guidepoint",
+      "name": "Guidepoint",
+      "platform": "ashby",
+      "platformIdentifier": "guidepoint",
+      "httpStatus": 404
+    },
+    {
+      "slug": "tidal-careers",
+      "name": "Tidal",
+      "platform": "ashby",
+      "platformIdentifier": "tidal",
+      "httpStatus": 404
+    },
+    {
+      "slug": "signal-careers",
+      "name": "Signal",
+      "platform": "ashby",
+      "platformIdentifier": "signal",
+      "httpStatus": 404
+    },
+    {
+      "slug": "treehouse-careers",
+      "name": "Treehouse",
+      "platform": "ashby",
+      "platformIdentifier": "treehouse",
+      "httpStatus": 404
+    },
+    {
+      "slug": "gitpod-careers",
+      "name": "GitPod",
+      "platform": "ashby",
+      "platformIdentifier": "gitpod",
+      "httpStatus": 404
+    },
+    {
+      "slug": "indiegogo-careers",
+      "name": "Indiegogo",
+      "platform": "ashby",
+      "platformIdentifier": "indiegogo",
+      "httpStatus": 404
+    },
+    {
+      "slug": "gumroad-careers",
+      "name": "Gumroad",
+      "platform": "ashby",
+      "platformIdentifier": "gumroad",
+      "httpStatus": 404
+    },
+    {
+      "slug": "podia-careers",
+      "name": "Podia",
+      "platform": "ashby",
+      "platformIdentifier": "podia",
+      "httpStatus": 404
+    },
+    {
+      "slug": "teachable-careers",
+      "name": "Teachable",
+      "platform": "ashby",
+      "platformIdentifier": "teachable",
+      "httpStatus": 404
+    },
+    {
+      "slug": "kajabi-careers",
+      "name": "Kajabi",
+      "platform": "ashby",
+      "platformIdentifier": "kajabi",
+      "httpStatus": 404
+    },
+    {
+      "slug": "eightfold",
+      "name": "Eightfold",
+      "platform": "ashby",
+      "platformIdentifier": "eightfold",
+      "httpStatus": 404
+    },
+    {
+      "slug": "harver",
+      "name": "Harver",
+      "platform": "ashby",
+      "platformIdentifier": "harver",
+      "httpStatus": 404
+    },
+    {
+      "slug": "talentdesk",
+      "name": "TalentDesk",
+      "platform": "ashby",
+      "platformIdentifier": "talentdesk",
+      "httpStatus": 404
+    },
+    {
+      "slug": "interviewbit",
+      "name": "Interviewbit",
+      "platform": "ashby",
+      "platformIdentifier": "interviewbit",
+      "httpStatus": 404
+    },
+    {
+      "slug": "tryhackme",
+      "name": "TryHackMe",
+      "platform": "ashby",
+      "platformIdentifier": "tryhackme",
+      "httpStatus": 404
+    },
+    {
+      "slug": "pentesterlab",
+      "name": "PentesterLab",
+      "platform": "ashby",
+      "platformIdentifier": "pentesterlab",
+      "httpStatus": 404
+    },
+    {
+      "slug": "synccom",
+      "name": "Sync.com",
+      "platform": "ashby",
+      "platformIdentifier": "sync",
+      "httpStatus": 404
+    },
+    {
+      "slug": "mega",
+      "name": "Mega",
+      "platform": "ashby",
+      "platformIdentifier": "mega",
+      "httpStatus": 404
+    },
+    {
+      "slug": "spideroak",
+      "name": "SpiderOak",
+      "platform": "ashby",
+      "platformIdentifier": "spideroak",
+      "httpStatus": 404
+    },
+    {
+      "slug": "nextcloud",
+      "name": "Nextcloud",
+      "platform": "ashby",
+      "platformIdentifier": "nextcloud",
+      "httpStatus": 404
+    },
+    {
+      "slug": "pcloud",
+      "name": "pCloud",
+      "platform": "ashby",
+      "platformIdentifier": "pcloud",
+      "httpStatus": 404
+    },
+    {
+      "slug": "netmaker",
+      "name": "Netmaker",
+      "platform": "ashby",
+      "platformIdentifier": "netmaker",
+      "httpStatus": 404
+    },
+    {
+      "slug": "firezone",
+      "name": "Firezone",
+      "platform": "ashby",
+      "platformIdentifier": "firezone",
+      "httpStatus": 404
+    },
+    {
+      "slug": "zerotier",
+      "name": "ZeroTier",
+      "platform": "ashby",
+      "platformIdentifier": "zerotier",
+      "httpStatus": 404
+    },
+    {
+      "slug": "outline",
+      "name": "Outline",
+      "platform": "ashby",
+      "platformIdentifier": "outline",
+      "httpStatus": 404
+    },
+    {
+      "slug": "grafana",
+      "name": "Grafana",
+      "platform": "ashby",
+      "platformIdentifier": "grafana",
+      "httpStatus": 404
+    },
+    {
+      "slug": "doordash",
+      "name": "DoorDash",
+      "platform": "greenhouse",
+      "platformIdentifier": "doordash",
+      "httpStatus": 404
+    },
+    {
+      "slug": "coinbase",
+      "name": "Coinbase",
+      "platform": "greenhouse",
+      "platformIdentifier": "coinbase",
+      "httpStatus": 404
+    },
+    {
+      "slug": "openai",
+      "name": "OpenAI",
+      "platform": "greenhouse",
+      "platformIdentifier": "openai",
+      "httpStatus": 404
+    },
+    {
+      "slug": "snowflake",
+      "name": "Snowflake",
+      "platform": "greenhouse",
+      "platformIdentifier": "snowflake",
+      "httpStatus": 404
+    },
+    {
+      "slug": "plaid",
+      "name": "Plaid",
+      "platform": "greenhouse",
+      "platformIdentifier": "plaid",
+      "httpStatus": 404
+    },
+    {
+      "slug": "huawei",
+      "name": "Huawei",
+      "platform": "greenhouse",
+      "platformIdentifier": "huawei",
+      "httpStatus": 404
+    },
+    {
+      "slug": "snort",
+      "name": "Snort",
+      "platform": "greenhouse",
+      "platformIdentifier": "snort",
+      "httpStatus": 404
+    },
+    {
+      "slug": "marvell",
+      "name": "Marvell",
+      "platform": "greenhouse",
+      "platformIdentifier": "marvell",
+      "httpStatus": 404
+    },
+    {
+      "slug": "stmicroelectronics",
+      "name": "STMicroelectronics",
+      "platform": "greenhouse",
+      "platformIdentifier": "stm",
+      "httpStatus": 404
+    },
+    {
+      "slug": "npm",
+      "name": "npm Inc",
+      "platform": "greenhouse",
+      "platformIdentifier": "npm",
+      "httpStatus": 404
+    },
+    {
+      "slug": "jasper",
+      "name": "Jasper",
+      "platform": "greenhouse",
+      "platformIdentifier": "jasper",
+      "httpStatus": 404
+    },
+    {
+      "slug": "therealreal",
+      "name": "The RealReal",
+      "platform": "greenhouse",
+      "platformIdentifier": "therealreal",
+      "httpStatus": 404
+    },
+    {
+      "slug": "zynga",
+      "name": "Zynga",
+      "platform": "greenhouse",
+      "platformIdentifier": "zynga",
+      "httpStatus": 404
+    },
+    {
+      "slug": "goodrx",
+      "name": "GoodRx",
+      "platform": "greenhouse",
+      "platformIdentifier": "goodrx",
+      "httpStatus": 404
+    },
+    {
+      "slug": "personio",
+      "name": "Personio",
+      "platform": "greenhouse",
+      "platformIdentifier": "personio",
+      "httpStatus": 404
+    },
+    {
+      "slug": "meta-careers",
+      "name": "Meta",
+      "platform": "greenhouse",
+      "platformIdentifier": "meta",
+      "httpStatus": 404
+    },
+    {
+      "slug": "netflix-careers",
+      "name": "Netflix",
+      "platform": "greenhouse",
+      "platformIdentifier": "netflix",
+      "httpStatus": 404
+    },
+    {
+      "slug": "mondaycom-careers",
+      "name": "Monday.com",
+      "platform": "greenhouse",
+      "platformIdentifier": "monday",
+      "httpStatus": 404
+    },
+    {
+      "slug": "wix-careers",
+      "name": "Wix",
+      "platform": "greenhouse",
+      "platformIdentifier": "wix",
+      "httpStatus": 404
+    },
+    {
+      "slug": "shopify-careers",
+      "name": "Shopify",
+      "platform": "greenhouse",
+      "platformIdentifier": "shopify",
+      "httpStatus": 404
+    },
+    {
+      "slug": "bigcommerce-careers",
+      "name": "BigCommerce",
+      "platform": "greenhouse",
+      "platformIdentifier": "bigcommerce",
+      "httpStatus": 404
+    },
+    {
+      "slug": "magento-careers",
+      "name": "Magento",
+      "platform": "greenhouse",
+      "platformIdentifier": "magento",
+      "httpStatus": 404
+    },
+    {
+      "slug": "rakuten-careers",
+      "name": "Rakuten",
+      "platform": "greenhouse",
+      "platformIdentifier": "rakuten",
+      "httpStatus": 404
+    },
+    {
+      "slug": "mercadolibre-careers",
+      "name": "Mercado Libre",
+      "platform": "greenhouse",
+      "platformIdentifier": "mercado",
+      "httpStatus": 404
+    },
+    {
+      "slug": "pandora-careers",
+      "name": "Pandora",
+      "platform": "greenhouse",
+      "platformIdentifier": "pandora",
+      "httpStatus": 404
+    },
+    {
+      "slug": "whatsapp-careers",
+      "name": "WhatsApp",
+      "platform": "greenhouse",
+      "platformIdentifier": "whatsapp",
+      "httpStatus": 404
+    },
+    {
+      "slug": "line-careers",
+      "name": "Line",
+      "platform": "greenhouse",
+      "platformIdentifier": "line",
+      "httpStatus": 404
+    },
+    {
+      "slug": "quora-careers",
+      "name": "Quora",
+      "platform": "greenhouse",
+      "platformIdentifier": "quora",
+      "httpStatus": 404
+    },
+    {
+      "slug": "instagram-careers",
+      "name": "Instagram",
+      "platform": "greenhouse",
+      "platformIdentifier": "instagram",
+      "httpStatus": 404
+    },
+    {
+      "slug": "tiktok-careers",
+      "name": "TikTok",
+      "platform": "greenhouse",
+      "platformIdentifier": "tiktok",
+      "httpStatus": 404
+    },
+    {
+      "slug": "edx-careers",
+      "name": "edX",
+      "platform": "greenhouse",
+      "platformIdentifier": "edx",
+      "httpStatus": 404
+    },
+    {
+      "slug": "snapchat-careers",
+      "name": "Snapchat",
+      "platform": "greenhouse",
+      "platformIdentifier": "snapchat",
+      "httpStatus": 404
+    },
+    {
+      "slug": "twitter-careers",
+      "name": "Twitter",
+      "platform": "greenhouse",
+      "platformIdentifier": "twitter",
+      "httpStatus": 404
+    },
+    {
+      "slug": "stackoverflow-careers",
+      "name": "Stack Overflow",
+      "platform": "greenhouse",
+      "platformIdentifier": "stackoverflow",
+      "httpStatus": 404
+    },
+    {
+      "slug": "bitbucket-careers",
+      "name": "Bitbucket",
+      "platform": "greenhouse",
+      "platformIdentifier": "bitbucket",
+      "httpStatus": 404
+    },
+    {
+      "slug": "patreon-careers",
+      "name": "Patreon",
+      "platform": "greenhouse",
+      "platformIdentifier": "patreon",
+      "httpStatus": 404
+    },
+    {
+      "slug": "github-careers",
+      "name": "GitHub",
+      "platform": "greenhouse",
+      "platformIdentifier": "github",
+      "httpStatus": 404
+    },
+    {
+      "slug": "grab-careers",
+      "name": "Grab",
+      "platform": "greenhouse",
+      "platformIdentifier": "grab",
+      "httpStatus": 404
+    },
+    {
+      "slug": "depop-careers",
+      "name": "Depop",
+      "platform": "greenhouse",
+      "platformIdentifier": "depop",
+      "httpStatus": 404
+    },
+    {
+      "slug": "ola-careers",
+      "name": "Ola",
+      "platform": "greenhouse",
+      "platformIdentifier": "ola",
+      "httpStatus": 404
+    },
+    {
+      "slug": "vestiairecollective-careers",
+      "name": "Vestiaire Collective",
+      "platform": "greenhouse",
+      "platformIdentifier": "vestiaire",
+      "httpStatus": 404
+    },
+    {
+      "slug": "blablacar-careers",
+      "name": "Blablacar",
+      "platform": "greenhouse",
+      "platformIdentifier": "blablacar",
+      "httpStatus": 404
+    },
+    {
+      "slug": "gojek-careers",
+      "name": "Gojek",
+      "platform": "greenhouse",
+      "platformIdentifier": "gojek",
+      "httpStatus": 404
+    },
+    {
+      "slug": "therealreal-careers",
+      "name": "TheRealReal",
+      "platform": "greenhouse",
+      "platformIdentifier": "therealreal",
+      "httpStatus": 404
+    },
+    {
+      "slug": "gilt-careers",
+      "name": "Gilt",
+      "platform": "greenhouse",
+      "platformIdentifier": "gilt",
+      "httpStatus": 404
+    },
+    {
+      "slug": "livingsocial-careers",
+      "name": "LivingSocial",
+      "platform": "greenhouse",
+      "platformIdentifier": "livingsocial",
+      "httpStatus": 404
+    },
+    {
+      "slug": "coinbase-careers",
+      "name": "Coinbase",
+      "platform": "greenhouse",
+      "platformIdentifier": "coinbase",
+      "httpStatus": 404
+    },
+    {
+      "slug": "cryptocom-careers",
+      "name": "Crypto.com",
+      "platform": "greenhouse",
+      "platformIdentifier": "crypto",
+      "httpStatus": 404
+    },
+    {
+      "slug": "datarobot",
+      "name": "DataRobot",
+      "platform": "greenhouse",
+      "platformIdentifier": "datarobot",
+      "httpStatus": 404
+    },
+    {
+      "slug": "hotjar",
+      "name": "Hotjar",
+      "platform": "greenhouse",
+      "platformIdentifier": "hotjar",
+      "httpStatus": 404
+    },
+    {
+      "slug": "seek",
+      "name": "SEEK",
+      "platform": "greenhouse",
+      "platformIdentifier": "seek",
+      "httpStatus": 404
+    },
+    {
+      "slug": "contentsquare",
+      "name": "Contentsquare",
+      "platform": "greenhouse",
+      "platformIdentifier": "contentsquare",
+      "httpStatus": 404
+    },
+    {
+      "slug": "crazyegg",
+      "name": "Crazy Egg",
+      "platform": "greenhouse",
+      "platformIdentifier": "crazyegg",
+      "httpStatus": 404
+    },
+    {
+      "slug": "xing",
+      "name": "Xing",
+      "platform": "greenhouse",
+      "platformIdentifier": "xing",
+      "httpStatus": 404
+    },
+    {
+      "slug": "workable",
+      "name": "Workable",
+      "platform": "greenhouse",
+      "platformIdentifier": "workable",
+      "httpStatus": 404
+    },
+    {
+      "slug": "hackerearth",
+      "name": "Hackerearth",
+      "platform": "greenhouse",
+      "platformIdentifier": "hackerearth",
+      "httpStatus": 404
+    },
+    {
+      "slug": "gem",
+      "name": "Gem",
+      "platform": "greenhouse",
+      "platformIdentifier": "gem",
+      "httpStatus": 404
+    },
+    {
+      "slug": "beamery",
+      "name": "Beamery",
+      "platform": "greenhouse",
+      "platformIdentifier": "beamery",
+      "httpStatus": 404
+    },
+    {
+      "slug": "codechef",
+      "name": "Codechef",
+      "platform": "greenhouse",
+      "platformIdentifier": "codechef",
+      "httpStatus": 404
+    },
+    {
+      "slug": "cbtnuggets",
+      "name": "CBTNuggets",
+      "platform": "greenhouse",
+      "platformIdentifier": "cbtnuggets",
+      "httpStatus": 404
+    },
+    {
+      "slug": "hackthebox",
+      "name": "HackTheBox",
+      "platform": "greenhouse",
+      "platformIdentifier": "hackthebox",
+      "httpStatus": 404
+    },
+    {
+      "slug": "immersivelabs",
+      "name": "ImmersiveLabs",
+      "platform": "greenhouse",
+      "platformIdentifier": "immersivelabs",
+      "httpStatus": 404
+    },
+    {
+      "slug": "elearnsecurity",
+      "name": "eLearnSecurity",
+      "platform": "greenhouse",
+      "platformIdentifier": "elearnsecurity",
+      "httpStatus": 404
+    },
+    {
+      "slug": "raygun",
+      "name": "Raygun",
+      "platform": "greenhouse",
+      "platformIdentifier": "raygun",
+      "httpStatus": 404
+    },
+    {
+      "slug": "infogram",
+      "name": "Infogram",
+      "platform": "greenhouse",
+      "platformIdentifier": "infogram",
+      "httpStatus": 404
+    },
+    {
+      "slug": "modeanalytics",
+      "name": "Mode Analytics",
+      "platform": "greenhouse",
+      "platformIdentifier": "mode",
+      "httpStatus": 404
+    },
+    {
+      "slug": "idrive",
+      "name": "IDrive",
+      "platform": "greenhouse",
+      "platformIdentifier": "idrive",
+      "httpStatus": 404
+    },
+    {
+      "slug": "owncloud",
+      "name": "ownCloud",
+      "platform": "greenhouse",
+      "platformIdentifier": "owncloud",
+      "httpStatus": 404
+    },
+    {
+      "slug": "tresorit",
+      "name": "Tresorit",
+      "platform": "greenhouse",
+      "platformIdentifier": "tresorit",
+      "httpStatus": 404
+    },
+    {
+      "slug": "cumulus",
+      "name": "Cumulus Networks",
+      "platform": "greenhouse",
+      "platformIdentifier": "cumulus",
+      "httpStatus": 404
+    },
+    {
+      "slug": "bigswitch",
+      "name": "BigSwitch",
+      "platform": "greenhouse",
+      "platformIdentifier": "bigswitch",
+      "httpStatus": 404
+    },
+    {
+      "slug": "arm",
+      "name": "ARM Holdings",
+      "platform": "greenhouse",
+      "platformIdentifier": "arm",
+      "httpStatus": 404
+    },
+    {
+      "slug": "kioxia",
+      "name": "KIOXIA",
+      "platform": "greenhouse",
+      "platformIdentifier": "kioxia",
+      "httpStatus": 404
+    },
+    {
+      "slug": "corsair",
+      "name": "Corsair",
+      "platform": "greenhouse",
+      "platformIdentifier": "corsair",
+      "httpStatus": 404
+    },
+    {
+      "slug": "patriot",
+      "name": "Patriot Memory",
+      "platform": "greenhouse",
+      "platformIdentifier": "patriot",
+      "httpStatus": 404
+    },
+    {
+      "slug": "mushkin",
+      "name": "Mushkin",
+      "platform": "greenhouse",
+      "platformIdentifier": "mushkin",
+      "httpStatus": 404
+    },
+    {
+      "slug": "crucial",
+      "name": "Crucial",
+      "platform": "greenhouse",
+      "platformIdentifier": "crucial",
+      "httpStatus": 404
+    },
+    {
+      "slug": "ibm",
+      "name": "IBM",
+      "platform": "greenhouse",
+      "platformIdentifier": "ibm",
+      "httpStatus": 404
+    },
+    {
+      "slug": "digitalocean",
+      "name": "DigitalOcean",
+      "platform": "greenhouse",
+      "platformIdentifier": "digitalocean",
+      "httpStatus": 404
+    },
+    {
+      "slug": "heroku",
+      "name": "Heroku",
+      "platform": "greenhouse",
+      "platformIdentifier": "heroku",
+      "httpStatus": 404
+    },
+    {
+      "slug": "linode",
+      "name": "Linode",
+      "platform": "greenhouse",
+      "platformIdentifier": "linode",
+      "httpStatus": 404
+    },
+    {
+      "slug": "slack",
+      "name": "Slack",
+      "platform": "greenhouse",
+      "platformIdentifier": "slack",
+      "httpStatus": 404
+    },
+    {
+      "slug": "sendgrid",
+      "name": "SendGrid",
+      "platform": "greenhouse",
+      "platformIdentifier": "sendgrid",
+      "httpStatus": 404
+    },
+    {
+      "slug": "palo-alto",
+      "name": "Palo Alto Networks",
+      "platform": "greenhouse",
+      "platformIdentifier": "paloaltonetworks",
+      "httpStatus": 404
+    },
+    {
+      "slug": "auth0",
+      "name": "Auth0",
+      "platform": "greenhouse",
+      "platformIdentifier": "auth0",
+      "httpStatus": 404
+    },
+    {
+      "slug": "fortinet",
+      "name": "Fortinet",
+      "platform": "greenhouse",
+      "platformIdentifier": "fortinet",
+      "httpStatus": 404
+    },
+    {
+      "slug": "rapid7",
+      "name": "Rapid7",
+      "platform": "greenhouse",
+      "platformIdentifier": "rapid7",
+      "httpStatus": 404
+    },
+    {
+      "slug": "broadcom",
+      "name": "Broadcom",
+      "platform": "greenhouse",
+      "platformIdentifier": "broadcom",
+      "httpStatus": 404
+    },
+    {
+      "slug": "malwarebytes",
+      "name": "Malwarebytes",
+      "platform": "greenhouse",
+      "platformIdentifier": "malwarebytes",
+      "httpStatus": 404
+    },
+    {
+      "slug": "arm-holdings",
+      "name": "ARM Holdings",
+      "platform": "greenhouse",
+      "platformIdentifier": "arm",
+      "httpStatus": 404
+    },
+    {
+      "slug": "micron",
+      "name": "Micron Technology",
+      "platform": "greenhouse",
+      "platformIdentifier": "micron",
+      "httpStatus": 404
+    },
+    {
+      "slug": "github",
+      "name": "GitHub",
+      "platform": "greenhouse",
+      "platformIdentifier": "github",
+      "httpStatus": 404
+    },
+    {
+      "slug": "hashicorp",
+      "name": "HashiCorp",
+      "platform": "greenhouse",
+      "platformIdentifier": "hashicorp",
+      "httpStatus": 404
+    },
+    {
+      "slug": "looker",
+      "name": "Looker",
+      "platform": "greenhouse",
+      "platformIdentifier": "looker",
+      "httpStatus": 404
+    },
+    {
+      "slug": "qlik",
+      "name": "Qlik",
+      "platform": "greenhouse",
+      "platformIdentifier": "qlik",
+      "httpStatus": 404
+    },
+    {
+      "slug": "splunk",
+      "name": "Splunk",
+      "platform": "greenhouse",
+      "platformIdentifier": "splunk",
+      "httpStatus": 404
+    },
+    {
+      "slug": "hugging-face",
+      "name": "Hugging Face",
+      "platform": "greenhouse",
+      "platformIdentifier": "huggingface",
+      "httpStatus": 404
+    },
+    {
+      "slug": "tableau",
+      "name": "Tableau",
+      "platform": "greenhouse",
+      "platformIdentifier": "tableau",
+      "httpStatus": 404
+    },
+    {
+      "slug": "h2o-ai",
+      "name": "H2O.ai",
+      "platform": "greenhouse",
+      "platformIdentifier": "h2o",
+      "httpStatus": 404
+    },
+    {
+      "slug": "sap",
+      "name": "SAP",
+      "platform": "greenhouse",
+      "platformIdentifier": "sap",
+      "httpStatus": 404
+    },
+    {
+      "slug": "infor",
+      "name": "Infor",
+      "platform": "greenhouse",
+      "platformIdentifier": "infor",
+      "httpStatus": 404
+    },
+    {
+      "slug": "tinder",
+      "name": "Tinder",
+      "platform": "greenhouse",
+      "platformIdentifier": "tinder",
+      "httpStatus": 404
+    },
+    {
+      "slug": "ebay",
+      "name": "eBay",
+      "platform": "greenhouse",
+      "platformIdentifier": "ebay",
+      "httpStatus": 404
+    },
+    {
+      "slug": "snapchat",
+      "name": "Snapchat",
+      "platform": "greenhouse",
+      "platformIdentifier": "snap",
+      "httpStatus": 404
+    },
+    {
+      "slug": "activision-blizzard",
+      "name": "Activision Blizzard",
+      "platform": "greenhouse",
+      "platformIdentifier": "activisionblizzard",
+      "httpStatus": 404
+    },
+    {
+      "slug": "ubisoft",
+      "name": "Ubisoft",
+      "platform": "greenhouse",
+      "platformIdentifier": "ubisoft",
+      "httpStatus": 404
+    },
+    {
+      "slug": "square-enix",
+      "name": "Square Enix",
+      "platform": "greenhouse",
+      "platformIdentifier": "squareenix",
+      "httpStatus": 404
+    },
+    {
+      "slug": "sentinelone",
+      "name": "SentinelOne",
+      "platform": "greenhouse",
+      "platformIdentifier": "sentinelone",
+      "httpStatus": 404
+    },
+    {
+      "slug": "electronic-arts",
+      "name": "Electronic Arts",
+      "platform": "greenhouse",
+      "platformIdentifier": "ea",
+      "httpStatus": 404
+    },
+    {
+      "slug": "verizon",
+      "name": "Verizon",
+      "platform": "greenhouse",
+      "platformIdentifier": "verizon",
+      "httpStatus": 404
+    },
+    {
+      "slug": "at-t",
+      "name": "AT&T",
+      "platform": "greenhouse",
+      "platformIdentifier": "att",
+      "httpStatus": 404
+    },
+    {
+      "slug": "cisco",
+      "name": "Cisco",
+      "platform": "greenhouse",
+      "platformIdentifier": "cisco",
+      "httpStatus": 404
+    },
+    {
+      "slug": "united-healthcare",
+      "name": "United Healthcare",
+      "platform": "greenhouse",
+      "platformIdentifier": "unitedhealth",
+      "httpStatus": 404
+    },
+    {
+      "slug": "anthem",
+      "name": "Anthem",
+      "platform": "greenhouse",
+      "platformIdentifier": "anthem",
+      "httpStatus": 404
+    },
+    {
+      "slug": "aetna",
+      "name": "Aetna",
+      "platform": "greenhouse",
+      "platformIdentifier": "aetna",
+      "httpStatus": 404
+    },
+    {
+      "slug": "teladoc",
+      "name": "Teladoc",
+      "platform": "greenhouse",
+      "platformIdentifier": "teladoc",
+      "httpStatus": 404
+    },
+    {
+      "slug": "klarna",
+      "name": "Klarna",
+      "platform": "greenhouse",
+      "platformIdentifier": "klarna",
+      "httpStatus": 404
+    },
+    {
+      "slug": "wise",
+      "name": "Wise",
+      "platform": "greenhouse",
+      "platformIdentifier": "wise",
+      "httpStatus": 404
+    },
+    {
+      "slug": "interactive-brokers",
+      "name": "Interactive Brokers",
+      "platform": "greenhouse",
+      "platformIdentifier": "interactivebrokers",
+      "httpStatus": 404
+    },
+    {
+      "slug": "dhl",
+      "name": "DHL",
+      "platform": "greenhouse",
+      "platformIdentifier": "dhl",
+      "httpStatus": 404
+    },
+    {
+      "slug": "fedex",
+      "name": "FedEx",
+      "platform": "greenhouse",
+      "platformIdentifier": "fedex",
+      "httpStatus": 404
+    },
+    {
+      "slug": "ups",
+      "name": "UPS",
+      "platform": "greenhouse",
+      "platformIdentifier": "ups",
+      "httpStatus": 404
+    },
+    {
+      "slug": "compass",
+      "name": "Compass",
+      "platform": "greenhouse",
+      "platformIdentifier": "compass",
+      "httpStatus": 404
+    },
+    {
+      "slug": "getir",
+      "name": "Getir",
+      "platform": "greenhouse",
+      "platformIdentifier": "getir",
+      "httpStatus": 404
+    },
+    {
+      "slug": "convoy",
+      "name": "Convoy",
+      "platform": "greenhouse",
+      "platformIdentifier": "convoy",
+      "httpStatus": 404
+    },
+    {
+      "slug": "skillshare",
+      "name": "Skillshare",
+      "platform": "greenhouse",
+      "platformIdentifier": "skillshare",
+      "httpStatus": 404
+    },
+    {
+      "slug": "chegg",
+      "name": "Chegg",
+      "platform": "greenhouse",
+      "platformIdentifier": "chegg",
+      "httpStatus": 404
+    },
+    {
+      "slug": "accenture",
+      "name": "Accenture",
+      "platform": "greenhouse",
+      "platformIdentifier": "accenture",
+      "httpStatus": 404
+    },
+    {
+      "slug": "capgemini",
+      "name": "Capgemini",
+      "platform": "greenhouse",
+      "platformIdentifier": "capgemini",
+      "httpStatus": 404
+    },
+    {
+      "slug": "pwc",
+      "name": "PwC",
+      "platform": "greenhouse",
+      "platformIdentifier": "pwc",
+      "httpStatus": 404
+    },
+    {
+      "slug": "deloitte",
+      "name": "Deloitte",
+      "platform": "greenhouse",
+      "platformIdentifier": "deloitte",
+      "httpStatus": 404
+    },
+    {
+      "slug": "ey",
+      "name": "EY",
+      "platform": "greenhouse",
+      "platformIdentifier": "ey",
+      "httpStatus": 404
+    },
+    {
+      "slug": "adp",
+      "name": "ADP",
+      "platform": "greenhouse",
+      "platformIdentifier": "adp",
+      "httpStatus": 404
+    },
+    {
+      "slug": "paycor",
+      "name": "Paycor",
+      "platform": "greenhouse",
+      "platformIdentifier": "paycor",
+      "httpStatus": 404
+    },
+    {
+      "slug": "rippling",
+      "name": "Rippling",
+      "platform": "greenhouse",
+      "platformIdentifier": "rippling",
+      "httpStatus": 404
+    },
+    {
+      "slug": "hippo",
+      "name": "Hippo",
+      "platform": "greenhouse",
+      "platformIdentifier": "hippo",
+      "httpStatus": 404
+    },
+    {
+      "slug": "bamboohr",
+      "name": "BambooHR",
+      "platform": "greenhouse",
+      "platformIdentifier": "bamboohr",
+      "httpStatus": 404
+    },
+    {
+      "slug": "progressive",
+      "name": "Progressive",
+      "platform": "greenhouse",
+      "platformIdentifier": "progressive",
+      "httpStatus": 404
+    },
+    {
+      "slug": "lincoln-national",
+      "name": "Lincoln National",
+      "platform": "greenhouse",
+      "platformIdentifier": "lincolnnational",
+      "httpStatus": 404
+    },
+    {
+      "slug": "geico",
+      "name": "Geico",
+      "platform": "greenhouse",
+      "platformIdentifier": "geico",
+      "httpStatus": 404
+    },
+    {
+      "slug": "principal-financial",
+      "name": "Principal Financial",
+      "platform": "greenhouse",
+      "platformIdentifier": "principal",
+      "httpStatus": 404
+    },
+    {
+      "slug": "voya-financial",
+      "name": "Voya Financial",
+      "platform": "greenhouse",
+      "platformIdentifier": "voya",
+      "httpStatus": 404
+    },
+    {
+      "slug": "raytheon",
+      "name": "Raytheon",
+      "platform": "greenhouse",
+      "platformIdentifier": "rtx",
+      "httpStatus": 404
+    },
+    {
+      "slug": "northrop-grumman",
+      "name": "Northrop Grumman",
+      "platform": "greenhouse",
+      "platformIdentifier": "northropgrumman",
+      "httpStatus": 404
+    },
+    {
+      "slug": "palantir",
+      "name": "Palantir",
+      "platform": "greenhouse",
+      "platformIdentifier": "palantir",
+      "httpStatus": 404
+    },
+    {
+      "slug": "saic",
+      "name": "SAIC",
+      "platform": "greenhouse",
+      "platformIdentifier": "saic",
+      "httpStatus": 404
+    },
+    {
+      "slug": "booz-allen",
+      "name": "Booz Allen Hamilton",
+      "platform": "greenhouse",
+      "platformIdentifier": "boozallen",
+      "httpStatus": 404
+    },
+    {
+      "slug": "lockheed-martin",
+      "name": "Lockheed Martin",
+      "platform": "greenhouse",
+      "platformIdentifier": "lockheedmartin",
+      "httpStatus": 404
+    },
+    {
+      "slug": "miro",
+      "name": "Miro",
+      "platform": "greenhouse",
+      "platformIdentifier": "miro",
+      "httpStatus": 404
+    },
+    {
+      "slug": "canva",
+      "name": "Canva",
+      "platform": "greenhouse",
+      "platformIdentifier": "canva",
+      "httpStatus": 404
+    },
+    {
+      "slug": "monday-com",
+      "name": "Monday.com",
+      "platform": "greenhouse",
+      "platformIdentifier": "mondaycom",
+      "httpStatus": 404
+    },
+    {
+      "slug": "casetext",
+      "name": "Casetext",
+      "platform": "greenhouse",
+      "platformIdentifier": "casetext",
+      "httpStatus": 404
+    },
+    {
+      "slug": "transunion",
+      "name": "TransUnion",
+      "platform": "greenhouse",
+      "platformIdentifier": "transunion",
+      "httpStatus": 404
+    },
+    {
+      "slug": "notion",
+      "name": "Notion",
+      "platform": "greenhouse",
+      "platformIdentifier": "notion",
+      "httpStatus": 404
+    },
+    {
+      "slug": "fico",
+      "name": "FICO",
+      "platform": "greenhouse",
+      "platformIdentifier": "fico",
+      "httpStatus": 404
+    },
+    {
+      "slug": "freshbooks",
+      "name": "FreshBooks",
+      "platform": "greenhouse",
+      "platformIdentifier": "freshbooks",
+      "httpStatus": 404
+    },
+    {
+      "slug": "moodys",
+      "name": "Moody's",
+      "platform": "greenhouse",
+      "platformIdentifier": "moodys",
+      "httpStatus": 404
+    },
+    {
+      "slug": "lime",
+      "name": "Lime",
+      "platform": "greenhouse",
+      "platformIdentifier": "lime",
+      "httpStatus": 404
+    },
+    {
+      "slug": "sp-global",
+      "name": "S&P Global",
+      "platform": "greenhouse",
+      "platformIdentifier": "spglobal",
+      "httpStatus": 404
+    },
+    {
+      "slug": "intuit",
+      "name": "Intuit",
+      "platform": "greenhouse",
+      "platformIdentifier": "intuit",
+      "httpStatus": 404
+    },
+    {
+      "slug": "tiktok",
+      "name": "TikTok",
+      "platform": "greenhouse",
+      "platformIdentifier": "tiktok",
+      "httpStatus": 404
+    },
+    {
+      "slug": "beachbody",
+      "name": "Beachbody",
+      "platform": "greenhouse",
+      "platformIdentifier": "beachbody",
+      "httpStatus": 404
+    },
+    {
+      "slug": "grab",
+      "name": "Grab",
+      "platform": "greenhouse",
+      "platformIdentifier": "grab",
+      "httpStatus": 404
+    },
+    {
+      "slug": "spotify",
+      "name": "Spotify",
+      "platform": "greenhouse",
+      "platformIdentifier": "spotify",
+      "httpStatus": 404
+    },
+    {
+      "slug": "zoom",
+      "name": "Zoom",
+      "platform": "greenhouse",
+      "platformIdentifier": "zoom",
+      "httpStatus": 404
+    },
+    {
+      "slug": "jotform",
+      "name": "JotForm",
+      "platform": "greenhouse",
+      "platformIdentifier": "jotform",
+      "httpStatus": 404
+    },
+    {
+      "slug": "cloudinary",
+      "name": "Cloudinary",
+      "platform": "greenhouse",
+      "platformIdentifier": "cloudinary",
+      "httpStatus": 404
+    },
+    {
+      "slug": "varonis",
+      "name": "Varonis",
+      "platform": "greenhouse",
+      "platformIdentifier": "varonis",
+      "httpStatus": 404
+    },
+    {
+      "slug": "tsmc",
+      "name": "TSMC",
+      "platform": "greenhouse",
+      "platformIdentifier": "tsmc",
+      "httpStatus": 404
+    },
+    {
+      "slug": "mimecast",
+      "name": "Mimecast",
+      "platform": "greenhouse",
+      "platformIdentifier": "mimecast",
+      "httpStatus": 404
+    },
+    {
+      "slug": "norton",
+      "name": "Norton",
+      "platform": "greenhouse",
+      "platformIdentifier": "nortonlifelock",
+      "httpStatus": 404
+    },
+    {
+      "slug": "western-digital",
+      "name": "Western Digital",
+      "platform": "greenhouse",
+      "platformIdentifier": "wdc",
+      "httpStatus": 404
+    },
+    {
+      "slug": "lacework",
+      "name": "Lacework",
+      "platform": "greenhouse",
+      "platformIdentifier": "lacework",
+      "httpStatus": 404
+    },
+    {
+      "slug": "sk-hynix",
+      "name": "SK Hynix",
+      "platform": "greenhouse",
+      "platformIdentifier": "skhynix",
+      "httpStatus": 404
+    },
+    {
+      "slug": "codepen",
+      "name": "CodePen",
+      "platform": "greenhouse",
+      "platformIdentifier": "codepen",
+      "httpStatus": 404
+    },
+    {
+      "slug": "seagate",
+      "name": "Seagate",
+      "platform": "greenhouse",
+      "platformIdentifier": "seagate",
+      "httpStatus": 404
+    },
+    {
+      "slug": "codesandbox",
+      "name": "CodeSandbox",
+      "platform": "greenhouse",
+      "platformIdentifier": "codesandbox",
+      "httpStatus": 404
+    },
+    {
+      "slug": "stack-overflow",
+      "name": "Stack Overflow",
+      "platform": "greenhouse",
+      "platformIdentifier": "stackoverflow",
+      "httpStatus": 404
+    },
+    {
+      "slug": "segment",
+      "name": "Segment",
+      "platform": "greenhouse",
+      "platformIdentifier": "segment",
+      "httpStatus": 404
+    },
+    {
+      "slug": "mode-analytics",
+      "name": "Mode Analytics",
+      "platform": "greenhouse",
+      "platformIdentifier": "modeanalytics",
+      "httpStatus": 404
+    },
+    {
+      "slug": "copy-ai",
+      "name": "Copy.ai",
+      "platform": "greenhouse",
+      "platformIdentifier": "copyai",
+      "httpStatus": 404
+    },
+    {
+      "slug": "chartio",
+      "name": "Chartio",
+      "platform": "greenhouse",
+      "platformIdentifier": "chartio",
+      "httpStatus": 404
+    },
+    {
+      "slug": "synthesia",
+      "name": "Synthesia",
+      "platform": "greenhouse",
+      "platformIdentifier": "synthesia",
+      "httpStatus": 404
+    },
+    {
+      "slug": "ifs",
+      "name": "IFS",
+      "platform": "greenhouse",
+      "platformIdentifier": "ifs",
+      "httpStatus": 404
+    },
+    {
+      "slug": "signal",
+      "name": "Signal",
+      "platform": "greenhouse",
+      "platformIdentifier": "signal",
+      "httpStatus": 404
+    },
+    {
+      "slug": "pandora",
+      "name": "Pandora",
+      "platform": "greenhouse",
+      "platformIdentifier": "pandora",
+      "httpStatus": 404
+    },
+    {
+      "slug": "telegram",
+      "name": "Telegram",
+      "platform": "greenhouse",
+      "platformIdentifier": "telegram",
+      "httpStatus": 404
+    },
+    {
+      "slug": "netsuite",
+      "name": "NetSuite",
+      "platform": "greenhouse",
+      "platformIdentifier": "netsuite",
+      "httpStatus": 404
+    },
+    {
+      "slug": "plex",
+      "name": "Plex",
+      "platform": "greenhouse",
+      "platformIdentifier": "plex",
+      "httpStatus": 404
+    },
+    {
+      "slug": "soundcloud",
+      "name": "SoundCloud",
+      "platform": "greenhouse",
+      "platformIdentifier": "soundcloud",
+      "httpStatus": 404
+    },
+    {
+      "slug": "bytedance",
+      "name": "ByteDance",
+      "platform": "greenhouse",
+      "platformIdentifier": "bytedance",
+      "httpStatus": 404
+    },
+    {
+      "slug": "wayfair",
+      "name": "Wayfair",
+      "platform": "greenhouse",
+      "platformIdentifier": "wayfair",
+      "httpStatus": 404
+    },
+    {
+      "slug": "overstock",
+      "name": "Overstock",
+      "platform": "greenhouse",
+      "platformIdentifier": "overstock",
+      "httpStatus": 404
+    },
+    {
+      "slug": "alibaba",
+      "name": "Alibaba",
+      "platform": "greenhouse",
+      "platformIdentifier": "alibaba",
+      "httpStatus": 404
+    },
+    {
+      "slug": "newegg",
+      "name": "Newegg",
+      "platform": "greenhouse",
+      "platformIdentifier": "newegg",
+      "httpStatus": 404
+    },
+    {
+      "slug": "heap",
+      "name": "Heap",
+      "platform": "greenhouse",
+      "platformIdentifier": "heap",
+      "httpStatus": 404
+    },
+    {
+      "slug": "best-buy",
+      "name": "Best Buy",
+      "platform": "greenhouse",
+      "platformIdentifier": "bestbuy",
+      "httpStatus": 404
+    },
+    {
+      "slug": "netease",
+      "name": "NetEase",
+      "platform": "greenhouse",
+      "platformIdentifier": "netease",
+      "httpStatus": 404
+    },
+    {
+      "slug": "playtika",
+      "name": "Playtika",
+      "platform": "greenhouse",
+      "platformIdentifier": "playtika",
+      "httpStatus": 404
+    },
+    {
+      "slug": "ericsson",
+      "name": "Ericsson",
+      "platform": "greenhouse",
+      "platformIdentifier": "ericsson",
+      "httpStatus": 404
+    },
+    {
+      "slug": "nokia",
+      "name": "Nokia",
+      "platform": "greenhouse",
+      "platformIdentifier": "nokia",
+      "httpStatus": 404
+    },
+    {
+      "slug": "king",
+      "name": "King",
+      "platform": "greenhouse",
+      "platformIdentifier": "king",
+      "httpStatus": 404
+    },
+    {
+      "slug": "kaiser",
+      "name": "Kaiser Permanente",
+      "platform": "greenhouse",
+      "platformIdentifier": "kaiser",
+      "httpStatus": 404
+    },
+    {
+      "slug": "molina",
+      "name": "Molina Healthcare",
+      "platform": "greenhouse",
+      "platformIdentifier": "molina",
+      "httpStatus": 404
+    },
+    {
+      "slug": "elevance",
+      "name": "Elevance Health",
+      "platform": "greenhouse",
+      "platformIdentifier": "elevance",
+      "httpStatus": 404
+    },
+    {
+      "slug": "hsbc",
+      "name": "HSBC",
+      "platform": "greenhouse",
+      "platformIdentifier": "hsbc",
+      "httpStatus": 404
+    },
+    {
+      "slug": "carbon-health",
+      "name": "Carbon Health",
+      "platform": "greenhouse",
+      "platformIdentifier": "carbonhealth",
+      "httpStatus": 404
+    },
+    {
+      "slug": "ubs",
+      "name": "UBS",
+      "platform": "greenhouse",
+      "platformIdentifier": "ubs",
+      "httpStatus": 404
+    },
+    {
+      "slug": "morgan-stanley",
+      "name": "Morgan Stanley",
+      "platform": "greenhouse",
+      "platformIdentifier": "morganstanley",
+      "httpStatus": 404
+    },
+    {
+      "slug": "revolut",
+      "name": "Revolut",
+      "platform": "greenhouse",
+      "platformIdentifier": "revolut",
+      "httpStatus": 404
+    },
+    {
+      "slug": "remitly",
+      "name": "Remitly",
+      "platform": "greenhouse",
+      "platformIdentifier": "remitly",
+      "httpStatus": 404
+    },
+    {
+      "slug": "deutsche-bank",
+      "name": "Deutsche Bank",
+      "platform": "greenhouse",
+      "platformIdentifier": "deutschebank",
+      "httpStatus": 404
+    },
+    {
+      "slug": "etrade",
+      "name": "E*TRADE",
+      "platform": "greenhouse",
+      "platformIdentifier": "etrade",
+      "httpStatus": 404
+    },
+    {
+      "slug": "fidelity",
+      "name": "Fidelity",
+      "platform": "greenhouse",
+      "platformIdentifier": "fidelity",
+      "httpStatus": 404
+    },
+    {
+      "slug": "webull",
+      "name": "Webull",
+      "platform": "greenhouse",
+      "platformIdentifier": "webull",
+      "httpStatus": 404
+    },
+    {
+      "slug": "moneylion",
+      "name": "MoneyLion",
+      "platform": "greenhouse",
+      "platformIdentifier": "moneylion",
+      "httpStatus": 404
+    },
+    {
+      "slug": "rightmove",
+      "name": "Rightmove",
+      "platform": "greenhouse",
+      "platformIdentifier": "rightmove",
+      "httpStatus": 404
+    },
+    {
+      "slug": "zoopla",
+      "name": "Zoopla",
+      "platform": "greenhouse",
+      "platformIdentifier": "zoopla",
+      "httpStatus": 404
+    },
+    {
+      "slug": "apartments",
+      "name": "Apartments.com",
+      "platform": "greenhouse",
+      "platformIdentifier": "apartments",
+      "httpStatus": 404
+    },
+    {
+      "slug": "jb-hunt",
+      "name": "J.B. Hunt",
+      "platform": "greenhouse",
+      "platformIdentifier": "jbhunt",
+      "httpStatus": 404
+    },
+    {
+      "slug": "shippeo",
+      "name": "Shippeo",
+      "platform": "greenhouse",
+      "platformIdentifier": "shippeo",
+      "httpStatus": 404
+    },
+    {
+      "slug": "xpo-logistics",
+      "name": "XPO Logistics",
+      "platform": "greenhouse",
+      "platformIdentifier": "xpo",
+      "httpStatus": 404
+    },
+    {
+      "slug": "matterport",
+      "name": "Matterport",
+      "platform": "greenhouse",
+      "platformIdentifier": "matterport",
+      "httpStatus": 404
+    },
+    {
+      "slug": "lineage",
+      "name": "Lineage Logistics",
+      "platform": "greenhouse",
+      "platformIdentifier": "lineage",
+      "httpStatus": 404
+    },
+    {
+      "slug": "scrimba",
+      "name": "Scrimba",
+      "platform": "greenhouse",
+      "platformIdentifier": "scrimba",
+      "httpStatus": 404
+    },
+    {
+      "slug": "treehouse",
+      "name": "Treehouse",
+      "platform": "greenhouse",
+      "platformIdentifier": "treehouse",
+      "httpStatus": 404
+    },
+    {
+      "slug": "educative",
+      "name": "Educative",
+      "platform": "greenhouse",
+      "platformIdentifier": "educative",
+      "httpStatus": 404
+    },
+    {
+      "slug": "infosys",
+      "name": "Infosys",
+      "platform": "greenhouse",
+      "platformIdentifier": "infosys",
+      "httpStatus": 404
+    },
+    {
+      "slug": "brilliant",
+      "name": "Brilliant.org",
+      "platform": "greenhouse",
+      "platformIdentifier": "brilliant",
+      "httpStatus": 404
+    },
+    {
+      "slug": "hcl",
+      "name": "HCL Technologies",
+      "platform": "greenhouse",
+      "platformIdentifier": "hcl",
+      "httpStatus": 404
+    },
+    {
+      "slug": "cgi-group",
+      "name": "CGI Group",
+      "platform": "greenhouse",
+      "platformIdentifier": "cgigroup",
+      "httpStatus": 404
+    },
+    {
+      "slug": "cognizant",
+      "name": "Cognizant",
+      "platform": "greenhouse",
+      "platformIdentifier": "cognizant",
+      "httpStatus": 404
+    },
+    {
+      "slug": "wipro",
+      "name": "Wipro",
+      "platform": "greenhouse",
+      "platformIdentifier": "wipro",
+      "httpStatus": 404
+    },
+    {
+      "slug": "binding",
+      "name": "Binding",
+      "platform": "greenhouse",
+      "platformIdentifier": "binding",
+      "httpStatus": 404
+    },
+    {
+      "slug": "bonusly",
+      "name": "Bonusly",
+      "platform": "greenhouse",
+      "platformIdentifier": "bonusly",
+      "httpStatus": 404
+    },
+    {
+      "slug": "dxc",
+      "name": "DXC Technology",
+      "platform": "greenhouse",
+      "platformIdentifier": "dxc",
+      "httpStatus": 404
+    },
+    {
+      "slug": "leapsome",
+      "name": "Leapsome",
+      "platform": "greenhouse",
+      "platformIdentifier": "leapsome",
+      "httpStatus": 404
+    },
+    {
+      "slug": "peakon",
+      "name": "Peakon",
+      "platform": "greenhouse",
+      "platformIdentifier": "peakon",
+      "httpStatus": 404
+    },
+    {
+      "slug": "metromile",
+      "name": "Metromile",
+      "platform": "greenhouse",
+      "platformIdentifier": "metromile",
+      "httpStatus": 404
+    },
+    {
+      "slug": "clearcover",
+      "name": "Clearcover",
+      "platform": "greenhouse",
+      "platformIdentifier": "clearcover",
+      "httpStatus": 404
+    },
+    {
+      "slug": "nationwide",
+      "name": "Nationwide",
+      "platform": "greenhouse",
+      "platformIdentifier": "nationwide",
+      "httpStatus": 404
+    },
+    {
+      "slug": "atos",
+      "name": "Atos",
+      "platform": "greenhouse",
+      "platformIdentifier": "atos",
+      "httpStatus": 404
+    },
+    {
+      "slug": "erie-insurance",
+      "name": "Erie Insurance",
+      "platform": "greenhouse",
+      "platformIdentifier": "erie",
+      "httpStatus": 404
+    },
+    {
+      "slug": "fbl-financial",
+      "name": "FBL Financial",
+      "platform": "greenhouse",
+      "platformIdentifier": "fblfinancial",
+      "httpStatus": 404
+    },
+    {
+      "slug": "verity",
+      "name": "Verity",
+      "platform": "greenhouse",
+      "platformIdentifier": "verity",
+      "httpStatus": 404
+    },
+    {
+      "slug": "intuitive-machines",
+      "name": "Intuitive Machines",
+      "platform": "greenhouse",
+      "platformIdentifier": "intuitivemachines",
+      "httpStatus": 404
+    },
+    {
+      "slug": "brighthouse",
+      "name": "Brighthouse Financial",
+      "platform": "greenhouse",
+      "platformIdentifier": "brighthouse",
+      "httpStatus": 404
+    },
+    {
+      "slug": "sailpoint",
+      "name": "SailPoint",
+      "platform": "greenhouse",
+      "platformIdentifier": "sailpoint",
+      "httpStatus": 404
+    },
+    {
+      "slug": "cyberark",
+      "name": "CyberArk",
+      "platform": "greenhouse",
+      "platformIdentifier": "cyberark",
+      "httpStatus": 404
+    },
+    {
+      "slug": "leadpages",
+      "name": "Leadpages",
+      "platform": "greenhouse",
+      "platformIdentifier": "leadpages",
+      "httpStatus": 404
+    },
+    {
+      "slug": "kira-systems",
+      "name": "Kira Systems",
+      "platform": "greenhouse",
+      "platformIdentifier": "kirasystems",
+      "httpStatus": 404
+    },
+    {
+      "slug": "hotdocs",
+      "name": "HotDocs",
+      "platform": "greenhouse",
+      "platformIdentifier": "hotdocs",
+      "httpStatus": 404
+    },
+    {
+      "slug": "instapage",
+      "name": "Instapage",
+      "platform": "greenhouse",
+      "platformIdentifier": "instapage",
+      "httpStatus": 404
+    },
+    {
+      "slug": "avalara",
+      "name": "Avalara",
+      "platform": "greenhouse",
+      "platformIdentifier": "avalara",
+      "httpStatus": 404
+    },
+    {
+      "slug": "american-family",
+      "name": "American Family",
+      "platform": "greenhouse",
+      "platformIdentifier": "amfam",
+      "httpStatus": 404
+    },
+    {
+      "slug": "dext",
+      "name": "Dext",
+      "platform": "greenhouse",
+      "platformIdentifier": "dext",
+      "httpStatus": 404
+    },
+    {
+      "slug": "here-tech",
+      "name": "HERE Technologies",
+      "platform": "greenhouse",
+      "platformIdentifier": "here",
+      "httpStatus": 404
+    },
+    {
+      "slug": "fiserv",
+      "name": "Fiserv",
+      "platform": "greenhouse",
+      "platformIdentifier": "fiserv",
+      "httpStatus": 404
+    },
+    {
+      "slug": "wahoo-fitness",
+      "name": "Wahoo Fitness",
+      "platform": "greenhouse",
+      "platformIdentifier": "wahoo",
+      "httpStatus": 404
+    },
+    {
+      "slug": "aurora",
+      "name": "Aurora",
+      "platform": "greenhouse",
+      "platformIdentifier": "aurora",
+      "httpStatus": 404
+    },
+    {
+      "slug": "cruise",
+      "name": "Cruise",
+      "platform": "greenhouse",
+      "platformIdentifier": "cruise",
+      "httpStatus": 404
+    },
+    {
+      "slug": "procore",
+      "name": "Procore",
+      "platform": "greenhouse",
+      "platformIdentifier": "procore",
+      "httpStatus": 404
+    },
+    {
+      "slug": "touchplan",
+      "name": "Touchplan",
+      "platform": "greenhouse",
+      "platformIdentifier": "touchplan",
+      "httpStatus": 404
+    },
+    {
+      "slug": "trainingpeaks",
+      "name": "TrainingPeaks",
+      "platform": "greenhouse",
+      "platformIdentifier": "trainingpeaks",
+      "httpStatus": 404
+    },
+    {
+      "slug": "paramount",
+      "name": "Paramount",
+      "platform": "greenhouse",
+      "platformIdentifier": "paramount",
+      "httpStatus": 404
+    },
+    {
+      "slug": "wix",
+      "name": "Wix",
+      "platform": "greenhouse",
+      "platformIdentifier": "wix",
+      "httpStatus": 404
+    },
+    {
+      "slug": "wbd",
+      "name": "Warner Bros Discovery",
+      "platform": "greenhouse",
+      "platformIdentifier": "wbd",
+      "httpStatus": 404
+    },
+    {
+      "slug": "mastodon",
+      "name": "Mastodon",
+      "platform": "greenhouse",
+      "platformIdentifier": "mastodon",
+      "httpStatus": 404
+    },
+    {
+      "slug": "carbonite",
+      "name": "Carbonite",
+      "platform": "greenhouse",
+      "platformIdentifier": "carbonite",
+      "httpStatus": 404
+    },
+    {
+      "slug": "drift",
+      "name": "Drift",
+      "platform": "greenhouse",
+      "platformIdentifier": "drift",
+      "httpStatus": 404
+    },
+    {
+      "slug": "bluesky",
+      "name": "Bluesky",
+      "platform": "greenhouse",
+      "platformIdentifier": "bluesky",
+      "httpStatus": 404
+    },
+    {
+      "slug": "convertkit",
+      "name": "ConvertKit",
+      "platform": "greenhouse",
+      "platformIdentifier": "convertkit",
+      "httpStatus": 404
+    },
+    {
+      "slug": "ge-digital",
+      "name": "GE Digital",
+      "platform": "greenhouse",
+      "platformIdentifier": "ge",
+      "httpStatus": 404
+    },
+    {
+      "slug": "benchling",
+      "name": "Benchling",
+      "platform": "greenhouse",
+      "platformIdentifier": "benchling",
+      "httpStatus": 404
+    },
+    {
+      "slug": "nextera-energy",
+      "name": "NextEra Energy",
+      "platform": "greenhouse",
+      "platformIdentifier": "nextara",
+      "httpStatus": 404
+    },
+    {
+      "slug": "mulesoft",
+      "name": "MuleSoft",
+      "platform": "greenhouse",
+      "platformIdentifier": "mulesoft",
+      "httpStatus": 404
+    },
+    {
+      "slug": "ginkgo-bioworks",
+      "name": "Ginkgo Bioworks",
+      "platform": "greenhouse",
+      "platformIdentifier": "ginkgo",
+      "httpStatus": 404
+    },
+    {
+      "slug": "sunrun",
+      "name": "Sunrun",
+      "platform": "greenhouse",
+      "platformIdentifier": "sunrun",
+      "httpStatus": 404
+    },
+    {
+      "slug": "ifttt",
+      "name": "IFTTT",
+      "platform": "greenhouse",
+      "platformIdentifier": "ifttt",
+      "httpStatus": 404
+    },
+    {
+      "slug": "retool",
+      "name": "Retool",
+      "platform": "greenhouse",
+      "platformIdentifier": "retool",
+      "httpStatus": 404
+    },
+    {
+      "slug": "rockwell",
+      "name": "Rockwell Automation",
+      "platform": "greenhouse",
+      "platformIdentifier": "rockwell",
+      "httpStatus": 404
+    },
+    {
+      "slug": "outsystems",
+      "name": "OutSystems",
+      "platform": "greenhouse",
+      "platformIdentifier": "outsystems",
+      "httpStatus": 404
+    },
+    {
+      "slug": "genesys",
+      "name": "Genesys",
+      "platform": "greenhouse",
+      "platformIdentifier": "genesys",
+      "httpStatus": 404
+    },
+    {
+      "slug": "bubble",
+      "name": "Bubble",
+      "platform": "greenhouse",
+      "platformIdentifier": "bubble",
+      "httpStatus": 404
+    },
+    {
+      "slug": "lightspeed",
+      "name": "Lightspeed POS",
+      "platform": "greenhouse",
+      "platformIdentifier": "lightspeed",
+      "httpStatus": 404
+    },
+    {
+      "slug": "clover",
+      "name": "Clover",
+      "platform": "greenhouse",
+      "platformIdentifier": "clover",
+      "httpStatus": 404
+    },
+    {
+      "slug": "moz",
+      "name": "Moz",
+      "platform": "greenhouse",
+      "platformIdentifier": "moz",
+      "httpStatus": 404
+    },
+    {
+      "slug": "climate-fieldview",
+      "name": "Climate FieldView",
+      "platform": "greenhouse",
+      "platformIdentifier": "climate",
+      "httpStatus": 404
+    },
+    {
+      "slug": "yardi",
+      "name": "Yardi",
+      "platform": "greenhouse",
+      "platformIdentifier": "yardi",
+      "httpStatus": 404
+    },
+    {
+      "slug": "vultr",
+      "name": "Vultr",
+      "platform": "greenhouse",
+      "platformIdentifier": "vultr",
+      "httpStatus": 404
+    },
+    {
+      "slug": "ovh",
+      "name": "OVH",
+      "platform": "greenhouse",
+      "platformIdentifier": "ovh",
+      "httpStatus": 404
+    },
+    {
+      "slug": "appfolio",
+      "name": "AppFolio",
+      "platform": "greenhouse",
+      "platformIdentifier": "appfolio",
+      "httpStatus": 404
+    },
+    {
+      "slug": "deepen",
+      "name": "Deepen",
+      "platform": "greenhouse",
+      "platformIdentifier": "deepen",
+      "httpStatus": 404
+    },
+    {
+      "slug": "hetzner",
+      "name": "Hetzner",
+      "platform": "greenhouse",
+      "platformIdentifier": "hetzner",
+      "httpStatus": 404
+    },
+    {
+      "slug": "plane",
+      "name": "Plane",
+      "platform": "greenhouse",
+      "platformIdentifier": "plane",
+      "httpStatus": 404
+    },
+    {
+      "slug": "cybered",
+      "name": "CyberEd",
+      "platform": "greenhouse",
+      "platformIdentifier": "cybered",
+      "httpStatus": 404
+    },
+    {
+      "slug": "indigo-ag",
+      "name": "Indigo Ag",
+      "platform": "greenhouse",
+      "platformIdentifier": "indigoag",
+      "httpStatus": 404
+    },
+    {
+      "slug": "unit4",
+      "name": "Unit4",
+      "platform": "greenhouse",
+      "platformIdentifier": "unit4",
+      "httpStatus": 404
+    },
+    {
+      "slug": "aliexpress",
+      "name": "AliExpress",
+      "platform": "greenhouse",
+      "platformIdentifier": "aliexpress",
+      "httpStatus": 404
+    },
+    {
+      "slug": "viber",
+      "name": "Viber",
+      "platform": "greenhouse",
+      "platformIdentifier": "viber",
+      "httpStatus": 404
+    },
+    {
+      "slug": "lightning-ai",
+      "name": "Lightning AI",
+      "platform": "greenhouse",
+      "platformIdentifier": "lightning",
+      "httpStatus": 404
+    },
+    {
+      "slug": "turbo",
+      "name": "Turbo",
+      "platform": "greenhouse",
+      "platformIdentifier": "turbo",
+      "httpStatus": 404
+    },
+    {
+      "slug": "proximus",
+      "name": "Proximus",
+      "platform": "greenhouse",
+      "platformIdentifier": "proximus",
+      "httpStatus": 404
+    },
+    {
+      "slug": "wish",
+      "name": "Wish",
+      "platform": "greenhouse",
+      "platformIdentifier": "wish",
+      "httpStatus": 404
+    },
+    {
+      "slug": "tilting-point",
+      "name": "Tilting Point",
+      "platform": "greenhouse",
+      "platformIdentifier": "tiltingpoint",
+      "httpStatus": 404
+    },
+    {
+      "slug": "wechat",
+      "name": "WeChat",
+      "platform": "greenhouse",
+      "platformIdentifier": "wechat",
+      "httpStatus": 404
+    },
+    {
+      "slug": "garena",
+      "name": "Garena",
+      "platform": "greenhouse",
+      "platformIdentifier": "garena",
+      "httpStatus": 404
+    },
+    {
+      "slug": "orange",
+      "name": "Orange",
+      "platform": "greenhouse",
+      "platformIdentifier": "orange",
+      "httpStatus": 404
+    },
+    {
+      "slug": "wellmark",
+      "name": "Wellmark",
+      "platform": "greenhouse",
+      "platformIdentifier": "wellmark",
+      "httpStatus": 404
+    },
+    {
+      "slug": "ing",
+      "name": "ING",
+      "platform": "greenhouse",
+      "platformIdentifier": "ing",
+      "httpStatus": 404
+    },
+    {
+      "slug": "miniclip",
+      "name": "Miniclip",
+      "platform": "greenhouse",
+      "platformIdentifier": "miniclip",
+      "httpStatus": 404
+    },
+    {
+      "slug": "stripe-climate",
+      "name": "Stripe Climate",
+      "platform": "greenhouse",
+      "platformIdentifier": "stripeclimate",
+      "httpStatus": 404
+    },
+    {
+      "slug": "mindstrong",
+      "name": "Mindstrong",
+      "platform": "greenhouse",
+      "platformIdentifier": "mindstrong",
+      "httpStatus": 404
+    },
+    {
+      "slug": "rbc",
+      "name": "RBC",
+      "platform": "greenhouse",
+      "platformIdentifier": "rbc",
+      "httpStatus": 404
+    },
+    {
+      "slug": "bcbs",
+      "name": "BlueCross BlueShield",
+      "platform": "greenhouse",
+      "platformIdentifier": "bcbs",
+      "httpStatus": 404
+    },
+    {
+      "slug": "moomoo",
+      "name": "Moomoo",
+      "platform": "greenhouse",
+      "platformIdentifier": "moomoo",
+      "httpStatus": 404
+    },
+    {
+      "slug": "kraken",
+      "name": "Kraken",
+      "platform": "greenhouse",
+      "platformIdentifier": "kraken",
+      "httpStatus": 404
+    },
+    {
+      "slug": "corelogic",
+      "name": "CoreLogic",
+      "platform": "greenhouse",
+      "platformIdentifier": "corelogic",
+      "httpStatus": 404
+    },
+    {
+      "slug": "public-trading",
+      "name": "Public",
+      "platform": "greenhouse",
+      "platformIdentifier": "publictrading",
+      "httpStatus": 404
+    },
+    {
+      "slug": "bridgit-bench",
+      "name": "Bridgit Bench",
+      "platform": "greenhouse",
+      "platformIdentifier": "bridgitbench",
+      "httpStatus": 404
+    },
+    {
+      "slug": "experian-realestate",
+      "name": "Experian Real Estate",
+      "platform": "greenhouse",
+      "platformIdentifier": "experianre",
+      "httpStatus": 404
+    },
+    {
+      "slug": "saia",
+      "name": "Saia",
+      "platform": "greenhouse",
+      "platformIdentifier": "saia",
+      "httpStatus": 404
+    },
+    {
+      "slug": "amc-networks",
+      "name": "AMC Networks",
+      "platform": "greenhouse",
+      "platformIdentifier": "amcnetworks",
+      "httpStatus": 404
+    },
+    {
+      "slug": "yrc",
+      "name": "YRC Worldwide",
+      "platform": "greenhouse",
+      "platformIdentifier": "yrcworldwide",
+      "httpStatus": 404
+    },
+    {
+      "slug": "acronis-cyber",
+      "name": "Acronis Cyber Protect",
+      "platform": "greenhouse",
+      "platformIdentifier": "acroniscyber",
+      "httpStatus": 404
+    },
+    {
+      "slug": "nakivo",
+      "name": "Nakivo",
+      "platform": "greenhouse",
+      "platformIdentifier": "nakivo",
+      "httpStatus": 404
+    },
+    {
+      "slug": "iflix",
+      "name": "Iflix",
+      "platform": "greenhouse",
+      "platformIdentifier": "iflix",
+      "httpStatus": 404
+    },
+    {
+      "slug": "apptio",
+      "name": "Apptio",
+      "platform": "greenhouse",
+      "platformIdentifier": "apptio",
+      "httpStatus": 404
+    },
+    {
+      "slug": "greenhouse-ats",
+      "name": "Greenhouse",
+      "platform": "greenhouse",
+      "platformIdentifier": "greenhouseats",
+      "httpStatus": 404
+    },
+    {
+      "slug": "quartiles",
+      "name": "Quartiles",
+      "platform": "greenhouse",
+      "platformIdentifier": "quartiles",
+      "httpStatus": 404
+    },
+    {
+      "slug": "superhuman",
+      "name": "Superhuman",
+      "platform": "greenhouse",
+      "platformIdentifier": "superhuman",
+      "httpStatus": 404
+    },
+    {
+      "slug": "omnisend",
+      "name": "Omnisend",
+      "platform": "greenhouse",
+      "platformIdentifier": "omnisend",
+      "httpStatus": 404
+    },
+    {
+      "slug": "hubspot-academy",
+      "name": "HubSpot Academy",
+      "platform": "greenhouse",
+      "platformIdentifier": "hubspotacademy",
+      "httpStatus": 404
+    },
+    {
+      "slug": "pier",
+      "name": "Pier",
+      "platform": "greenhouse",
+      "platformIdentifier": "pierdev",
+      "httpStatus": 404
+    },
+    {
+      "slug": "hey-email",
+      "name": "Hey Email",
+      "platform": "greenhouse",
+      "platformIdentifier": "heyemail",
+      "httpStatus": 404
+    },
+    {
+      "slug": "safe-auto",
+      "name": "Safe Auto",
+      "platform": "greenhouse",
+      "platformIdentifier": "safeauto",
+      "httpStatus": 404
+    },
+    {
+      "slug": "pemco",
+      "name": "PEMCO",
+      "platform": "greenhouse",
+      "platformIdentifier": "pemco",
+      "httpStatus": 404
+    },
+    {
+      "slug": "virgin-galactic",
+      "name": "Virgin Galactic",
+      "platform": "greenhouse",
+      "platformIdentifier": "virgingalactic",
+      "httpStatus": 404
+    },
+    {
+      "slug": "torchmark",
+      "name": "Torchmark",
+      "platform": "greenhouse",
+      "platformIdentifier": "torchmark",
+      "httpStatus": 404
+    },
+    {
+      "slug": "cuna-mutual",
+      "name": "CUNA Mutual",
+      "platform": "greenhouse",
+      "platformIdentifier": "cunamutual",
+      "httpStatus": 404
+    },
+    {
+      "slug": "form-energy",
+      "name": "Form Energy",
+      "platform": "greenhouse",
+      "platformIdentifier": "formenergy",
+      "httpStatus": 404
+    },
+    {
+      "slug": "abb-robotics",
+      "name": "ABB Robotics",
+      "platform": "greenhouse",
+      "platformIdentifier": "abbrobotics",
+      "httpStatus": 404
+    },
+    {
+      "slug": "granicus",
+      "name": "Granicus",
+      "platform": "greenhouse",
+      "platformIdentifier": "granicus",
+      "httpStatus": 404
+    },
+    {
+      "slug": "fanuc",
+      "name": "Fanuc",
+      "platform": "greenhouse",
+      "platformIdentifier": "fanuc",
+      "httpStatus": 404
+    },
+    {
+      "slug": "amazon-connect",
+      "name": "Amazon Connect",
+      "platform": "greenhouse",
+      "platformIdentifier": "amazonconnect",
+      "httpStatus": 404
+    },
+    {
+      "slug": "kissflow",
+      "name": "Kissflow",
+      "platform": "greenhouse",
+      "platformIdentifier": "kissflow",
+      "httpStatus": 404
+    },
+    {
+      "slug": "cfs",
+      "name": "Commonwealth Fusion",
+      "platform": "greenhouse",
+      "platformIdentifier": "cfs",
+      "httpStatus": 404
+    },
+    {
+      "slug": "tray-io",
+      "name": "Tray.io",
+      "platform": "greenhouse",
+      "platformIdentifier": "trayio",
+      "httpStatus": 404
+    },
+    {
+      "slug": "semrush-academy",
+      "name": "Semrush Academy",
+      "platform": "greenhouse",
+      "platformIdentifier": "semrushacademy",
+      "httpStatus": 404
+    },
+    {
+      "slug": "are-na",
+      "name": "Are.na",
+      "platform": "greenhouse",
+      "platformIdentifier": "arena",
+      "httpStatus": 404
+    },
+    {
+      "slug": "shopify-plus",
+      "name": "Shopify Plus",
+      "platform": "greenhouse",
+      "platformIdentifier": "shopifyplus",
+      "httpStatus": 404
+    },
+    {
+      "slug": "fitbod",
+      "name": "Fitbod",
+      "platform": "greenhouse",
+      "platformIdentifier": "fitbod",
+      "httpStatus": 404
+    },
+    {
+      "slug": "taranis",
+      "name": "Taranis",
+      "platform": "greenhouse",
+      "platformIdentifier": "taranis",
+      "httpStatus": 404
+    },
+    {
+      "slug": "vend",
+      "name": "Vend",
+      "platform": "greenhouse",
+      "platformIdentifier": "vend",
+      "httpStatus": 404
+    },
+    {
+      "slug": "future",
+      "name": "Future",
+      "platform": "greenhouse",
+      "platformIdentifier": "futurefitnessapp",
+      "httpStatus": 404
+    },
+    {
+      "slug": "tr-legal",
+      "name": "Thomson Reuters Legal",
+      "platform": "greenhouse",
+      "platformIdentifier": "trlegal",
+      "httpStatus": 404
+    },
+    {
+      "slug": "mobyride",
+      "name": "Mobyride",
+      "platform": "greenhouse",
+      "platformIdentifier": "mobyride",
+      "httpStatus": 404
+    },
+    {
+      "slug": "google",
+      "name": "Google",
+      "platform": "greenhouse",
+      "platformIdentifier": "google",
+      "httpStatus": 404
+    },
+    {
+      "slug": "loio",
+      "name": "Loio",
+      "platform": "greenhouse",
+      "platformIdentifier": "loio",
+      "httpStatus": 404
+    },
+    {
+      "slug": "google-cloud",
+      "name": "Google Cloud",
+      "platform": "greenhouse",
+      "platformIdentifier": "gcloud",
+      "httpStatus": 404
+    },
+    {
+      "slug": "precisionhawk",
+      "name": "PrecisionHawk",
+      "platform": "greenhouse",
+      "platformIdentifier": "precisionhawk",
+      "httpStatus": 404
+    },
+    {
+      "slug": "super",
+      "name": "Super",
+      "platform": "greenhouse",
+      "platformIdentifier": "superdesign",
+      "httpStatus": 404
+    },
+    {
+      "slug": "quora",
+      "name": "Quora",
+      "platform": "lever",
+      "platformIdentifier": "quora",
+      "httpStatus": 404
+    },
+    {
+      "slug": "mixpanel",
+      "name": "Mixpanel",
+      "platform": "lever",
+      "platformIdentifier": "mixpanel",
+      "httpStatus": 404
+    },
+    {
+      "slug": "brex",
+      "name": "Brex",
+      "platform": "lever",
+      "platformIdentifier": "brex",
+      "httpStatus": 404
+    },
+    {
+      "slug": "vanguard",
+      "name": "Vanguard",
+      "platform": "workday",
+      "platformIdentifier": "vanguard|wd5|vanguard_careers",
+      "httpStatus": 404
+    },
+    {
+      "slug": "broadcom-careers",
+      "name": "Broadcom",
+      "platform": "workday",
+      "platformIdentifier": "broadcom|wd1|External",
+      "httpStatus": 404
+    },
+    {
+      "slug": "adobe-xd",
+      "name": "Adobe XD",
+      "platform": "workday",
+      "platformIdentifier": "adobe|wd5|External_Careers",
+      "httpStatus": 404
+    },
+    {
+      "slug": "cisco-careers",
+      "name": "Cisco",
+      "platform": "workday",
+      "platformIdentifier": "cisco|wd5|Cisco_External_Careers",
+      "httpStatus": 404
+    },
+    {
+      "slug": "zoom-careers",
+      "name": "Zoom",
+      "platform": "workday",
+      "platformIdentifier": "zoom|wd5|ZoomCareers",
+      "httpStatus": 404
+    },
+    {
+      "slug": "groupon-careers",
+      "name": "Groupon",
+      "platform": "workday",
+      "platformIdentifier": "groupon|wd5|External",
+      "httpStatus": 404
+    },
+    {
+      "slug": "wdc",
+      "name": "Western Digital",
+      "platform": "workday",
+      "platformIdentifier": "wdc|wd5|External",
+      "httpStatus": 401
+    }
+  ],
+  "uncertainCompanies": [
+    {
+      "slug": "salesforce",
+      "name": "Salesforce",
+      "platform": "workday",
+      "platformIdentifier": "salesforce|wd1|External_Career_Site",
+      "httpStatus": 422
+    },
+    {
+      "slug": "jpmorgan",
+      "name": "JPMorgan Chase",
+      "platform": "workday",
+      "platformIdentifier": "jpmc|wd1|jpmc",
+      "httpStatus": 422
+    },
+    {
+      "slug": "goldman-sachs",
+      "name": "Goldman Sachs",
+      "platform": "workday",
+      "platformIdentifier": "goldman|wd1|GS_EXT_CAREERS",
+      "httpStatus": 422
+    },
+    {
+      "slug": "ti",
+      "name": "Texas Instruments",
+      "platform": "workday",
+      "platformIdentifier": "ti|wd1|TI",
+      "httpStatus": 422
+    },
+    {
+      "slug": "microchip",
+      "name": "Microchip Technology",
+      "platform": "workday",
+      "platformIdentifier": "mchp|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "equifax",
+      "name": "Equifax",
+      "platform": "workday",
+      "platformIdentifier": "eq|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "experian",
+      "name": "Experian",
+      "platform": "workday",
+      "platformIdentifier": "experian|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "qorvo",
+      "name": "Qorvo",
+      "platform": "workday",
+      "platformIdentifier": "qorvo|wd5|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "maersk",
+      "name": "Maersk Line",
+      "platform": "workday",
+      "platformIdentifier": "maersk|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "google-careers",
+      "name": "Google",
+      "platform": "workday",
+      "platformIdentifier": "google|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "microsoft",
+      "name": "Microsoft",
+      "platform": "workday",
+      "platformIdentifier": "microsoft|wd1|Microsoft",
+      "httpStatus": 422
+    },
+    {
+      "slug": "splunk-careers",
+      "name": "Splunk",
+      "platform": "workday",
+      "platformIdentifier": "splunk|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "ebay-careers",
+      "name": "eBay",
+      "platform": "workday",
+      "platformIdentifier": "ebay|wd1|ebaycareers",
+      "httpStatus": 422
+    },
+    {
+      "slug": "disney-careers",
+      "name": "Disney",
+      "platform": "workday",
+      "platformIdentifier": "disney|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "youtube-careers",
+      "name": "YouTube",
+      "platform": "workday",
+      "platformIdentifier": "google|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "hulu-careers",
+      "name": "Hulu",
+      "platform": "workday",
+      "platformIdentifier": "disney|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "hbomax-careers",
+      "name": "HBO Max",
+      "platform": "workday",
+      "platformIdentifier": "warnermedia|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "canva-careers",
+      "name": "Canva",
+      "platform": "workday",
+      "platformIdentifier": "canva|wd5|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "fortinet-careers",
+      "name": "Fortinet",
+      "platform": "workday",
+      "platformIdentifier": "fortinet|wd5|Fortinet",
+      "httpStatus": 422
+    },
+    {
+      "slug": "citrix",
+      "name": "Citrix",
+      "platform": "workday",
+      "platformIdentifier": "citrix|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "vmware",
+      "name": "VMware",
+      "platform": "workday",
+      "platformIdentifier": "vmware|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "box",
+      "name": "Box",
+      "platform": "workday",
+      "platformIdentifier": "box|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "appdynamics",
+      "name": "AppDynamics",
+      "platform": "workday",
+      "platformIdentifier": "appdynamics|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "juniper",
+      "name": "Juniper Networks",
+      "platform": "workday",
+      "platformIdentifier": "juniper|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "qualcomm",
+      "name": "Qualcomm",
+      "platform": "workday",
+      "platformIdentifier": "qcom|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "arista",
+      "name": "Arista Networks",
+      "platform": "workday",
+      "platformIdentifier": "arista|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "mellanox",
+      "name": "Mellanox",
+      "platform": "workday",
+      "platformIdentifier": "mellanox|wd1|External",
+      "httpStatus": 422
+    },
+    {
+      "slug": "amd",
+      "name": "AMD",
+      "platform": "workday",
+      "platformIdentifier": "amd|wd5|AMD",
+      "httpStatus": 422
+    },
+    {
+      "slug": "azure",
+      "name": "Microsoft Azure",
+      "platform": "workday",
+      "platformIdentifier": "microsoft|wd1|azure",
+      "httpStatus": 422
+    },
+    {
+      "slug": "aws",
+      "name": "AWS",
+      "platform": "workday",
+      "platformIdentifier": "amazon|wd1|aws",
+      "httpStatus": 422
+    },
+    {
+      "slug": "amd-corp",
+      "name": "AMD",
+      "platform": "workday",
+      "platformIdentifier": "amd|wd5|external",
+      "httpStatus": 422
+    },
+    {
+      "slug": "qualcomm-corp",
+      "name": "Qualcomm",
+      "platform": "workday",
+      "platformIdentifier": "qualcomm|wd5|external",
+      "httpStatus": 422
+    },
+    {
+      "slug": "intel-corp",
+      "name": "Intel",
+      "platform": "workday",
+      "platformIdentifier": "intel|wd5|external",
+      "httpStatus": 422
+    }
+  ]
+}

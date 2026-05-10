@@ -23,7 +23,7 @@ interface LeverJob {
 /**
  * Lever's public API:
  *   https://api.lever.co/v0/postings/{company}?mode=json
- * Used by Netflix, Quora, Github, Shopify (some divisions), and many others.
+ * Used by , Quora, Github, Shopify (some divisions), and many others.
  */
 export class LeverScraper extends BaseScraper {
   async fetchJobs(filters: SearchFilters): Promise<JobListing[]> {

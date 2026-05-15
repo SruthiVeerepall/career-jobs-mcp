@@ -30,7 +30,7 @@ export abstract class BaseScraper {
   protected matchesFilters(job: JobListing, filters: SearchFilters): boolean {
     if (filters.jobTitle) {
       const needle = filters.jobTitle.toLowerCase();
-      if (!job.title.toLowerCase().includes(needle)) return false;
+      if (!(job.title ?? '').toLowerCase().includes(needle)) return false;
     }
     if (filters.location) {
       const needle = filters.location.toLowerCase();

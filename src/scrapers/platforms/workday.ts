@@ -75,8 +75,9 @@ export class WorkdayScraper extends BaseScraper {
   }
 
   private mapJob(p: WorkdayJobPosting, baseHost: string, tenant: string, site: string): JobListing {
-    const applyUrl = `${baseHost}/en-US/${site}${p.externalPath}`;
-    const id = p.externalPath.split('/').pop() ?? `${tenant}-${p.title}`;
+    const externalPath = p.externalPath ?? '';
+    const applyUrl = externalPath ? `${baseHost}/en-US/${site}${externalPath}` : this.config.careerUrl;
+    const id = externalPath.split('/').pop() || `${tenant}-${p.title}`;
     return {
       id,
       companyName: this.config.name,
@@ -84,9 +85,25 @@ export class WorkdayScraper extends BaseScraper {
       locations: p.locationsText ? [p.locationsText] : [],
       level: this.normalizeJobLevel(p.title),
       applyUrl,
-      postedDate: p.postedOn,
+      postedDate: parseWorkdayDate(p.postedOn),
       sourceUrl: applyUrl,
       scrapedAt: new Date().toISOString(),
     };
   }
+}
+
+// Converts Workday relative date strings to ISO-8601.
+// Examples: "Posted Today", "Posted Yesterday", "Posted 4 Days Ago", "Posted 30+ Days Ago"
+function parseWorkdayDate(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const s = raw.toLowerCase().replace(/\s+/g, ' ').trim();
+  const now = Date.now();
+  const day = 86_400_000;
+  if (s.includes('today') || s === 'posted today') return new Date(now).toISOString();
+  if (s.includes('yesterday')) return new Date(now - day).toISOString();
+  // "posted N days ago" or "N+ days ago"
+  const m = s.match(/(\d+)\+?\s+days?\s+ago/);
+  if (m) return new Date(now - parseInt(m[1], 10) * day).toISOString();
+  // Fallback: return the raw string so it's visible but won't parse as a valid date
+  return raw;
 }

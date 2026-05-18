@@ -8,9 +8,9 @@ export interface RetryOptions {
 }
 
 const DEFAULTS: Required<Omit<RetryOptions, 'context'>> = {
-  maxRetries: Number(process.env.MAX_RETRIES ?? 3),
-  initialDelayMs: 1000,
-  maxDelayMs: 15000,
+  maxRetries: Number(process.env.MAX_RETRIES ?? 1),
+  initialDelayMs: 500,
+  maxDelayMs: 5000,
 };
 
 export async function withRetry<T>(fn: () => Promise<T>, opts: RetryOptions = {}): Promise<T> {

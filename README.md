@@ -1,126 +1,297 @@
-# career-jobs-mcp
+# Career Jobs MCP
 
-An independent **Model Context Protocol (MCP) server** that scrapes company career sites directly — no third-party aggregators (no Apify, LinkedIn, Indeed). Claude Code (or any MCP client) can call its tools to search jobs across major tech, finance, and growth-stage companies.
+> An AI-powered job search engine that scrapes **600+ company career sites directly** — no LinkedIn, no Indeed, no third-party aggregators. Built as a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server so it works natively inside Claude AI.
 
-## Features
+---
 
-- **5 MCP tools**: `searchCompanyJobs`, `searchMultipleCompanies`, `getJobDetails`, `listCompanies`, `addCompanyCareerSite`
-- **40+ pre-configured companies** across 6 platform types (Greenhouse, Lever, Ashby, SmartRecruiters, Workday, Custom)
-- **Smart platform detection** — drop in a URL and it auto-routes to the right scraper
-- **Public JSON APIs first** (Greenhouse / Lever / Ashby / SmartRecruiters / Workday all expose them) — Puppeteer only when sites are JS-rendered
-- **24-hour SQLite cache** with new/removed-job tracking, configurable TTL
-- **Per-host rate limiting**, exponential-backoff retries, 30s timeouts
-- **Filters**: title keyword, location, level, department, posted-since (today/week/month), remote-only
+## What Is This?
 
-## Architecture
+Most job search tools show you the same listings from LinkedIn or Indeed, which are often outdated or missing jobs entirely. This tool goes **directly to each company's own career portal** and fetches real-time job listings.
+
+You tell Claude: *"Find Java Full Stack jobs posted in the last 3 days, US only, no senior+ roles"* — and it searches across 600+ companies simultaneously in under 2 minutes.
 
 ```
-src/
-├── index.ts                            # Entry point
-├── server.ts                           # MCP server + tool registration
-├── types.ts                            # JobListing, CompanyConfig, Filters
-├── scrapers/
-│   ├── base-scraper.ts                 # Abstract base + filter/level helpers
-│   ├── orchestrator.ts                 # Cache-aware scrape coordination
-│   ├── company-registry.ts             # Pre-configured companies + add/lookup
-│   └── platforms/
-│       ├── greenhouse.ts               # boards-api.greenhouse.io
-│       ├── lever.ts                    # api.lever.co
-│       ├── ashby.ts                    # api.ashbyhq.com
-│       ├── smartrecruiters.ts          # api.smartrecruiters.com
-│       ├── workday.ts                  # wday/cxs/{tenant}/{site}/jobs
-│       └── custom-puppeteer.ts         # Generic Puppeteer/Cheerio fallback
-├── cache/cache-manager.ts              # better-sqlite3, 24h TTL
-├── utils/
-│   ├── logger.ts                       # stderr-only (stdout reserved for JSON-RPC)
-│   ├── rate-limiter.ts                 # Per-host throttle
-│   └── retry.ts                        # Exp. backoff + timeout
-└── tools/                              # One file per MCP tool
+You ──► Claude AI ──► Career Jobs MCP ──► Greenhouse API  ──► Stripe, Airbnb, Reddit...
+                                      ──► Lever API       ──► Netflix, Brex...
+                                      ──► Workday API     ──► JPMorgan, Goldman Sachs...
+                                      ──► Ashby API       ──► Linear, Ramp...
+                                      ──► 600+ more companies
 ```
 
-## Install & Build
+---
+
+## How It Works
+
+1. **You ask Claude** to search for jobs matching your profile
+2. **Claude calls this MCP server** with your search criteria
+3. **The server fans out** across 600+ company career portals concurrently
+4. **Each platform scraper** hits the official ATS (Applicant Tracking System) JSON API — no browser needed for most companies
+5. **Results are filtered** by date, location, experience level, clearance requirements, and resume keyword match
+6. **A ranked table** is returned directly in your Claude conversation
+
+---
+
+## Key Features
+
+| Feature | Details |
+|---------|---------|
+| **600+ companies** | Tech, finance, healthcare, e-commerce, defense, and more |
+| **6 ATS platforms** | Greenhouse, Lever, Ashby, SmartRecruiters, Workday, Custom (Puppeteer) |
+| **Smart filtering** | Date window, US-only, experience level, no clearance, resume-match scoring |
+| **Resume scoring** | Keyword-weight algorithm ranks jobs by % match to your profile |
+| **24-hour cache** | SQLite cache avoids hammering the same site twice |
+| **Rate limiting** | 2s per-host throttle + exponential backoff retries — respectful scraping |
+| **No API keys needed** | Uses publicly accessible ATS JSON APIs |
+| **Standalone scripts** | Run searches directly from terminal without Claude |
+
+---
+
+## What Is MCP?
+
+**Model Context Protocol (MCP)** is an open standard created by Anthropic that lets AI models like Claude call external tools and data sources. Think of it like giving Claude a set of custom functions it can invoke.
+
+When this server is registered with Claude, Claude can call tools like `searchMultipleCompanies(...)` just like a developer would call a function — and get back structured job data it can reason about, filter, and present to you.
+
+> You don't need to understand MCP to use this project. It works transparently when connected to Claude.
+
+---
+
+## Project Structure
+
+```
+career-jobs-mcp/
+├── src/
+│   ├── index.ts                    # Entry point — starts the MCP server
+│   ├── server.ts                   # Registers all 5 MCP tools with Claude
+│   ├── types.ts                    # TypeScript types: JobListing, CompanyConfig, Filters
+│   ├── scrapers/
+│   │   ├── base-scraper.ts         # Shared scraper logic (filtering, level detection)
+│   │   ├── orchestrator.ts         # Coordinates cache + scrape per company
+│   │   ├── company-registry.ts     # Master list of 600+ companies with ATS config
+│   │   └── platforms/
+│   │       ├── greenhouse.ts       # Greenhouse JSON API scraper
+│   │       ├── lever.ts            # Lever JSON API scraper
+│   │       ├── ashby.ts            # Ashby JSON API scraper
+│   │       ├── smartrecruiters.ts  # SmartRecruiters JSON API scraper
+│   │       ├── workday.ts          # Workday scraper (CSRF-aware session handling)
+│   │       └── custom-puppeteer.ts # Headless Chrome fallback for JS-rendered sites
+│   ├── cache/
+│   │   └── cache-manager.ts        # SQLite cache with 24-hour TTL
+│   └── utils/
+│       ├── logger.ts               # stderr-only logger (stdout reserved for JSON-RPC)
+│       ├── rate-limiter.ts         # Per-host request throttle
+│       └── retry.ts                # Exponential backoff with configurable retries
+├── tools/                          # One file per MCP tool (search, list, add, etc.)
+├── find-java-24h.mjs               # Standalone: search all 600+ companies for Java roles
+├── probe-registry.mjs              # Standalone: health-check all companies, remove broken ones
+├── run-search.mjs                  # Standalone: broader search with month window
+├── data/cache.db                   # SQLite cache (auto-created on first run)
+├── dist/                           # Compiled JavaScript (generated by npm run build)
+├── CLAUDE.md                       # Search rules and profile for personalized filtering
+└── package.json
+```
+
+---
+
+## Prerequisites
+
+- **Node.js 18+** — [Download here](https://nodejs.org/)
+- **Claude Code** (to use as an MCP) — [Install here](https://claude.ai/code) *(optional — you can also run standalone scripts)*
+
+---
+
+## Installation
 
 ```bash
+# 1. Clone the repository
+git clone https://github.com/YOUR_USERNAME/career-jobs-mcp.git
 cd career-jobs-mcp
+
+# 2. Install dependencies
 npm install
-cp .env.example .env
+# Note: Puppeteer downloads Chromium (~170 MB) during install.
+# To skip Chromium (if you only use API-based scrapers): PUPPETEER_SKIP_DOWNLOAD=1 npm install
+
+# 3. Build the TypeScript source
 npm run build
+
+# 4. (Optional) Copy environment config
+cp .env.example .env
 ```
 
-> **Note:** `puppeteer` downloads Chromium on install (~170 MB). Set `PUPPETEER_SKIP_DOWNLOAD=1` if you only need the API-based scrapers (Greenhouse, Lever, Ashby, SmartRecruiters, Workday).
+---
 
-## Configure in Claude Code
+## Usage
 
-Add this to your Claude Code MCP settings (or `claude mcp add`):
+### Option A — Run Standalone Scripts (No Claude Needed)
+
+These scripts run directly in your terminal and print a markdown job table:
+
+```bash
+# Search all 600+ companies for Java / Full Stack / Software Engineer roles (last 3 days)
+node find-java-24h.mjs
+
+# Same search but 7-day window
+node find-java-24h.mjs --week
+
+# Only jobs from the last 24 hours
+node find-java-24h.mjs --today
+
+# Broader search (Java + Full Stack, month window)
+node run-search.mjs
+
+# Health-check all companies and remove broken career site URLs
+node probe-registry.mjs
+
+# Health-check only — report issues but make no changes
+node probe-registry.mjs --dry-run
+```
+
+**Example output:**
+
+```
+CLAUDE.md rules: Resume-match ≥60% | last 3 days | Junior–Senior | US | No clearance
+Search: [Java, Full Stack, Software Engineer] in parallel | 574 companies | 12 batches
+
+Found 271 jobs (last 3 days | Junior–Senior | US | No clearance | ≥60% resume match):
+
+| # | Title                                      | Company         | Location     | Posted | Score | Apply  |
+|---|--------------------------------------------|-----------------|--------------|--------|-------|--------|
+| 1 | Senior Software Engineer - Full Stack      | U.S. Bancorp    | Irving, TX   | May 18 | 12    | [Apply]|
+| 2 | Senior Software Engineer – Java            | U.S. Bancorp    | Irving, TX   | May 18 | 10    | [Apply]|
+| 3 | Java Software Developer (Mid-Senior Level) | Interactive Brokers | Greenwich, CT | May 15 | 10 | [Apply]|
+...
+```
+
+### Option B — Use as an MCP Server with Claude
+
+#### Step 1 — Register with Claude Code
+
+```bash
+claude mcp add career-jobs node "/absolute/path/to/career-jobs-mcp/dist/index.js"
+```
+
+Or add manually to your Claude Code MCP settings file:
 
 ```json
 {
   "mcpServers": {
     "career-jobs": {
       "command": "node",
-      "args": ["c:/Users/sruth/Desktop/Angular Practice/career-jobs-mcp/dist/index.js"]
+      "args": ["/absolute/path/to/career-jobs-mcp/dist/index.js"]
     }
   }
 }
 ```
 
-Or via CLI:
-```bash
-claude mcp add career-jobs node "c:/Users/sruth/Desktop/Angular Practice/career-jobs-mcp/dist/index.js"
-```
+#### Step 2 — Ask Claude to search
 
-## Tool Reference
+Once registered, you can ask Claude naturally:
+
+- *"Search for Java Full Stack jobs posted in the last 3 days, US only"*
+- *"Find Software Engineer roles at Stripe, Airbnb, and Netflix"*
+- *"Add Walmart's career site and search for backend roles"*
+- *"List all companies in the registry"*
+
+---
+
+## MCP Tools Reference
+
+The server exposes 5 tools that Claude (or any MCP client) can call:
 
 ### `searchCompanyJobs`
+Search a single company's career site.
+```json
+{
+  "companyName": "Stripe",
+  "jobTitle": "Java",
+  "location": "USA",
+  "level": "senior",
+  "postedSince": "week",
+  "remoteOnly": false,
+  "forceRefresh": false
+}
 ```
-{ companyName, jobTitle?, location?, level?, department?, postedSince?, remoteOnly?, forceRefresh? }
-```
-Example: `searchCompanyJobs({ companyName: "Stripe", jobTitle: "Java", location: "USA" })`
 
 ### `searchMultipleCompanies`
+Search many companies in one call (batched + concurrent).
+```json
+{
+  "companyList": ["Stripe", "Airbnb", "Netflix", "Roblox"],
+  "jobTitle": "Full Stack",
+  "postedSince": "week"
+}
 ```
-{ companyList[], jobTitle?, location?, level?, department?, postedSince?, remoteOnly? }
-```
-Example: `searchMultipleCompanies({ companyList: ["Stripe", "Airbnb", "Netflix"], jobTitle: "Backend" })`
 
 ### `getJobDetails`
+Get the full job description, requirements, and apply URL for a cached job.
+```json
+{ "jobId": "abc123", "companyName": "Stripe" }
 ```
-{ jobId, companyName }
-```
-Returns the full cached job (description, requirements, benefits, apply URL). Re-scrapes if missing.
 
 ### `listCompanies`
-Returns every supported company with `{ name, slug, platform, careerUrl, lastScrapedAt }`.
+Returns all 600+ supported companies with their platform, career URL, and last scraped timestamp.
 
 ### `addCompanyCareerSite`
+Register a new company so it's searchable going forward.
+```json
+{
+  "companyName": "Block",
+  "careerPageUrl": "https://boards.greenhouse.io/block"
+}
 ```
-{ companyName, careerPageUrl, platform?, platformIdentifier?, requiresJavaScript?, customSelectors? }
+Platform is auto-detected from the URL. For Workday sites, pass `platformIdentifier: "tenant|wdN|siteName"`.
+
+---
+
+## Supported ATS Platforms
+
+| Platform | How It Works | Example Companies |
+|---------|-------------|------------------|
+| **Greenhouse** | Public JSON API (`boards-api.greenhouse.io`) | Stripe, Airbnb, Reddit, Anthropic, Coinbase, DoorDash |
+| **Lever** | Public JSON API (`api.lever.co`) | Netflix, Brex, Quora, Mixpanel |
+| **Ashby** | Public JSON API (`api.ashbyhq.com`) | Linear, Ramp, PostHog, Replicate |
+| **SmartRecruiters** | Public JSON API (`api.smartrecruiters.com`) | Visa, Bosch |
+| **Workday** | Session-based API with CSRF token handling | JPMorgan, Goldman Sachs, Adobe, Salesforce, U.S. Bancorp |
+| **Custom (Puppeteer)** | Headless Chrome + CSS selectors | Amazon, Apple, Google, Tesla |
+
+> **Why Workday is special:** Most Workday endpoints require a CSRF session token. This scraper prefetches the careers page to harvest cookies and the `CALYPSO_CSRF_TOKEN`, then retries the API POST — so it works on CSRF-protected Workday tenants like JPMorgan and Goldman Sachs.
+
+---
+
+## Personalizing for Your Profile
+
+Edit `CLAUDE.md` at the root of the project to set:
+
+- **Your target role titles** (Java Developer, Full Stack, Software Engineer, etc.)
+- **Skill keyword weights** for resume-match scoring
+- **Experience level ceiling** (default: Senior = ~5 years max)
+- **Date window** (default: 3 days)
+- **Location preference** (default: US only)
+- **Exclusion rules** (no clearance, no Principal/Staff/Lead/Director titles)
+
+The scoring engine applies your keyword weights to every job title and only returns matches above your threshold (default: ≥5 points = 60% match).
+
+---
+
+## Adding More Companies
+
+### Known ATS platforms — just pass the URL:
+
+```bash
+# Greenhouse (URL contains boards.greenhouse.io)
+addCompanyCareerSite({ companyName: "Rippling", careerPageUrl: "https://boards.greenhouse.io/rippling" })
+
+# Lever (URL contains jobs.lever.co)
+addCompanyCareerSite({ companyName: "Scale AI", careerPageUrl: "https://jobs.lever.co/scaleai" })
+
+# Ashby (URL contains ashbyhq.com)
+addCompanyCareerSite({ companyName: "Anrok", careerPageUrl: "https://jobs.ashbyhq.com/anrok" })
 ```
-Auto-detects platform from URL. For Workday, pass `platformIdentifier` as `"tenant|wdN|site"` if auto-detection fails.
 
-## Pre-configured Companies (40+)
+### Workday sites — include the tenant identifier:
 
-| Platform | Companies |
-|----------|-----------|
-| Greenhouse | Stripe, Airbnb, Coinbase, Discord, GitLab, Reddit, Twilio, Pinterest, DoorDash, Instacart, Anthropic, OpenAI, Robinhood, Plaid, Figma, Snowflake, Databricks |
-| Lever | Netflix, Quora, Brex, Mixpanel |
-| Ashby | Linear, PostHog, Replicate, Ramp |
-| SmartRecruiters | Visa, Bosch |
-| Workday | Salesforce, Adobe, JPMorgan Chase, Citi, Goldman Sachs, Vanguard, NVIDIA |
-| Custom (Puppeteer) | Apple, Google, Microsoft, Amazon, Meta, Tesla, Uber, Shopify |
-
-## Adding a New Company
-
-If a company uses a known platform, just call `addCompanyCareerSite` and let it auto-detect:
-```
-addCompanyCareerSite({
-  companyName: "Block",
-  careerPageUrl: "https://boards.greenhouse.io/block"
-})
-```
-
-For Workday, pass the explicit identifier:
-```
+```bash
 addCompanyCareerSite({
   companyName: "Walmart",
   careerPageUrl: "https://walmart.wd5.myworkdayjobs.com/WalmartExternal",
@@ -129,8 +300,9 @@ addCompanyCareerSite({
 })
 ```
 
-For fully bespoke sites, register as `custom` with `customSelectors`:
-```
+### Custom sites — provide CSS selectors:
+
+```bash
 addCompanyCareerSite({
   companyName: "Acme Corp",
   careerPageUrl: "https://acme.com/careers",
@@ -145,30 +317,69 @@ addCompanyCareerSite({
 })
 ```
 
+---
+
 ## Environment Variables
 
-| Var | Default | Purpose |
-|-----|---------|---------|
-| `CACHE_DB_PATH` | `./data/cache.db` | SQLite cache location |
-| `CACHE_TTL_HOURS` | `24` | How long cached results stay fresh |
-| `SCRAPE_TIMEOUT_MS` | `30000` | Per-request timeout |
-| `RATE_LIMIT_PER_HOST_MS` | `2000` | Min delay between requests to the same host |
-| `MAX_RETRIES` | `3` | Exp-backoff retries on failure |
-| `LOG_LEVEL` | `info` | `debug` \| `info` \| `warn` \| `error` |
-| `PUPPETEER_HEADLESS` | `true` | Set `false` to debug visually |
+Create a `.env` file in the project root (copy from `.env.example`):
 
-## Notes & Caveats
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CACHE_DB_PATH` | `./data/cache.db` | Where the SQLite cache is stored |
+| `CACHE_TTL_HOURS` | `24` | Hours before cached results expire |
+| `SCRAPE_TIMEOUT_MS` | `30000` | Per-request timeout in milliseconds |
+| `RATE_LIMIT_PER_HOST_MS` | `2000` | Minimum delay between requests to the same host |
+| `MAX_RETRIES` | `3` | Number of retry attempts on failure |
+| `LOG_LEVEL` | `info` | `debug` / `info` / `warn` / `error` |
+| `PUPPETEER_HEADLESS` | `true` | Set to `false` to watch the browser during scraping |
 
-- **Custom scrapers (Apple/Google/Microsoft/etc.) require Puppeteer.** These big-tech sites change their DOM frequently — selectors will need maintenance. The Greenhouse/Lever/Ashby/Workday platform scrapers are far more stable because they hit official JSON APIs.
-- **Respect `robots.txt` and ToS.** This server uses a 2s/host rate limit by default and a custom `User-Agent`. Don't disable rate limiting on production sites.
-- **Workday tenants vary.** The `platformIdentifier` format is `tenant|wdN|site`; the values pre-configured here are best-guess and may need adjusting if a company moves their Workday instance.
-- Logs go to **stderr** because stdout is reserved for the MCP JSON-RPC channel.
+---
 
 ## Development
 
 ```bash
-npm run dev       # tsc --watch
-npm run build     # one-shot compile
-npm start         # run the built server (use this in MCP config)
-npm run clean     # remove dist/
+npm run dev      # Watch mode — recompiles TypeScript on every save
+npm run build    # One-shot compile to dist/
+npm start        # Run the compiled MCP server
+npm run clean    # Delete dist/ folder
 ```
+
+To test a scraper without Claude, run a standalone script and watch stderr for per-company progress:
+
+```bash
+node find-java-24h.mjs 2>&1 | head -50
+```
+
+---
+
+## Caveats & Known Limitations
+
+- **Puppeteer sites (Apple, Google, Amazon, Tesla)** use a headless Chrome browser and are slower and more fragile — DOM structures change frequently. API-based scrapers (Greenhouse, Lever, Ashby, Workday) are far more reliable.
+- **Workday `postedSince: 'today'` is sparse** — most Workday tenants batch-refresh job postings, not in real time. Use `week` for better coverage.
+- **Greenhouse `postedDate` = `updated_at`**, not the original post date. A minor edit to an old listing resets this field, so Greenhouse dates can appear more recent than they are.
+- **Lever `postedDate` = `createdAt`** and **Ashby = `publishedAt`** — both are accurate.
+- **Respect robots.txt and Terms of Service.** This tool uses a 2-second per-host rate limit and a descriptive User-Agent. Do not disable rate limiting.
+- Logs go to **stderr** — stdout is reserved for the MCP JSON-RPC protocol channel.
+
+---
+
+## Tech Stack
+
+- **Language:** TypeScript (Node.js 18+)
+- **MCP SDK:** `@modelcontextprotocol/sdk`
+- **HTTP Client:** Axios
+- **HTML Parsing:** Cheerio
+- **Headless Browser:** Puppeteer (Chromium)
+- **Cache:** better-sqlite3
+- **Schema Validation:** Zod
+- **Build:** TypeScript compiler (`tsc`)
+
+---
+
+## License
+
+MIT — free to use, modify, and distribute.
+
+---
+
+*Built to automate the job hunt. If this helped you, consider starring the repo.*

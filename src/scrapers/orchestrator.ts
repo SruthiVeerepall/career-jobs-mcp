@@ -37,15 +37,18 @@ export async function scrapeCompany(
 
   try {
     const scraper = companyRegistry.createScraper(config);
-    const jobs = await withTimeout(
-      scraper.fetchJobs(filters),
+    // Fetch without title filter so the cache stores all jobs.
+    // Title/level/dept filters are applied client-side below and on every cache read.
+    const cacheFilters: SearchFilters = { postedSince: filters.postedSince, remoteOnly: filters.remoteOnly };
+    const allJobs = await withTimeout(
+      scraper.fetchJobs(cacheFilters),
       SCRAPE_TIMEOUT_MS * 4,
       `scrape ${config.name}`,
     );
-    cacheManager.saveCompanyScrape(config.slug, jobs);
+    cacheManager.saveCompanyScrape(config.slug, allJobs);
     return {
       company: config.name,
-      jobs,
+      jobs: allJobs.filter((j) => matchesFilters(j, filters)),
       scrapedAt: new Date().toISOString(),
       fromCache: false,
     };

@@ -32,6 +32,43 @@ This MCP searches company career sites and returns job listings. Every job searc
 - Group results by platform (Workday, Greenhouse, Lever, Ashby) when there are many results.
 - If zero results are found, say so clearly and suggest broadening the date window.
 
+### 6. Resume-Match Filter — ≥60% profile alignment
+
+Every search result must be relevant to **Sruthi Veerepalli's** profile. Only return roles where the job title aligns with her target roles AND the implied skills match at least 60% of her resume profile.
+
+**Candidate profile:** Java / Full Stack Developer, 5 years of experience.
+- Core: Java 8/11/17, Spring Boot, Spring MVC, Spring Security, Spring Cloud, Spring Batch, Hibernate, JPA
+- Frontend: Angular, React.js, Node.js, TypeScript, JavaScript, HTML5, CSS3
+- Cloud: AWS (EC2, Lambda, S3, RDS, EKS, SQS, API Gateway, DynamoDB), Azure (AKS)
+- DevOps: Docker, Kubernetes, GitHub Actions, Jenkins, Terraform, Maven
+- Messaging: Apache Kafka, ActiveMQ, RabbitMQ, AWS SQS
+- Databases: PostgreSQL, MySQL, MongoDB, DynamoDB, Oracle, IBM DB2
+- Observability: Splunk, Honeycomb, Prometheus
+- Testing: JUnit, Mockito, Playwright (Java), Selenium
+- Patterns: Microservices, REST, SOAP, GraphQL, MVC, CI/CD, Agile/TDD
+
+**Target role titles** (search ALL of these, not just "Java Developer"):
+- Java Developer, Java Full Stack Developer, Full Stack Java Developer
+- Full Stack Developer, Full Stack Engineer
+- Software Engineer, Software Developer
+- Backend Developer, Backend Engineer
+- Application Developer, Java Software Engineer
+
+**Resume skill scoring weights** (used to compute match % from job title keywords):
+```
+CORE   (10 pts): java, spring boot
+HIGH   ( 7 pts): spring, microservices, full stack, full-stack, fullstack
+MID    ( 5 pts): angular, react, aws, kafka, hibernate, jpa, rest, restful, cloud
+LOW    ( 3 pts): docker, kubernetes, ci/cd, jenkins, github actions, splunk, postgresql, mongodb, node.js, typescript, j2ee
+```
+
+**60% match threshold = minimum score of 5 points** from the above weights applied to the job title text.
+- A title like "Senior Java Full Stack Developer" scores 10 (java) + 7 (full stack) = 17 → well above threshold.
+- A title like "Software Engineer" scores 0 from keyword weights → still included if it is a recognized target role title.
+- Exclude roles with no Java/Spring/Full Stack/Backend signal AND zero score (e.g., pure Data Scientist, ML Engineer, DevOps Engineer, QA Engineer).
+
+**Search terms to use in `find-java-24h.mjs`:** Run searches for `Java`, `Full Stack`, and `Software Engineer` across all 623 companies to maximize coverage of her profile.
+
 ---
 
 ## Technical Notes
@@ -64,4 +101,4 @@ Run `node probe-registry.mjs` to verify all company career sites are reachable a
 - `oracle-orc`, `icims`, `icims-jra`, `custom` — these need browser-based scraping.
 
 ### Known Workday 422s (CSRF-protected, kept in registry)
-Companies like Google, Microsoft, Amazon, JPMorgan, Goldman Sachs return HTTP 422 from the probe because their Workday endpoints require a browser session. The scraper handles these correctly at runtime.
+Companies like Google, Microsoft, JPMorgan, Goldman Sachs return HTTP 422 from the probe because their Workday endpoints require a CSRF session. The scraper now handles these by prefetching the careers page to harvest session cookies and the `CALYPSO_CSRF_TOKEN`, then retrying the POST — so they should return results at runtime. Amazon is `platform: 'custom'` (not Workday) and uses Puppeteer; its generic selectors may still return zero results.

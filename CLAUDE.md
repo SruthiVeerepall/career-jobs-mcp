@@ -67,7 +67,7 @@ LOW    ( 3 pts): docker, kubernetes, ci/cd, jenkins, github actions, splunk, pos
 - A title like "Software Engineer" scores 0 from keyword weights → still included if it is a recognized target role title.
 - Exclude roles with no Java/Spring/Full Stack/Backend signal AND zero score (e.g., pure Data Scientist, ML Engineer, DevOps Engineer, QA Engineer).
 
-**Search terms to use in `find-java-24h.mjs`:** Run searches for `Java`, `Full Stack`, and `Software Engineer` across all 623 companies to maximize coverage of her profile.
+**Search terms to use in `find-java-24h.mjs`:** Run searches for `Java`, `Full Stack`, and `Software Engineer` across all companies to maximize coverage of her profile.
 
 ---
 
@@ -88,11 +88,64 @@ Run `node probe-registry.mjs` to verify all company career sites are reachable a
 ### Scripts
 | Script | Purpose |
 |--------|---------|
-| `node find-java-24h.mjs` | Java roles, today filter, ≤5yr experience |
-| `node find-java-24h.mjs --week` | Same but 7-day window |
-| `node run-search.mjs` | Broader Java + Full Stack search, month window |
-| `node probe-registry.mjs` | Health-check all 600+ companies, removes broken ones |
+| `node find-java-24h.mjs` | Full batch search — Java/Full Stack/SE across all registry companies, 3-day window |
+| `node find-java-24h.mjs --today` | Same, 24-hour window |
+| `node find-java-24h.mjs --week` | Same, 7-day window |
+| `node get-5-companies.mjs` | Targeted fetch for Deloitte, SAP, Lyft, Visa, Infosys with special scrapers |
+| `node deloitte-scrape.mjs` | Puppeteer DOM scraper for Deloitte (Avature ATS, server-rendered) |
+| `node probe-registry.mjs` | Health-check all companies, removes broken registry entries |
 | `node probe-registry.mjs --dry-run` | Report only, no changes |
+
+### Special Company Scrapers (not in registry — require custom methods)
+
+These companies use ATS platforms that cannot be queried via the standard registry pipeline. Use the scripts above or the methods described here when the user asks for jobs from these companies.
+
+#### SAP
+- **ATS:** Custom SuccessFactors portal at `jobs.sap.com`
+- **Working endpoint:** `POST https://jobs.sap.com/services/jobs/search/`
+- **Request body:**
+  ```json
+  {
+    "keywords": "Java Software Engineer",
+    "locationsearch": "",
+    "sortby": "referencedate",
+    "sortdir": "desc",
+    "recordsperpage": 100,
+    "startrow": 0,
+    "facetquery": { "facet": true, "limit": 100, "fields": ["country"] },
+    "filterquery": { "country": ["US"] }
+  }
+  ```
+- **Date field:** `referencedate` format `"2026-05-18T02:00:00Z[UTC]"` — strip `[UTC]` suffix before passing to `new Date()`.
+- **Use:** `node get-5-companies.mjs` or `node fetch-sap-infosys.mjs`
+
+#### Deloitte
+- **ATS:** Avature at `apply.deloitte.com` — server-rendered HTML, no public JSON API
+- **Working method:** Puppeteer DOM scraping with keyword in URL path:
+  `https://apply.deloitte.com/en_US/careers/SearchJobs/{keyword}?sort=relevancy`
+  Use terms: `java`, `full-stack`, `software-engineer`, `backend-developer`
+- **Job listing selector:** `.article--result` (title: `h2 a` or `a[href*="JobDetail"]`)
+- **Job detail URL format:** `https://apply.deloitte.com/en_US/careers/JobDetail/{slug}/{id}`
+- **Limitation:** Location and posting date not shown at list view. Verify clearance requirement on "Cyber" roles individually.
+- **Use:** `node deloitte-scrape.mjs` or `node get-5-companies.mjs`
+
+#### Lyft
+- **ATS:** Greenhouse public board — works via standard registry
+- **Already in registry** as `platform: 'greenhouse', platformIdentifier: 'lyft'`
+- **Note:** Job titles don't include tech stack; verify Java/backend stack on individual postings.
+
+#### Visa
+- **ATS:** SmartRecruiters public board — works via standard registry
+- **Already in registry** as `platform: 'smartrecruiters', platformIdentifier: 'Visa'`
+- **Apply URL format:** `https://jobs.smartrecruiters.com/Visa/{jobId}`
+
+#### Infosys
+- **Portal:** `career.infosys.com` — **India/China/Manila ONLY**, zero US jobs
+- **US hiring:** Uses a separate internal ATS with no public API; cannot be scraped.
+- **Workaround:** Direct the user to search LinkedIn for "Infosys software engineer" filtered to United States.
+- **Do NOT add to registry** — portal only returns India-based roles.
+
+---
 
 ### Platforms with working JSON APIs (probeable)
 - `greenhouse`, `lever`, `ashby`, `smartrecruiters`, `workday`

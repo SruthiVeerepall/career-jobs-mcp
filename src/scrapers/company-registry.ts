@@ -688,6 +688,109 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: 'Lockheed Martin', slug: 'lockheed-martin', careerUrl: 'https://www.lockheedmartinjobs.com', platform: 'workday', platformIdentifier: 'lmco|wd5|LMCareers' },
   { name: 'Northrop Grumman', slug: 'northrop-grumman', careerUrl: 'https://www.northropgrumman.com/careers', platform: 'workday', platformIdentifier: 'ngc|wd1|global' },
   { name: 'L3Harris', slug: 'l3harris', careerUrl: 'https://careers.l3harris.com', platform: 'workday', platformIdentifier: 'l3harris|wd5|L3Harris' },
+
+  // ── Big Tech & Cloud (additional) ────────────────────
+  { name: 'Spotify', slug: 'spotify', careerUrl: 'https://www.lifeatspotify.com/jobs', platform: 'lever', platformIdentifier: 'spotify' },
+  { name: 'Zoom', slug: 'zoom', careerUrl: 'https://explore.zoom.us/en/careers', platform: 'workday', platformIdentifier: 'zoom|wd5|Zoom' },
+
+  // ── Cloud & SaaS (additional) ────────────────────────
+  { name: 'Monday.com', slug: 'monday-com', careerUrl: 'https://monday.com/careers', platform: 'workday', platformIdentifier: 'mondaydotcom|wd5|mondaydotcom' },
+  { name: 'Notion', slug: 'notion', careerUrl: 'https://www.notion.so/careers', platform: 'ashby', platformIdentifier: 'notion' },
+  { name: 'DocuSign', slug: 'docusign', careerUrl: 'https://careers.docusign.com', platform: 'workday', platformIdentifier: 'docusign|wd1|DocuSign' },
+  { name: 'Miro', slug: 'miro', careerUrl: 'https://miro.com/careers', platform: 'workday', platformIdentifier: 'miro|wd5|Miro' },
+  { name: 'Rippling', slug: 'rippling', careerUrl: 'https://www.rippling.com/careers', platform: 'workday', platformIdentifier: 'rippling|wd5|Rippling' },
+  { name: 'Shopify', slug: 'shopify', careerUrl: 'https://www.shopify.com/careers', platform: 'workday', platformIdentifier: 'shopify|wd5|Shopify' },
+  { name: 'Retool', slug: 'retool', careerUrl: 'https://retool.com/careers', platform: 'workday', platformIdentifier: 'retool|wd5|Retool' },
+
+  // ── Cybersecurity (additional) ────────────────────────
+  { name: 'SentinelOne', slug: 'sentinelone', careerUrl: 'https://www.sentinelone.com/jobs', platform: 'workday', platformIdentifier: 'sentinelone|wd5|SentinelOne_Careers' },
+  { name: 'CyberArk', slug: 'cyberark', careerUrl: 'https://www.cyberark.com/company/careers', platform: 'workday', platformIdentifier: 'cyberark|wd5|CyberArk' },
+  { name: 'Rapid7', slug: 'rapid7', careerUrl: 'https://www.rapid7.com/company/careers', platform: 'workday', platformIdentifier: 'rapid7|wd5|Rapid7' },
+  { name: 'Secureworks', slug: 'secureworks', careerUrl: 'https://careers.secureworks.com', platform: 'workday', platformIdentifier: 'secureworks|wd5|Secureworks_Careers' },
+
+  // ── Hardware & Semiconductors (additional) ────────────
+  { name: 'Garmin', slug: 'garmin', careerUrl: 'https://careers.garmin.com', platform: 'workday', platformIdentifier: 'garmin|wd5|Garmin' },
+  { name: 'Western Digital', slug: 'western-digital', careerUrl: 'https://jobs.westerndigital.com', platform: 'workday', platformIdentifier: 'wdc|wd5|WDCCareers' },
+  { name: 'Seagate', slug: 'seagate', careerUrl: 'https://careers.seagate.com', platform: 'workday', platformIdentifier: 'seagatetechnology|wd3|Seagate' },
+
+  // ── Analytics & BI (additional) ──────────────────────
+  { name: 'TransUnion', slug: 'transunion', careerUrl: 'https://careers.transunion.com', platform: 'workday', platformIdentifier: 'transunion|wd5|TransUnion' },
+  { name: 'MSCI', slug: 'msci', careerUrl: 'https://careers.msci.com', platform: 'workday', platformIdentifier: 'msci|wd3|MSCICareers' },
+  { name: "Moody's", slug: 'moodys', careerUrl: 'https://careers.moodys.com', platform: 'workday', platformIdentifier: 'moodyscorporation|wd1|External' },
+  { name: 'FactSet', slug: 'factset', careerUrl: 'https://careers.factset.com', platform: 'workday', platformIdentifier: 'factset|wd5|FactSet_Careers' },
+
+  // ── Fintech & Payments (additional) ──────────────────
+  { name: 'Klarna', slug: 'klarna', careerUrl: 'https://www.klarna.com/careers', platform: 'workday', platformIdentifier: 'klarna|wd5|Klarna' },
+  { name: 'NerdWallet', slug: 'nerdwallet', careerUrl: 'https://www.nerdwallet.com/l/careers', platform: 'workday', platformIdentifier: 'nerdwallet|wd5|NerdWallet' },
+
+  // ── Major Banks (additional) ──────────────────────────
+  { name: 'PNC Bank', slug: 'pnc', careerUrl: 'https://careers.pnc.com', platform: 'workday', platformIdentifier: 'pnc|wd1|jobsearch' },
+  { name: 'Truist', slug: 'truist', careerUrl: 'https://careers.truist.com', platform: 'workday', platformIdentifier: 'truist|wd5|Truist' },
+
+  // ── Investment & Wealth Tech (additional) ─────────────
+  { name: 'Vanguard', slug: 'vanguard', careerUrl: 'https://careers.vanguard.com', platform: 'workday', platformIdentifier: 'vanguard|wd1|VanguardCareers' },
+  { name: 'Prudential Financial', slug: 'prudential', careerUrl: 'https://jobs.prudential.com', platform: 'workday', platformIdentifier: 'prudential|wd5|Prudential_Financial' },
+
+  // ── Real Estate Tech & Construction Tech ─────────────
+  { name: 'Compass', slug: 'compass-re', careerUrl: 'https://compass.com/careers', platform: 'workday', platformIdentifier: 'compass|wd5|Compass' },
+  { name: 'Procore', slug: 'procore', careerUrl: 'https://www.procore.com/careers', platform: 'workday', platformIdentifier: 'procore|wd5|Procore' },
+  { name: 'Trimble', slug: 'trimble', careerUrl: 'https://careers.trimble.com', platform: 'workday', platformIdentifier: 'trimble|wd5|Trimble_Careers' },
+  { name: 'Autodesk', slug: 'autodesk', careerUrl: 'https://www.autodesk.com/careers', platform: 'workday', platformIdentifier: 'autodesk|wd5|Autodesk' },
+
+  // ── Health Insurance (additional) ─────────────────────
+  { name: 'Kaiser Permanente', slug: 'kaiser-permanente', careerUrl: 'https://jobs.kaiserpermanente.org', platform: 'workday', platformIdentifier: 'kaiserpermanente|wd3|KP_EXC_SEARCH' },
+
+  // ── Media & Entertainment Tech (additional) ───────────
+  { name: 'Vimeo', slug: 'vimeo', careerUrl: 'https://vimeo.com/about/jobs', platform: 'workday', platformIdentifier: 'vimeo|wd5|Vimeo' },
+
+  // ── Biotech & Life Sciences (additional) ─────────────
+  { name: 'Benchling', slug: 'benchling', careerUrl: 'https://www.benchling.com/careers', platform: 'workday', platformIdentifier: 'benchling|wd5|Benchling' },
+  { name: 'Recursion Pharmaceuticals', slug: 'recursion', careerUrl: 'https://www.recursion.com/careers', platform: 'greenhouse', platformIdentifier: 'recursionpharmaceuticals' },
+  { name: '10x Genomics', slug: '10x-genomics', careerUrl: 'https://careers.10xgenomics.com', platform: 'greenhouse', platformIdentifier: '10xgenomics' },
+
+  // ── Energy Tech & Clean Tech ──────────────────────────
+  { name: 'Enphase Energy', slug: 'enphase', careerUrl: 'https://enphase.com/careers', platform: 'workday', platformIdentifier: 'enphase|wd5|Enphase_Careers' },
+  { name: 'SolarEdge', slug: 'solaredge', careerUrl: 'https://www.solaredge.com/us/careers', platform: 'workday', platformIdentifier: 'solaredge|wd5|SolarEdge' },
+  { name: 'First Solar', slug: 'first-solar', careerUrl: 'https://careers.firstsolar.com', platform: 'workday', platformIdentifier: 'firstsolar|wd5|FirstSolar' },
+  { name: 'Sunrun', slug: 'sunrun', careerUrl: 'https://www.sunrun.com/careers', platform: 'workday', platformIdentifier: 'sunrun|wd1|Sunrun' },
+  { name: 'Bloom Energy', slug: 'bloom-energy', careerUrl: 'https://www.bloomenergy.com/about/careers', platform: 'workday', platformIdentifier: 'bloomenergy|wd5|BloomEnergy' },
+
+  // ── Industrial & Manufacturing Tech ───────────────────
+  { name: 'Siemens', slug: 'siemens', careerUrl: 'https://jobs.siemens.com/us/en', platform: 'workday', platformIdentifier: 'siemens|wd3|Siemens' },
+  { name: 'Honeywell', slug: 'honeywell', careerUrl: 'https://careers.honeywell.com', platform: 'workday', platformIdentifier: 'honeywell|wd5|Honeywell' },
+  { name: 'Rockwell Automation', slug: 'rockwell-automation', careerUrl: 'https://www.rockwellautomation.com/en-us/company/careers.html', platform: 'workday', platformIdentifier: 'rockwellautomation|wd5|External' },
+  { name: 'Emerson Electric', slug: 'emerson', careerUrl: 'https://www.emerson.com/en-us/careers', platform: 'workday', platformIdentifier: 'emerson|wd1|Emerson' },
+
+  // ── GovTech & Public Sector (additional) ─────────────
+  { name: 'Tyler Technologies', slug: 'tyler-technologies', careerUrl: 'https://www.tylertech.com/about-us/careers', platform: 'workday', platformIdentifier: 'tylertech|wd5|External' },
+  { name: 'SAIC', slug: 'saic', careerUrl: 'https://jobs.saic.com', platform: 'workday', platformIdentifier: 'saic|wd5|SAIC' },
+  { name: 'CACI', slug: 'caci', careerUrl: 'https://careers.caci.com', platform: 'workday', platformIdentifier: 'caci|wd3|CACI_Careers' },
+  { name: 'Peraton', slug: 'peraton', careerUrl: 'https://careers.peraton.com', platform: 'workday', platformIdentifier: 'peraton|wd1|External' },
+  { name: 'Maximus', slug: 'maximus', careerUrl: 'https://careers.maximus.com', platform: 'workday', platformIdentifier: 'maximusfederal|wd5|Maximus' },
+  { name: 'Granicus', slug: 'granicus', careerUrl: 'https://granicus.com/careers', platform: 'workday', platformIdentifier: 'granicus|wd5|Granicus' },
+
+  // ── MarTech (additional) ──────────────────────────────
+  { name: 'Attentive', slug: 'attentive', careerUrl: 'https://www.attentive.com/careers', platform: 'greenhouse', platformIdentifier: 'attentive' },
+  { name: 'Yotpo', slug: 'yotpo', careerUrl: 'https://www.yotpo.com/company/careers', platform: 'greenhouse', platformIdentifier: 'yotpo' },
+  { name: 'Sprinklr', slug: 'sprinklr', careerUrl: 'https://careers.sprinklr.com', platform: 'workday', platformIdentifier: 'sprinklr|wd5|Sprinklr' },
+  { name: 'Brevo', slug: 'brevo', careerUrl: 'https://www.brevo.com/en/careers', platform: 'lever', platformIdentifier: 'brevo' },
+
+  // ── Telecom & Networking (additional) ────────────────
+  { name: 'AT&T', slug: 'att', careerUrl: 'https://www.att.jobs', platform: 'workday', platformIdentifier: 'att|wd5|ATT' },
+  { name: 'Verizon', slug: 'verizon', careerUrl: 'https://mycareer.verizon.com', platform: 'workday', platformIdentifier: 'verizon|wd5|External' },
+
+  // ── Contact Center & CX Tech (additional) ─────────────
+  { name: 'Genesys', slug: 'genesys', careerUrl: 'https://www.genesys.com/en/company/careers', platform: 'workday', platformIdentifier: 'genesys|wd5|External' },
+  { name: 'Talkdesk', slug: 'talkdesk', careerUrl: 'https://www.talkdesk.com/careers', platform: 'workday', platformIdentifier: 'talkdesk|wd5|Talkdesk' },
+
+  // ── Accounting & Tax Tech (additional) ────────────────
+  { name: 'Avalara', slug: 'avalara', careerUrl: 'https://careers.avalara.com', platform: 'workday', platformIdentifier: 'avalara|wd5|Avalara' },
+
+  // ── AgriTech ──────────────────────────────────────────
+  { name: 'Indigo Agriculture', slug: 'indigo-agriculture', careerUrl: 'https://www.indigoag.com/careers', platform: 'greenhouse', platformIdentifier: 'indigo' },
+
+  // ── Credit & Risk Analytics (additional) ─────────────
+  { name: 'Dun & Bradstreet', slug: 'dun-bradstreet', careerUrl: 'https://careers.dnb.com', platform: 'workday', platformIdentifier: 'dnb|wd5|DnBCareers' },
 ];
 
 class CompanyRegistry {

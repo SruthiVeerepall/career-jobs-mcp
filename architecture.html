@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Career Jobs MCP — Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    text-align: center;
+    padding: 28px 20px 12px;
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+    border-bottom: 1px solid #21262d;
+  }
+  header h1 { font-size: 1.6rem; font-weight: 700; color: #58a6ff; letter-spacing: -0.5px; }
+  header p  { font-size: 0.82rem; color: #8b949e; margin-top: 4px; }
+
+  /* ── Layout ───────────────────────────────────────── */
+  .canvas {
+    display: grid;
+    grid-template-columns: 220px 1fr 260px;
+    grid-template-rows: auto auto auto auto auto;
+    gap: 0;
+    padding: 30px 24px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  /* ── Generic card ────────────────────────────────── */
+  .card {
+    border-radius: 10px;
+    border: 1px solid #30363d;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+  .card .label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; opacity: 0.6; margin-bottom: 4px; }
+  .card .title { font-size: 0.95rem; font-weight: 600; }
+  .card .sub   { font-size: 0.75rem; color: #8b949e; margin-top: 3px; }
+
+  /* ── Color themes ────────────────────────────────── */
+  .blue   { background: #0c2d6b22; border-color: #1f6feb; }
+  .blue .title { color: #58a6ff; }
+  .green  { background: #0d2d1a22; border-color: #238636; }
+  .green .title { color: #3fb950; }
+  .purple { background: #2d1b6922; border-color: #6e40c9; }
+  .purple .title { color: #a371f7; }
+  .orange { background: #3b1e0522; border-color: #d29922; }
+  .orange .title { color: #e3b341; }
+  .red    { background: #2d0d0d22; border-color: #da3633; }
+  .red .title { color: #f85149; }
+  .teal   { background: #062d2d22; border-color: #139884; }
+  .teal .title { color: #2dd4bf; }
+  .gray   { background: #21262d; border-color: #30363d; }
+  .gray .title { color: #c9d1d9; }
+
+  /* ── Flow sections ───────────────────────────────── */
+  .section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 12px;
+  }
+  .section-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #8b949e;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 6px;
+    margin-bottom: 2px;
+  }
+
+  /* ── Arrow connectors ────────────────────────────── */
+  .arrows-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0 4px;
+    position: relative;
+  }
+  .arrow-v {
+    width: 2px;
+    flex: 1;
+    background: linear-gradient(180deg, #1f6feb55, #1f6feb);
+    position: relative;
+    min-height: 24px;
+  }
+  .arrow-v::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid #1f6feb;
+  }
+  .arrow-label {
+    font-size: 0.6rem;
+    color: #58a6ff;
+    text-align: center;
+    padding: 2px 4px;
+    white-space: nowrap;
+    background: #0d1117;
+    border-radius: 4px;
+    border: 1px solid #1f6feb44;
+    z-index: 1;
+  }
+
+  /* ── Big flow layout ─────────────────────────────── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0 30px;
+  }
+  .flow-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+  .flow-node {
+    flex: 1;
+  }
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+    color: #1f6feb;
+    font-size: 1.2rem;
+  }
+
+  /* ── Main diagram grid ───────────────────────────── */
+  .diagram {
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 20px 24px 40px;
+  }
+
+  /* layer rows */
+  .layer {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 0;
+    padding: 0 0 10px;
+    justify-content: center;
+  }
+  .layer-connector {
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    position: relative;
+    height: 36px;
+  }
+
+  .v-line {
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg, #1f6feb 0%, #6e40c9 100%);
+    position: relative;
+  }
+  .v-line::after {
+    content: '▼';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #6e40c9;
+    font-size: 0.7rem;
+  }
+
+  .h-branch {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    padding: 0 0 10px;
+  }
+  .h-branch::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: linear-gradient(90deg, #6e40c9, #d29922);
+  }
+
+  /* platform scraper chips */
+  .platform-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+  .p-chip {
+    border-radius: 8px;
+    border: 1px solid;
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .p-chip:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
+  .p-chip .icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+  .p-chip .name { font-size: 0.7rem; font-weight: 700; }
+  .p-chip .type { font-size: 0.6rem; opacity: 0.65; }
+  .p-chip.gh   { border-color: #3fb950; background: #0d2d1a33; color: #3fb950; }
+  .p-chip.lv   { border-color: #58a6ff; background: #0c2d6b33; color: #58a6ff; }
+  .p-chip.ash  { border-color: #a371f7; background: #2d1b6933; color: #a371f7; }
+  .p-chip.wd   { border-color: #e3b341; background: #3b1e0533; color: #e3b341; }
+  .p-chip.sr   { border-color: #2dd4bf; background: #062d2d33; color: #2dd4bf; }
+  .p-chip.pup  { border-color: #f85149; background: #2d0d0d33; color: #f85149; }
+
+  /* ── Detail panel ────────────────────────────────── */
+  #detail-panel {
+    position: fixed;
+    right: 20px;
+    top: 80px;
+    width: 320px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 18px;
+    z-index: 100;
+    display: none;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+  }
+  #detail-panel.visible { display: block; animation: slideIn 0.2s ease; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+  #detail-panel h3 { font-size: 1rem; color: #58a6ff; margin-bottom: 10px; }
+  #detail-panel .dp-section { margin-bottom: 12px; }
+  #detail-panel .dp-section h4 { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #8b949e; margin-bottom: 6px; border-bottom: 1px solid #21262d; padding-bottom: 4px; }
+  #detail-panel p, #detail-panel li { font-size: 0.78rem; color: #c9d1d9; line-height: 1.5; margin-bottom: 3px; }
+  #detail-panel code { font-family: 'Cascadia Code', 'Consolas', monospace; background: #21262d; border-radius: 3px; padding: 1px 5px; font-size: 0.72rem; color: #79c0ff; }
+  #detail-panel ul { padding-left: 14px; }
+  #close-btn { position: absolute; top: 10px; right: 12px; background: none; border: none; color: #8b949e; font-size: 1.1rem; cursor: pointer; }
+  #close-btn:hover { color: #e6edf3; }
+
+  /* ── Animated data flow ──────────────────────────── */
+  .flow-dot {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #58a6ff;
+    animation: flowDown 2s ease-in-out infinite;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  @keyframes flowDown {
+    0%   { top: 0; opacity: 1; }
+    80%  { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  /* ── Legend ──────────────────────────────────────── */
+  .legend {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 12px 24px 24px;
+    font-size: 0.72rem;
+    color: #8b949e;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ── Pulse animation on active ───────────────────── */
+  .pulse { animation: pulse 2s infinite; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(88,166,255,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(88,166,255,0); }
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #30363d;
+    margin: 16px 24px;
+    max-width: 1240px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .stat {
+    flex: 1;
+    text-align: center;
+    padding: 12px;
+    background: #161b22;
+    border-right: 1px solid #30363d;
+  }
+  .stat:last-child { border-right: none; }
+  .stat .n { font-size: 1.6rem; font-weight: 700; color: #58a6ff; }
+  .stat .l { font-size: 0.65rem; color: #8b949e; text-transform: uppercase; letter-spacing: 0.6px; margin-top: 2px; }
+
+  .layer-title {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #8b949e;
+    writing-mode: horizontal-tb;
+    text-align: center;
+    padding: 4px 8px;
+    border-right: 2px solid #21262d;
+    width: 60px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .big-card {
+    flex: 1;
+    border-radius: 10px;
+    border: 1px solid #30363d;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .big-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+  .big-card .title { font-size: 0.88rem; font-weight: 700; }
+  .big-card .sub   { font-size: 0.72rem; color: #8b949e; margin-top: 3px; }
+  .big-card .tags  { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .tag { font-size: 0.6rem; padding: 2px 7px; border-radius: 12px; font-weight: 600; }
+
+  .connector-row {
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 60px;
+    margin: -2px 0;
+    height: 32px;
+    position: relative;
+  }
+  .c-line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #1f6feb55, #1f6feb);
+    position: relative;
+  }
+  .c-arrow-label {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.58rem;
+    color: #58a6ff;
+    background: #0d1117;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Career Jobs MCP — System Architecture</h1>
+  <p>Click any component for details &nbsp;·&nbsp; Live data-flow visualization</p>
+</header>
+
+<!-- Stats bar -->
+<div class="stats-bar">
+  <div class="stat"><div class="n">463+</div><div class="l">Companies</div></div>
+  <div class="stat"><div class="n">6</div><div class="l">ATS Platforms</div></div>
+  <div class="stat"><div class="n">5</div><div class="l">MCP Tools</div></div>
+  <div class="stat"><div class="n">24h</div><div class="l">Cache TTL</div></div>
+  <div class="stat"><div class="n">30s</div><div class="l">Scrape Timeout</div></div>
+  <div class="stat"><div class="n">≥60%</div><div class="l">Resume Match</div></div>
+</div>
+
+<!-- ── Main Diagram ── -->
+<div class="diagram">
+
+  <!-- Layer 0: User -->
+  <div class="layer">
+    <div class="layer-title">Input</div>
+    <div class="big-card blue pulse" onclick="show('user')" style="max-width:260px;margin:0 auto;">
+      <div class="title" style="color:#58a6ff;">👤 User / Claude AI</div>
+      <div class="sub">Natural language job search request</div>
+      <div class="tags">
+        <span class="tag" style="background:#0c2d6b;color:#58a6ff;">Claude Desktop</span>
+        <span class="tag" style="background:#0c2d6b;color:#58a6ff;">CLI Scripts</span>
+        <span class="tag" style="background:#0c2d6b;color:#58a6ff;">MCP Client</span>
+      </div>
+    </div>
+    <div style="width:60px;flex-shrink:0;"></div>
+  </div>
+
+  <!-- Arrow -->
+  <div class="connector-row">
+    <div class="c-line" style="max-width:260px;margin:0 auto;background:linear-gradient(180deg,#1f6feb,#1f6feb66);">
+      <span class="c-arrow-label">JSON-RPC over stdio</span>
+    </div>
+    <div style="flex:1;"></div>
+    <div style="width:60px;flex-shrink:0;"></div>
+  </div>
+
+  <!-- Layer 1: MCP Server -->
+  <div class="layer">
+    <div class="layer-title">MCP Server</div>
+    <div class="big-card" onclick="show('server')" style="background:#161b22;border-color:#30363d;max-width:860px;width:100%;">
+      <div class="title" style="color:#c9d1d9;">⚙️ MCP Server &nbsp;<code style="font-size:0.65rem;background:#0d1117;padding:2px 6px;border-radius:4px;color:#79c0ff;">src/server.ts</code></div>
+      <div class="sub">Registers 5 tools, manages transport, handles graceful shutdown</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px;">
+        <div onclick="show('t-search');event.stopPropagation()" style="background:#0c2d6b22;border:1px solid #1f6feb55;border-radius:6px;padding:7px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='#1f6feb'" onmouseout="this.style.borderColor='#1f6feb55'">
+          <div style="font-size:0.65rem;font-weight:700;color:#58a6ff;">searchCompanyJobs</div>
+          <div style="font-size:0.58rem;color:#8b949e;margin-top:2px;">Single company search</div>
+        </div>
+        <div onclick="show('t-multi');event.stopPropagation()" style="background:#0c2d6b22;border:1px solid #1f6feb55;border-radius:6px;padding:7px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='#1f6feb'" onmouseout="this.style.borderColor='#1f6feb55'">
+          <div style="font-size:0.65rem;font-weight:700;color:#58a6ff;">searchMultipleCompanies</div>
+          <div style="font-size:0.58rem;color:#8b949e;margin-top:2px;">Parallel batch search</div>
+        </div>
+        <div onclick="show('t-detail');event.stopPropagation()" style="background:#0c2d6b22;border:1px solid #1f6feb55;border-radius:6px;padding:7px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='#1f6feb'" onmouseout="this.style.borderColor='#1f6feb55'">
+          <div style="font-size:0.65rem;font-weight:700;color:#58a6ff;">getJobDetails</div>
+          <div style="font-size:0.58rem;color:#8b949e;margin-top:2px;">Full job description</div>
+        </div>
+        <div onclick="show('t-list');event.stopPropagation()" style="background:#0c2d6b22;border:1px solid #1f6feb55;border-radius:6px;padding:7px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='#1f6feb'" onmouseout="this.style.borderColor='#1f6feb55'">
+          <div style="font-size:0.65rem;font-weight:700;color:#58a6ff;">listCompanies</div>
+          <div style="font-size:0.58rem;color:#8b949e;margin-top:2px;">All 463+ companies</div>
+        </div>
+        <div onclick="show('t-add');event.stopPropagation()" style="background:#0c2d6b22;border:1px solid #1f6feb55;border-radius:6px;padding:7px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='#1f6feb'" onmouseout="this.style.borderColor='#1f6feb55'">
+          <div style="font-size:0.65rem;font-weight:700;color:#58a6ff;">addCompanyCareerSite</div>
+          <div style="font-size:0.58rem;color:#8b949e;margin-top:2px;">Register new company</div>
+        </div>
+      </div>
+    </div>
+    <div style="width:60px;flex-shrink:0;"></div>
+  </div>
+
+  <!-- Arrow -->
+  <div class="connector-row">
+    <div class="c-line" style="max-width:860px;width:100%;background:linear-gradient(180deg,#6e40c9,#6e40c966);">
+      <span class="c-arrow-label">tool call + filters</span>
+    </div>
+    <div style="width:60px;flex-shrink:0;"></div>
+  </div>
+
+  <!-- Layer 2: Orchestrator + Cache (side by side) -->
+  <div class="layer" style="align-items:stretch;">
+    <div class="layer-title">Core Logic</div>
+    <div style="flex:1;display:flex;gap:12px;max-width:860px;">
+      <div class="big-card purple" onclick="show('orchestrator')" style="flex:2;">
+        <div class="title" style="color:#a371f7;">🎛️ Orchestrator &nbsp;<code style="font-size:0.65rem;background:#0d1117;padding:2px 6px;border-radius:4px;color:#a371f7;">src/scrapers/orchestrator.ts</code></div>
+        <div class="sub">Cache check → Registry lookup → Scraper dispatch → Filter → Return</div>
+        <div class="tags" style="margin-top:8px;">
+          <span class="tag" style="background:#2d1b69;color:#a371f7;">Rate Limiter</span>
+          <span class="tag" style="background:#2d1b69;color:#a371f7;">Retry + Backoff</span>
+          <span class="tag" style="background:#2d1b69;color:#a371f7;">30s Timeout</span>
+          <span class="tag" style="background:#2d1b69;color:#a371f7;">Promise.allSettled</span>
+        </div>
+      </div>
+      <div class="big-card orange" onclick="show('cache')" style="flex:1;">
+        <div class="title" style="color:#e3b341;">🗄️ Cache Manager &nbsp;<code style="font-size:0.65rem;background:#0d1117;padding:2px 6px;border-radius:4px;color:#e3b341;">cache-manager.ts</code></div>
+        <div class="sub">SQLite · 24h TTL · WAL mode</div>
+        <div class="tags" style="margin-top:8px;">
+          <span class="tag" style="background:#3b1e05;color:#e3b341;">company_scrapes</span>
+          <span class="tag" style="background:#3b1e05;color:#e3b341;">jobs table</span>
+        </div>
+      </div>
+    </div>
+    <div style="width:60px;flex-shrink:0;display:flex;flex-direction:column;gap:6px;padding-top:8px;">
+      <div style="font-size:0.55rem;color:#8b949e;text-align:center;">cache hit</div>
+      <div style="width:2px;height:40px;background:#d29922;margin:0 auto;position:relative;">
+        <div class="flow-dot" style="background:#e3b341;animation-delay:0.5s;"></div>
+      </div>
+      <div style="font-size:0.55rem;color:#8b949e;text-align:center;">miss →<br>scrape</div>
+    </div>
+  </div>
+
+  <!-- Arrow -->
+  <div class="connector-row">
+    <div class="c-line" style="max-width:580px;width:66%;background:linear-gradient(180deg,#d29922,#d2992266);">
+      <span class="c-arrow-label">cache miss → instantiate scraper</span>
+    </div>
+    <div style="flex:1;"></div>
+    <div style="width:60px;flex-shrink:0;"></div>
+  </div>
+
+  <!-- Layer 3: Registry -->
+  <div class="layer">
+    <div class="layer-title">Registry</div>
+    <div class="big-card green" onclick="show('registry')" style="max-width:580px;width:100%;">
+      <div class="title" style="color:#3fb950;">📋 Company Registry &nbsp;<code style="font-size:0.65rem;background:#0d1117;padding:2px 6px;border-radius:4px;color:#3fb950;">src/scrapers/company-registry.ts</code></div>
+      <div class="sub">463+ companies mapped to platform + identifier · auto-detect on add · createScraper() factory</div>
+      <div class="tags" style="margin-top:8px;">
+        <span class="tag" style="background:#0d2d1a;color:#3fb950;">~200 Greenhouse</span>
+        <span class="tag" style="background:#0d2d1a;color:#3fb950;">~60 Lever</span>
+        <span class="tag" style="background:#0d2d1a;color:#3fb950;">~80 Ashby</span>
+        <span class="tag" style="background:#0d2d1a;color:#3fb950;">~120 Workday</span>
+        <span class="tag" style="background:#0d2d1a;color:#3fb950;">iCIMS · SmartRecruiters</span>
+      </div>
+    </div>
+    <div style="flex:1;"></div>
+    <div style="width:60px;flex-shrink:0;"></div>
+  </div>
+
+  <!-- Arrow -->
+  <div class="connector-row">
+    <div class="c-line" style="max-width:580px;width:66%;background:linear-gradient(180deg,#238636,#23863666);">
+      <span class="c-arrow-label">platform-specific scraper instance</span>
+    </div>
+    <div style="flex:1;"></div>
+    <div style="width:60px;flex-shrink:0;"></div>
+  </div>
+
+  <!-- Layer 4: Platform Scrapers -->
+  <div class="layer">
+    <div class="layer-title">Scrapers</div>
+    <div style="flex:1;max-width:860px;">
+      <div class="platform-grid">
+        <div class="p-chip gh" onclick="show('gh')">
+          <span class="icon">🌿</span>
+          <div class="name">Greenhouse</div>
+          <div class="type">JSON API</div>
+          <div class="type" style="margin-top:3px;font-size:0.55rem;">boards-api.greenhouse.io</div>
+        </div>
+        <div class="p-chip lv" onclick="show('lv')">
+          <span class="icon">⚡</span>
+          <div class="name">Lever</div>
+          <div class="type">JSON API</div>
+          <div class="type" style="margin-top:3px;font-size:0.55rem;">api.lever.co</div>
+        </div>
+        <div class="p-chip ash" onclick="show('ash')">
+          <span class="icon">🔷</span>
+          <div class="name">Ashby</div>
+          <div class="type">JSON API + Pages</div>
+          <div class="type" style="margin-top:3px;font-size:0.55rem;">jobs.ashbyhq.com</div>
+        </div>
+        <div class="p-chip wd" onclick="show('wd')">
+          <span class="icon">🏢</span>
+          <div class="name">Workday</div>
+          <div class="type">CSRF Session</div>
+          <div class="type" style="margin-top:3px;font-size:0.55rem;">*.myworkdayjobs.com</div>
+        </div>
+        <div class="p-chip sr" onclick="show('sr')">
+          <span class="icon">🧠</span>
+          <div class="name">SmartRecruiters</div>
+          <div class="type">JSON API</div>
+          <div class="type" style="margin-top:3px;font-size:0.55rem;">api.smartrecruiters.com</div>
+        </div>
+        <div class="p-chip pup" onclick="show('pup')">
+          <span class="icon">🤖</span>
+          <div class="name">Puppeteer</div>
+          <div class="type">Headless Chrome</div>
+          <div class="type" style="margin-top:3px;font-size:0.55rem;">DOM scraping</div>
+        </div>
+      </div>
+    </div>
+    <div style="width:60px;flex-shrink:0;"></div>
+  </div>
+
+  <!-- Arrow -->
+  <div class="connector-row">
+    <div class="c-line" style="max-width:860px;width:100%;background:linear-gradient(180deg,#139884,#13988466);">
+      <span class="c-arrow-label">HTTP GET/POST to ATS API &nbsp;→&nbsp; rate-limited · retried · timeout-guarded</span>
+    </div>
+    <div style="width:60px;flex-shrink:0;"></div>
+  </div>
+
+  <!-- Layer 5: External ATS -->
+  <div class="layer">
+    <div class="layer-title">External</div>
+    <div class="big-card teal" onclick="show('ats')" style="max-width:860px;width:100%;">
+      <div class="title" style="color:#2dd4bf;">🌐 Company ATS Career Portals (External APIs)</div>
+      <div class="sub">Real-time HTTP requests to Greenhouse · Lever · Ashby · Workday · SmartRecruiters · Custom portals</div>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:10px;">
+        <div style="background:#062d2d;border:1px solid #139884;border-radius:5px;padding:5px;text-align:center;font-size:0.58rem;color:#2dd4bf;">Stripe · Airbnb<br>Discord · Reddit</div>
+        <div style="background:#062d2d;border:1px solid #139884;border-radius:5px;padding:5px;text-align:center;font-size:0.58rem;color:#2dd4bf;">Netflix<br>Atlassian · Palantir</div>
+        <div style="background:#062d2d;border:1px solid #139884;border-radius:5px;padding:5px;text-align:center;font-size:0.58rem;color:#2dd4bf;">Linear · Ramp<br>PostHog</div>
+        <div style="background:#062d2d;border:1px solid #139884;border-radius:5px;padding:5px;text-align:center;font-size:0.58rem;color:#2dd4bf;">Salesforce · Adobe<br>JPMorgan · Goldman</div>
+        <div style="background:#062d2d;border:1px solid #139884;border-radius:5px;padding:5px;text-align:center;font-size:0.58rem;color:#2dd4bf;">Visa · Bosch</div>
+        <div style="background:#062d2d;border:1px solid #139884;border-radius:5px;padding:5px;text-align:center;font-size:0.58rem;color:#2dd4bf;">Deloitte · SAP<br>Amazon</div>
+      </div>
+    </div>
+    <div style="width:60px;flex-shrink:0;"></div>
+  </div>
+
+  <!-- Arrow (going back up = response) -->
+  <div class="connector-row" style="flex-direction:row-reverse;">
+    <div style="width:60px;flex-shrink:0;"></div>
+    <div class="c-line" style="max-width:860px;width:100%;background:linear-gradient(90deg,#3fb950,#3fb95066);transform:none;">
+      <span class="c-arrow-label" style="color:#3fb950;">JobListing[] → filter (resume-match ≥60%) → markdown table</span>
+    </div>
+  </div>
+
+  <!-- Layer 6: Filters / Output -->
+  <div class="layer">
+    <div class="layer-title">Filters &amp; Output</div>
+    <div style="flex:1;display:flex;gap:12px;max-width:860px;">
+      <div class="big-card" onclick="show('filters')" style="flex:1;background:#0d2d1a22;border-color:#238636;">
+        <div class="title" style="color:#3fb950;">🔍 Resume-Match Filter</div>
+        <div class="sub">Keyword scoring · experience level ceiling · US-only · ≤3 days old · no clearance</div>
+        <div class="tags" style="margin-top:6px;">
+          <span class="tag" style="background:#0d2d1a;color:#3fb950;">≥60% score</span>
+          <span class="tag" style="background:#0d2d1a;color:#3fb950;">≤Senior level</span>
+          <span class="tag" style="background:#0d2d1a;color:#3fb950;">US only</span>
+          <span class="tag" style="background:#0d2d1a;color:#3fb950;">3-day window</span>
+        </div>
+      </div>
+      <div class="big-card blue" onclick="show('output')" style="flex:1;">
+        <div class="title" style="color:#58a6ff;">📋 Markdown Table Output</div>
+        <div class="sub"># · Title · Company · Location · Posted · Apply URL</div>
+        <div class="tags" style="margin-top:6px;">
+          <span class="tag" style="background:#0c2d6b;color:#58a6ff;">Grouped by platform</span>
+          <span class="tag" style="background:#0c2d6b;color:#58a6ff;">Direct apply links</span>
+        </div>
+      </div>
+    </div>
+    <div style="width:60px;flex-shrink:0;"></div>
+  </div>
+
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#58a6ff;"></div>MCP / Transport layer</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#a371f7;"></div>Orchestration / Core logic</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e3b341;"></div>Cache (SQLite)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3fb950;"></div>Registry / Scrapers</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#2dd4bf;"></div>External ATS APIs</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f85149;"></div>Puppeteer (headless)</div>
+</div>
+
+<!-- ── Detail Panel ── -->
+<div id="detail-panel">
+  <button id="close-btn" onclick="closePanel()">✕</button>
+  <h3 id="dp-title"></h3>
+  <div id="dp-body"></div>
+</div>
+
+<script>
+const DETAILS = {
+  user: {
+    title: '👤 User / Claude AI',
+    body: `
+      <div class="dp-section">
+        <h4>Entry Points</h4>
+        <ul>
+          <li>Claude Desktop App via MCP config</li>
+          <li>Standalone CLI scripts (<code>find-java-24h.mjs</code>)</li>
+          <li>Any MCP-compatible client over stdio</li>
+        </ul>
+      </div>
+      <div class="dp-section">
+        <h4>Communication</h4>
+        <p>Uses JSON-RPC 2.0 over <strong>stdio</strong> transport. Claude sends tool calls; the server responds with structured JSON.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Example Request</h4>
+        <p><code>searchCompanyJobs("Stripe", "Java", postedSince:"week")</code></p>
+      </div>
+    `
+  },
+  server: {
+    title: '⚙️ MCP Server — src/server.ts',
+    body: `
+      <div class="dp-section">
+        <h4>Role</h4>
+        <p>Creates the MCP server instance, registers 5 tools, sets up stdio transport, and handles graceful shutdown (closes browser + SQLite on SIGINT/SIGTERM).</p>
+      </div>
+      <div class="dp-section">
+        <h4>Transport</h4>
+        <p><code>StdioServerTransport</code> — stdout is reserved for JSON-RPC, all logging goes to stderr.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Entry Point</h4>
+        <p><code>src/index.ts</code> → loads <code>.env</code> → calls <code>startServer()</code></p>
+      </div>
+    `
+  },
+  'orchestrator': {
+    title: '🎛️ Orchestrator — src/scrapers/orchestrator.ts',
+    body: `
+      <div class="dp-section">
+        <h4>Core Flow</h4>
+        <ul>
+          <li>1. Look up company in registry</li>
+          <li>2. Check SQLite cache (24h TTL)</li>
+          <li>3. If fresh → return cached jobs</li>
+          <li>4. Otherwise → create platform scraper</li>
+          <li>5. Call <code>scraper.fetchJobs(filters)</code></li>
+          <li>6. Save result to cache</li>
+          <li>7. Return <code>ScrapeResult</code></li>
+        </ul>
+      </div>
+      <div class="dp-section">
+        <h4>Parallel Batch</h4>
+        <p><code>scrapeMany()</code> uses <code>Promise.allSettled()</code> to fan out across all companies simultaneously.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Guards</h4>
+        <p>Each scrape is wrapped in a <strong>30s timeout</strong>, <strong>exponential backoff retry</strong> (500ms → 1s → 2s), and <strong>per-host rate limiter</strong> (500ms default).</p>
+      </div>
+    `
+  },
+  cache: {
+    title: '🗄️ Cache Manager — cache-manager.ts',
+    body: `
+      <div class="dp-section">
+        <h4>Technology</h4>
+        <p>SQLite via <code>better-sqlite3</code>. File: <code>data/cache.db</code>. WAL mode enabled for concurrent reads.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Tables</h4>
+        <ul>
+          <li><code>company_scrapes</code> — one row per company, stores all jobs as JSON blob</li>
+          <li><code>jobs</code> — one row per job, indexed by company + job_id for fast single-job lookup</li>
+        </ul>
+      </div>
+      <div class="dp-section">
+        <h4>TTL</h4>
+        <p>Default <strong>24 hours</strong>. Override with <code>CACHE_TTL_HOURS</code> env var or pass <code>forceRefresh: true</code> in tool call.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Reset</h4>
+        <p>Delete <code>data/cache.db</code> to force full re-scrape of all companies.</p>
+      </div>
+    `
+  },
+  registry: {
+    title: '📋 Company Registry — company-registry.ts',
+    body: `
+      <div class="dp-section">
+        <h4>Size</h4>
+        <p>463+ preconfigured companies mapped to platform identifiers.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Methods</h4>
+        <ul>
+          <li><code>get(slug)</code> — lookup by name or slug</li>
+          <li><code>list()</code> — all companies</li>
+          <li><code>add(config)</code> — user-added company</li>
+          <li><code>createScraper(config)</code> — factory pattern, returns platform-specific scraper instance</li>
+        </ul>
+      </div>
+      <div class="dp-section">
+        <h4>Auto-detect</h4>
+        <p>When adding a new company, the platform is detected from the career URL (looks for greenhouse.io, lever.co, etc.) and the board token is extracted automatically.</p>
+      </div>
+    `
+  },
+  gh: {
+    title: '🌿 Greenhouse Scraper',
+    body: `
+      <div class="dp-section">
+        <h4>API Endpoint</h4>
+        <p><code>GET https://boards-api.greenhouse.io/v1/boards/{token}/jobs?content=true</code></p>
+      </div>
+      <div class="dp-section">
+        <h4>Data</h4>
+        <p>Returns all jobs in one call (no pagination). Maps: id, title, location.name, departments, absolute_url, updated_at.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Companies</h4>
+        <p>~200 companies: Stripe, Airbnb, Discord, Reddit, Figma, Notion, Linear, and more.</p>
+      </div>
+    `
+  },
+  lv: {
+    title: '⚡ Lever Scraper',
+    body: `
+      <div class="dp-section">
+        <h4>API Endpoint</h4>
+        <p><code>GET https://api.lever.co/v0/postings/{account_id}?mode=json</code></p>
+      </div>
+      <div class="dp-section">
+        <h4>Features</h4>
+        <p>Returns all active postings with ISO timestamps. Maps categories.commitment, categories.location, urls.apply.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Companies</h4>
+        <p>~60 companies: Netflix, Palantir, Atlassian, Shopify, Twilio, and more.</p>
+      </div>
+    `
+  },
+  ash: {
+    title: '🔷 Ashby Scraper',
+    body: `
+      <div class="dp-section">
+        <h4>API</h4>
+        <p>Ashby public job board API with pagination support. Handles async loading and multiple pages.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Companies</h4>
+        <p>~80 companies: Linear, Ramp, PostHog, Vercel, Retool, and more.</p>
+      </div>
+    `
+  },
+  wd: {
+    title: '🏢 Workday Scraper',
+    body: `
+      <div class="dp-section">
+        <h4>Challenge</h4>
+        <p>Workday requires CSRF token + session cookies. Most endpoints return HTTP 422 without them.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Solution</h4>
+        <p>1. Fetch careers page to harvest CSRF token (<code>CALYPSO_CSRF_TOKEN</code>) + cookies.<br>2. POST job search with session headers.<br>3. Paginate (20 per page, max 15 pages = 300 jobs).</p>
+      </div>
+      <div class="dp-section">
+        <h4>Date Parsing</h4>
+        <p>Converts relative strings like <code>"Posted 3 Days Ago"</code> to ISO-8601 via <code>parseWorkdayDate()</code>.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Companies</h4>
+        <p>~120: Salesforce, Adobe, JPMorgan, Goldman Sachs, Google, Microsoft, and more.</p>
+      </div>
+    `
+  },
+  sr: {
+    title: '🧠 SmartRecruiters Scraper',
+    body: `
+      <div class="dp-section">
+        <h4>API</h4>
+        <p>Public SmartRecruiters API. Apply URL format: <code>https://jobs.smartrecruiters.com/Visa/{jobId}</code></p>
+      </div>
+      <div class="dp-section">
+        <h4>Companies</h4>
+        <p>Visa, Bosch — small but important for coverage.</p>
+      </div>
+    `
+  },
+  pup: {
+    title: '🤖 Puppeteer (Headless Chrome)',
+    body: `
+      <div class="dp-section">
+        <h4>When Used</h4>
+        <p>Fallback for sites with no standard JSON API — Deloitte (Avature), Amazon, any <code>platform: "custom"</code> company.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Architecture</h4>
+        <p>Shared browser instance across all custom scrapers. CSS selectors per company config (<code>jobListSelector</code>, <code>jobTitleSelector</code>, etc.).</p>
+      </div>
+      <div class="dp-section">
+        <h4>Deloitte Specific</h4>
+        <p>Scrapes <code>apply.deloitte.com</code> using <code>.article--result</code> selector. No date/location at list view — must visit individual job page.</p>
+      </div>
+    `
+  },
+  ats: {
+    title: '🌐 External ATS Career Portals',
+    body: `
+      <div class="dp-section">
+        <h4>What Happens Here</h4>
+        <p>Real HTTP requests go out to company career portals. Results are raw job data from each company's ATS system.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Rate Limiting</h4>
+        <p>500ms minimum delay per host (configurable via <code>RATE_LIMIT_PER_HOST_MS</code>). Prevents hitting ToS limits.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Notable Platforms</h4>
+        <ul>
+          <li>Greenhouse — boards-api.greenhouse.io</li>
+          <li>Lever — api.lever.co</li>
+          <li>Ashby — jobs.ashbyhq.com</li>
+          <li>Workday — *.myworkdayjobs.com</li>
+          <li>SmartRecruiters — api.smartrecruiters.com</li>
+          <li>SAP — jobs.sap.com (SuccessFactors)</li>
+        </ul>
+      </div>
+    `
+  },
+  filters: {
+    title: '🔍 Resume-Match Filter (CLAUDE.md)',
+    body: `
+      <div class="dp-section">
+        <h4>Rules Applied</h4>
+        <ul>
+          <li>Posted within last <strong>3 days</strong></li>
+          <li>Level: Junior → Senior only (no Principal/Staff/Lead/Manager)</li>
+          <li>US-based or Remote (no explicit foreign country)</li>
+          <li>No security clearance requirement</li>
+          <li>Resume match score <strong>≥ 60%</strong></li>
+        </ul>
+      </div>
+      <div class="dp-section">
+        <h4>Scoring Weights</h4>
+        <ul>
+          <li><strong>10 pts</strong>: java, spring boot</li>
+          <li><strong>7 pts</strong>: spring, microservices, full stack</li>
+          <li><strong>5 pts</strong>: angular, react, aws, kafka, hibernate</li>
+          <li><strong>3 pts</strong>: docker, kubernetes, ci/cd, jenkins</li>
+        </ul>
+        <p style="margin-top:6px;">Minimum score = 5 points (60% threshold).</p>
+      </div>
+    `
+  },
+  output: {
+    title: '📋 Markdown Table Output',
+    body: `
+      <div class="dp-section">
+        <h4>Format</h4>
+        <p>Results returned as a markdown table with columns: <code>#</code> · <code>Title</code> · <code>Company</code> · <code>Location</code> · <code>Posted</code> · <code>Apply URL</code></p>
+      </div>
+      <div class="dp-section">
+        <h4>Grouping</h4>
+        <p>Results grouped by platform (Workday, Greenhouse, Lever, Ashby) when there are many results.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Apply URLs</h4>
+        <p>Direct links to job application pages — not company homepages.</p>
+      </div>
+    `
+  },
+  't-search': {
+    title: 'Tool: searchCompanyJobs',
+    body: `
+      <div class="dp-section">
+        <h4>File</h4>
+        <p><code>src/tools/search-company-jobs.ts</code></p>
+      </div>
+      <div class="dp-section">
+        <h4>Parameters</h4>
+        <ul>
+          <li><code>companyName</code> (required)</li>
+          <li><code>jobTitle</code>, <code>location</code>, <code>level</code></li>
+          <li><code>department</code>, <code>postedSince</code></li>
+          <li><code>remoteOnly</code>, <code>forceRefresh</code></li>
+        </ul>
+      </div>
+      <div class="dp-section">
+        <h4>Returns</h4>
+        <p>company, fromCache, scrapedAt, jobCount, jobs (id, title, department, locations, level, applyUrl, postedDate)</p>
+      </div>
+    `
+  },
+  't-multi': {
+    title: 'Tool: searchMultipleCompanies',
+    body: `
+      <div class="dp-section">
+        <h4>File</h4>
+        <p><code>src/tools/search-multiple-companies.ts</code></p>
+      </div>
+      <div class="dp-section">
+        <h4>How It Works</h4>
+        <p>Calls <code>scrapeMany()</code> which uses <code>Promise.allSettled()</code> to search all companies in parallel. Failures don't block successful results.</p>
+      </div>
+      <div class="dp-section">
+        <h4>Returns</h4>
+        <p>totalCompanies, totalJobs, failures count, perCompany array.</p>
+      </div>
+    `
+  },
+  't-detail': {
+    title: 'Tool: getJobDetails',
+    body: `
+      <div class="dp-section">
+        <h4>File</h4>
+        <p><code>src/tools/get-job-details.ts</code></p>
+      </div>
+      <div class="dp-section">
+        <h4>Flow</h4>
+        <p>1. Check cache for job by id + company slug.<br>2. If not found, force-refresh company scrape.<br>3. Return full <code>JobListing</code> with description, requirements, benefits, raw metadata.</p>
+      </div>
+    `
+  },
+  't-list': {
+    title: 'Tool: listCompanies',
+    body: `
+      <div class="dp-section">
+        <h4>File</h4>
+        <p><code>src/tools/list-companies.ts</code></p>
+      </div>
+      <div class="dp-section">
+        <h4>Returns</h4>
+        <p>Total count + array of {name, slug, platform, careerUrl, lastScrapedAt} for all 463+ companies.</p>
+      </div>
+    `
+  },
+  't-add': {
+    title: 'Tool: addCompanyCareerSite',
+    body: `
+      <div class="dp-section">
+        <h4>File</h4>
+        <p><code>src/tools/add-company-career-site.ts</code></p>
+      </div>
+      <div class="dp-section">
+        <h4>Features</h4>
+        <ul>
+          <li>Auto-detects platform from career URL</li>
+          <li>Extracts board token from URL when possible</li>
+          <li>Validates the new company can be scraped</li>
+          <li>Adds to in-memory registry for current session</li>
+        </ul>
+      </div>
+    `
+  }
+};
+
+function show(key) {
+  const d = DETAILS[key];
+  if (!d) return;
+  document.getElementById('dp-title').textContent = d.title;
+  document.getElementById('dp-body').innerHTML = d.body;
+  const panel = document.getElementById('detail-panel');
+  panel.classList.add('visible');
+}
+function closePanel() {
+  document.getElementById('detail-panel').classList.remove('visible');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+</script>
+</body>
+</html>

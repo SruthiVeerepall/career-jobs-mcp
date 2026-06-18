@@ -12,6 +12,7 @@
  */
 import { companyRegistry } from './dist/scrapers/company-registry.js';
 import { searchMultipleCompanies } from './dist/tools/search-multiple-companies.js';
+import { OVER_5YR, CLEARANCE, isUSJob, matchesProfile, resumeScore } from './dist/utils/job-filters.js';
 
 // Load all companies, excluding custom/oracle-orc (Puppeteer-based) platforms.
 // Custom companies are mostly non-US (Tencent, Baidu, etc.) or have unreliable scrapers
@@ -20,81 +21,6 @@ import { searchMultipleCompanies } from './dist/tools/search-multiple-companies.
 const ALL_SLUGS = [...companyRegistry.companies.values()]
   .filter(c => c.platform !== 'custom' && c.platform !== 'oracle-orc')
   .map(c => c.slug);
-
-// Senior / >5yr title patterns — EXCLUDE (per CLAUDE.md)
-const OVER_5YR = /\bprincipal\b|\bstaff\b|\blead\b|\barchitect\b|\bdirector\b|\bvp\b|\bhead of\b|\bmanager\b|\bexecutive\b|\bdistinguished\b|\bfellow\b/i;
-
-// Security clearance — EXCLUDE
-const CLEARANCE = /security clearance|secret clearance|top secret|ts\/sci|dod clearance|clearance required|us citizen|u\.s\. citizen|citizenship required|must be a citizen|active clearance|public trust/i;
-
-// US location detection
-const CA_PROVINCES = new Set(['ON','BC','AB','QC','MB','SK','NS','NB','NL','PE','NT','YT','NU']);
-const US_STATES = new Set(['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC']);
-const NON_US = /\b(Canada|Ontario|Quebec|British Columbia|Alberta|UK|United Kingdom|Ireland|India|Germany|France|Australia|Singapore|Poland|Netherlands|Mexico|Israel|Japan|Korea|China|Brazil|Spain|Italy|Denmark|Norway|Sweden|Switzerland)\b/i;
-
-function isUSJob(locations) {
-  if (!locations || locations.length === 0) return true;
-  return locations.some(loc => {
-    if (!loc) return true;
-    if (NON_US.test(loc)) return false;
-    if (/\bUSA\b|\bUnited States\b/i.test(loc)) return true;
-    const m = loc.match(/,\s*([A-Z]{2})(?:\s*,|\s*$)/);
-    if (m) {
-      if (CA_PROVINCES.has(m[1])) return false;
-      if (US_STATES.has(m[1])) return true;
-    }
-    if (/\bRemote\b/i.test(loc) && !NON_US.test(loc)) return true;
-    return false;
-  });
-}
-
-// Resume skill scoring weights — per CLAUDE.md rule #6 (score ≥ 5 = 60% match)
-const RESUME_WEIGHTS = [
-  { pattern: /\bjava\b/i,        weight: 10 },
-  { pattern: /\bspring boot\b/i, weight: 10 },
-  { pattern: /\bspring\b/i,             weight: 7 },
-  { pattern: /\bmicroservices?\b/i,     weight: 7 },
-  { pattern: /\bfull.?stack\b/i,        weight: 7 },
-  { pattern: /\bangular\b/i,    weight: 5 },
-  { pattern: /\breact\b/i,      weight: 5 },
-  { pattern: /\baws\b/i,        weight: 5 },
-  { pattern: /\bkafka\b/i,      weight: 5 },
-  { pattern: /\bhibernate\b/i,  weight: 5 },
-  { pattern: /\bjpa\b/i,        weight: 5 },
-  { pattern: /\brest(ful)?\b/i, weight: 5 },
-  { pattern: /\bcloud\b/i,      weight: 5 },
-  { pattern: /\bdocker\b/i,       weight: 3 },
-  { pattern: /\bkubernetes\b/i,   weight: 3 },
-  { pattern: /\bci\/cd\b/i,       weight: 3 },
-  { pattern: /\bjenkins\b/i,      weight: 3 },
-  { pattern: /\bsplunk\b/i,       weight: 3 },
-  { pattern: /\bpostgresql\b/i,   weight: 3 },
-  { pattern: /\bmongodb\b/i,      weight: 3 },
-  { pattern: /\bnode\.?js\b/i,    weight: 3 },
-  { pattern: /\btypescript\b/i,   weight: 3 },
-  { pattern: /\bj2ee\b/i,         weight: 3 },
-  { pattern: /\bjavascript\b/i,   weight: 3 },
-];
-
-const TARGET_ROLES = /\b(java|full.?stack|fullstack|software engineer|software developer|backend|back.end|application developer)\b/i;
-const EXCLUDE_ROLES = /\b(data scientist|machine learning|ml engineer|devops engineer|qa engineer|test engineer|security engineer|network engineer|database administrator|dba|data engineer|ui developer|ux designer|product manager|scrum master|business analyst|data analyst)\b/i;
-const RESUME_MATCH_THRESHOLD = 5;
-
-function resumeScore(title) {
-  let score = 0;
-  for (const { pattern, weight } of RESUME_WEIGHTS) {
-    if (pattern.test(title)) score += weight;
-  }
-  return score;
-}
-
-function matchesProfile(title) {
-  if (EXCLUDE_ROLES.test(title)) return false;
-  const score = resumeScore(title);
-  if (score >= RESUME_MATCH_THRESHOLD) return true;
-  if (score === 0 && TARGET_ROLES.test(title)) return true;
-  return false;
-}
 
 // Date window — default 3 days per CLAUDE.md
 const DAY_MS = 86_400_000;

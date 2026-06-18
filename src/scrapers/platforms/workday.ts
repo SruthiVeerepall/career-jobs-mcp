@@ -165,7 +165,7 @@ export class WorkdayScraper extends BaseScraper {
 
 // Converts Workday relative date strings to ISO-8601.
 // Examples: "Posted Today", "Posted Yesterday", "Posted 4 Days Ago", "Posted 30+ Days Ago"
-function parseWorkdayDate(raw: string | undefined): string | undefined {
+export function parseWorkdayDate(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
   const s = raw.toLowerCase().replace(/\s+/g, ' ').trim();
   const now = Date.now();

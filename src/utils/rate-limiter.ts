@@ -1,4 +1,4 @@
-const DEFAULT_DELAY_MS = Number(process.env.RATE_LIMIT_PER_HOST_MS ?? 500);
+const DEFAULT_DELAY_MS = Number(process.env.RATE_LIMIT_PER_HOST_MS ?? 100);
 
 class HostRateLimiter {
   private lastRequest = new Map<string, number>();

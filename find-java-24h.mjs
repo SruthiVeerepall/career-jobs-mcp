@@ -35,7 +35,7 @@ const SEARCH_TERMS = ['Java', 'Full Stack', 'Software Engineer'];
 
 // Tuning knobs
 const BATCH_SIZE = 50;           // companies per batch
-const BATCH_CONCURRENCY = 2;    // concurrent batches per search term (low to avoid OOM)
+const BATCH_CONCURRENCY = 3;    // concurrent batches per search term (3 terms × 3 = 9 total)
 
 // Split slugs into batches
 function makeBatches(slugs, size) {
@@ -84,12 +84,12 @@ async function run() {
 
   const start = Date.now();
 
-  // Run search terms SEQUENTIALLY so term 2/3 hit the warm cache instead of launching
-  // extra Puppeteer instances. Running all 3 in parallel caused OOM (15 concurrent batches).
-  const termResults = [];
-  for (const term of SEARCH_TERMS) {
-    termResults.push(await searchTermConcurrently(term, batches));
-  }
+  // Run all 3 search terms in PARALLEL. The cache is per-company (not per-term), so once
+  // a company is fetched by any term, the other two terms read from cache instantly.
+  // No Puppeteer in this path (custom/oracle-orc excluded), so OOM risk is low.
+  const termResults = await Promise.all(
+    SEARCH_TERMS.map(term => searchTermConcurrently(term, batches))
+  );
 
   const elapsed = ((Date.now() - start) / 1000).toFixed(1);
   const grandTotalRaw = termResults.reduce((s, r) => s + r.totalRaw, 0);

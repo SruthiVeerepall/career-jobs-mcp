@@ -46,7 +46,7 @@ export class WorkdayScraper extends BaseScraper {
     const limit = 20;
     // Cap pages to avoid fetching thousands of jobs when searchText is empty.
     // Workday returns most-recently-posted jobs first, so the first N pages cover recent postings.
-    const maxPages = Number(process.env.WORKDAY_MAX_PAGES ?? 15); // 300 jobs max per company
+    const maxPages = Number(process.env.WORKDAY_MAX_PAGES ?? 3); // 60 jobs max per company (enough for a week window)
     let offset = 0;
     let page = 0;
     while (page < maxPages) {

@@ -1,0 +1,316 @@
+Walmart Global Tech | https://careers.walmart.com
+Target | https://corporate.target.com/careers
+Best Buy | https://www.bestbuy.com/careers
+Nordstrom | https://careers.nordstrom.com
+Macy's | https://www.macysjobs.com
+Kohl's | https://careers.kohls.com
+Gap | https://www.gapinc.com/careers
+Williams-Sonoma | https://careers.williams-sonomainc.com
+CVS Health | https://jobs.cvshealth.com
+Walgreens | https://jobs.walgreens.com
+Cardinal Health | https://jobs.cardinalhealth.com
+McKesson | https://careers.mckesson.com
+Cigna | https://jobs.cigna.com
+Humana | https://careers.humana.com
+Centene | https://jobs.centene.com
+Elevance Health | https://careers.elevancehealth.com
+UnitedHealth Group | https://careers.unitedhealthgroup.com
+Anthem | https://careers.antheminc.com
+Kaiser Permanente | https://www.kaiserpermanentejobs.org
+HCA Healthcare | https://careers.hcahealthcare.com
+Quest Diagnostics | https://careers.questdiagnostics.com
+Labcorp | https://careers.labcorp.com
+Boston Scientific | https://jobs.bostonscientific.com
+Medtronic | https://jobs.medtronic.com
+Baxter International | https://jobs.baxter.com
+Becton Dickinson | https://jobs.bd.com
+Edwards Lifesciences | https://careers.edwards.com
+Intuitive Surgical | https://careers.intuitive.com
+Illumina | https://www.illumina.com/company/careers.html
+Thermo Fisher Scientific | https://jobs.thermofisher.com
+Danaher | https://jobs.danaher.com
+Agilent Technologies | https://careers.agilent.com
+Bristol Myers Squibb | https://careers.bms.com
+Regeneron | https://careers.regeneron.com
+Vertex Pharmaceuticals | https://www.vrtx.com/careers
+Alnylam | https://www.alnylam.com/careers
+Genmab | https://www.genmab.com/careers
+Bayer | https://career.bayer.com
+Novartis | https://www.novartis.com/careers
+AstraZeneca | https://careers.astrazeneca.com
+GSK | https://jobs.gsk.com
+Sanofi | https://jobs.sanofi.com
+Takeda | https://jobs.takeda.com
+Genentech | https://careers.gene.com
+Exact Sciences | https://careers.exactsciences.com
+Guardant Health | https://www.guardanthealth.com/careers
+10x Genomics | https://www.10xgenomics.com/careers
+Ford | https://corporate.ford.com/careers.html
+General Motors | https://careers.gm.com
+Stellantis | https://careers.stellantis.com
+Lucid Motors | https://careers.lucidmotors.com
+Cruise | https://getcruise.com/careers
+Zoox | https://zoox.com/careers
+Lear Corporation | https://www.lear.com/careers
+BorgWarner | https://careers.borgwarner.com
+Magna International | https://www.magna.com/careers
+Cummins | https://careers.cummins.com
+PACCAR | https://www.paccar.com/careers
+Honeywell | https://careers.honeywell.com
+Emerson Electric | https://careers.emerson.com
+Rockwell Automation | https://careers.rockwellautomation.com
+Illinois Tool Works | https://careers.itw.com
+Stanley Black & Decker | https://careers.stanleyblackanddecker.com
+3M | https://www.3m.com/careers
+General Electric | https://jobs.gecareers.com
+GE Aerospace | https://jobs.geaerospace.com
+GE HealthCare | https://jobs.gehealthcare.com
+Raytheon | https://careers.rtx.com
+Lockheed Martin | https://www.lockheedmartinjobs.com
+Northrop Grumman | https://www.northropgrumman.com/careers
+L3Harris | https://careers.l3harris.com
+Leidos | https://careers.leidos.com
+Booz Allen Hamilton | https://careers.boozallen.com
+SAIC | https://jobs.saic.com
+CACI | https://careers.caci.com
+Boeing | https://jobs.boeing.com
+Collins Aerospace | https://careers.rtx.com
+Pratt & Whitney | https://careers.rtx.com
+Textron | https://careers.textron.com
+Caterpillar | https://careers.caterpillar.com
+Deere & Company | https://jobs.deere.com
+Parker Hannifin | https://careers.parker.com
+Eaton | https://www.eaton.com/careers
+Dover Corporation | https://careers.dovercorporation.com
+Fortive | https://careers.fortive.com
+Trane Technologies | https://careers.tranetechnologies.com
+Carrier | https://careers.carrier.com
+Johnson Controls | https://www.johnsoncontrols.com/careers
+Schneider Electric | https://www.se.com/us/en/about-us/careers
+Ametek | https://www.ametek.com/careers
+Roper Technologies | https://www.ropertech.com/careers
+Wells Fargo | https://www.wellsfargojobs.com
+Bank of America | https://careers.bankofamerica.com
+U.S. Bank | https://careers.usbank.com
+PNC Financial | https://careers.pnc.com
+Truist | https://careers.truist.com
+Capital One | https://www.capitalonecareers.com
+American Express | https://careers.americanexpress.com
+Discover Financial | https://jobs.discover.com
+Synchrony Financial | https://careers.synchrony.com
+Fidelity Investments | https://jobs.fidelity.com
+Charles Schwab | https://www.schwabjobs.com
+Vanguard | https://www.vanguardjobs.com
+BlackRock | https://careers.blackrock.com
+State Street | https://careers.statestreet.com
+BNY Mellon | https://jobs.bny.com
+Morgan Stanley | https://www.morganstanley.com/careers
+Wellington Management | https://www.wellington.com/careers
+T. Rowe Price | https://www.troweprice.com/careers
+Northern Trust | https://careers.northerntrust.com
+Ally Financial | https://www.ally.com/careers
+KeyBank | https://careers.key.com
+Fifth Third Bank | https://careers.53.com
+Regions Bank | https://careers.regions.com
+Huntington Bank | https://huntington-careers.com
+M&T Bank | https://careers.mtb.com
+Raymond James | https://www.raymondjames.com/careers
+Edward Jones | https://careers.edwardjones.com
+Nasdaq | https://www.nasdaq.com/about/careers
+CME Group | https://careers.cmegroup.com
+Intercontinental Exchange | https://www.ice.com/careers
+Fiserv | https://www.fiserv.com/en/about-fiserv/careers.html
+Fidelity National Information Services | https://www.fisglobal.com/careers
+Global Payments | https://careers.globalpayments.com
+Mastercard | https://careers.mastercard.com
+PayPal | https://careers.pypl.com
+Western Union | https://careers.westernunion.com
+Progressive | https://careers.progressive.com
+Allstate | https://www.allstate.jobs
+State Farm | https://jobs.statefarm.com
+Liberty Mutual | https://jobs.libertymutualgroup.com
+Travelers | https://careers.travelers.com
+Chubb | https://careers.chubb.com
+The Hartford | https://www.thehartford.com/careers
+Nationwide | https://jobs.nationwide.com
+MetLife | https://careers.metlife.com
+Prudential Financial | https://jobs.prudential.com
+Aflac | https://careers.aflac.com
+Principal Financial | https://www.principal.com/about-us/careers
+Lincoln Financial | https://careers.lfg.com
+Marsh McLennan | https://careers.marshmclennan.com
+Aon | https://careers.aon.com
+Cigna Group | https://jobs.cigna.com
+Comcast | https://jobs.comcast.com
+Charter Communications | https://jobs.spectrum.com
+T-Mobile | https://careers.t-mobile.com
+Cox Communications | https://jobs.coxenterprises.com
+Dish Network | https://careers.dish.com
+Lumen Technologies | https://jobs.lumen.com
+Akamai | https://www.akamai.com/careers
+Arista Networks | https://www.arista.com/en/careers
+Juniper Networks | https://careers.juniper.net
+F5 Networks | https://www.f5.com/company/careers
+Palo Alto Networks | https://jobs.paloaltonetworks.com
+Fortinet | https://www.fortinet.com/corporate/careers
+CrowdStrike | https://www.crowdstrike.com/careers
+SentinelOne | https://www.sentinelone.com/careers
+Rapid7 | https://www.rapid7.com/careers
+Qualys | https://www.qualys.com/careers
+Varonis | https://www.varonis.com/company/careers
+Tanium | https://www.tanium.com/careers
+Sumo Logic | https://www.sumologic.com/careers
+Elastic | https://www.elastic.co/careers
+Confluent | https://www.confluent.io/careers
+HashiCorp | https://www.hashicorp.com/careers
+MongoDB | https://www.mongodb.com/careers
+Snowflake | https://careers.snowflake.com
+Cockroach Labs | https://www.cockroachlabs.com/careers
+Redis | https://redis.com/careers
+Couchbase | https://www.couchbase.com/careers
+DataStax | https://www.datastax.com/company/careers
+Teradata | https://careers.teradata.com
+Cloudera | https://www.cloudera.com/about/careers.html
+Informatica | https://www.informatica.com/careers.html
+Talend | https://www.talend.com/careers
+Alteryx | https://www.alteryx.com/about-us/careers
+ThoughtSpot | https://www.thoughtspot.com/careers
+Dataiku | https://www.dataiku.com/careers
+Starburst | https://www.starburst.io/careers
+Sigma Computing | https://www.sigmacomputing.com/careers
+Hex | https://hex.tech/careers
+Census | https://www.getcensus.com/careers
+Monte Carlo | https://www.montecarlodata.com/careers
+Workato | https://www.workato.com/careers
+MuleSoft | https://www.mulesoft.com/careers
+Boomi | https://boomi.com/company/careers
+SnapLogic | https://www.snaplogic.com/company/careers
+UiPath | https://www.uipath.com/company/careers
+Automation Anywhere | https://www.automationanywhere.com/company/careers
+Appian | https://appian.com/about/careers.html
+Pegasystems | https://www.pega.com/about/careers
+ServiceTitan | https://www.servicetitan.com/careers
+Procore | https://www.procore.com/careers
+Toast | https://careers.toasttab.com
+Olo | https://www.olo.com/careers
+Squarespace | https://www.squarespace.com/careers
+Wix | https://www.wix.com/jobs/careers
+Shopify | https://www.shopify.com/careers
+BigCommerce | https://careers.bigcommerce.com
+Klaviyo | https://www.klaviyo.com/careers
+Braze | https://www.braze.com/company/careers
+Iterable | https://iterable.com/careers
+Sprout Social | https://sproutsocial.com/careers
+HubSpot | https://www.hubspot.com/careers
+Zendesk | https://www.zendesk.com/jobs
+Freshworks | https://www.freshworks.com/company/careers
+Intercom | https://www.intercom.com/careers
+Front | https://front.com/careers
+Gong | https://www.gong.io/careers
+Outreach | https://www.outreach.io/company/careers
+Clari | https://www.clari.com/careers
+Highspot | https://www.highspot.com/careers
+Seismic | https://seismic.com/company/careers
+6sense | https://6sense.com/careers
+Drift | https://www.drift.com/careers
+ZoomInfo | https://www.zoominfo.com/about/careers
+Apollo.io | https://www.apollo.io/careers
+Lattice | https://lattice.com/careers
+Culture Amp | https://www.cultureamp.com/careers
+15Five | https://www.15five.com/careers
+Deel | https://www.deel.com/careers
+Remote | https://remote.com/careers
+Rippling | https://www.rippling.com/careers
+Gusto | https://gusto.com/about/careers
+Justworks | https://www.justworks.com/careers
+Workday | https://www.workday.com/en-us/company/careers.html
+Paylocity | https://www.paylocity.com/careers
+Paycom | https://www.paycom.com/careers
+Ceridian | https://www.ceridian.com/company/careers
+UKG | https://www.ukg.com/about-us/careers
+Cornerstone OnDemand | https://www.cornerstoneondemand.com/careers
+Docebo | https://www.docebo.com/careers
+Coursera | https://about.coursera.org/careers
+Udacity | https://www.udacity.com/careers
+Chegg | https://www.chegg.com/about/careers
+Khan Academy | https://www.khanacademy.org/careers
+2U | https://2u.com/careers
+Instructure | https://www.instructure.com/about-us/careers
+PowerSchool | https://www.powerschool.com/company/careers
+Guild Education | https://www.guild.com/careers
+DocuSign | https://careers.docusign.com
+Dropbox | https://www.dropbox.com/jobs
+Box | https://www.box.com/careers
+Asana | https://asana.com/jobs
+Monday.com | https://monday.com/careers
+Smartsheet | https://www.smartsheet.com/careers
+Airtable | https://airtable.com/careers
+Notion | https://www.notion.so/careers
+Coda | https://coda.io/careers
+Miro | https://miro.com/careers
+Mural | https://www.mural.co/careers
+Calendly | https://careers.calendly.com
+Zoom | https://careers.zoom.us
+RingCentral | https://www.ringcentral.com/careers.html
+8x8 | https://www.8x8.com/about-us/careers
+Five9 | https://www.five9.com/about/careers
+NICE | https://www.nice.com/careers
+Twilio | https://www.twilio.com/company/jobs
+Vonage | https://www.vonage.com/about-us/careers
+Bandwidth | https://www.bandwidth.com/careers
+Sinch | https://www.sinch.com/careers
+LivePerson | https://www.liveperson.com/company/careers
+Sprinklr | https://www.sprinklr.com/careers
+Qualtrics | https://www.qualtrics.com/careers
+Medallia | https://www.medallia.com/company/careers
+SurveyMonkey | https://www.surveymonkey.com/careers
+Typeform | https://www.typeform.com/careers
+Mixpanel | https://mixpanel.com/jobs
+Heap | https://www.heap.io/careers
+Pendo | https://www.pendo.io/careers
+FullStory | https://www.fullstory.com/careers
+LaunchDarkly | https://launchdarkly.com/careers
+Split | https://www.split.io/careers
+Optimizely | https://www.optimizely.com/careers
+Contentful | https://www.contentful.com/careers
+Sanity | https://www.sanity.io/careers
+Webflow | https://webflow.com/careers
+Vercel | https://vercel.com/careers
+Netlify | https://www.netlify.com/careers
+Render | https://render.com/careers
+Fly.io | https://fly.io/jobs
+DigitalOcean | https://www.digitalocean.com/careers
+Linode | https://www.linode.com/careers
+Vultr | https://www.vultr.com/company/careers
+Backblaze | https://www.backblaze.com/company/jobs.html
+Wasabi | https://wasabi.com/careers
+Datadog | https://careers.datadoghq.com
+Splunk | https://www.splunk.com/en_us/careers.html
+Dynatrace | https://careers.dynatrace.com
+AppDynamics | https://www.appdynamics.com/careers
+Sentry | https://sentry.io/careers
+Honeycomb | https://www.honeycomb.io/careers
+Chronosphere | https://chronosphere.io/careers
+Lightstep | https://lightstep.com/careers
+Cribl | https://cribl.io/careers
+Wiz | https://www.wiz.io/careers
+Lacework | https://www.lacework.com/careers
+Snyk | https://snyk.io/careers
+Veracode | https://www.veracode.com/about/careers
+Checkmarx | https://checkmarx.com/careers
+Sonar | https://www.sonarsource.com/company/careers
+JFrog | https://jfrog.com/careers
+Sysdig | https://sysdig.com/careers
+Aqua Security | https://www.aquasec.com/careers
+Abnormal Security | https://abnormalsecurity.com/careers
+Material Security | https://material.security/careers
+Island | https://www.island.io/careers
+1Password | https://1password.com/careers
+Dashlane | https://www.dashlane.com/careers
+Auth0 | https://auth0.com/careers
+ForgeRock | https://www.forgerock.com/careers
+SailPoint | https://www.sailpoint.com/company/careers
+CyberArk | https://www.cyberark.com/careers
+Delinea | https://delinea.com/careers
+BeyondTrust | https://www.beyondtrust.com/careers
+Yubico | https://www.yubico.com/careers

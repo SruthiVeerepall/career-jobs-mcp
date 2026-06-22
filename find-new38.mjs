@@ -18,7 +18,7 @@ const DAY_MS = 86_400_000;
 const WINDOW_DAYS = process.argv.includes('--today') ? 1 : process.argv.includes('--week') ? 7 : 3;
 const WINDOW_LABEL = WINDOW_DAYS === 1 ? '24 hours' : `${WINDOW_DAYS} days`;
 const API_SINCE = WINDOW_DAYS <= 1 ? 'today' : 'week';
-const SEARCH_TERMS = ['Java', 'Full Stack', 'Software Engineer'];
+const SEARCH_TERMS = ['Java', 'Full Stack', 'Software Engineer', 'Software Developer', 'Backend', 'Back End', 'Application Developer'];
 
 async function run() {
   console.log(`\nSearching ${NEW38.length} NEW companies | terms [${SEARCH_TERMS.join(', ')}] | last ${WINDOW_LABEL} | US | Jr–Sr | no clearance | ≥60% match\n`);

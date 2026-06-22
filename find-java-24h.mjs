@@ -30,12 +30,25 @@ const WINDOW_DAYS = process.argv.includes('--today') ? 1
 const WINDOW_LABEL = WINDOW_DAYS === 1 ? '24 hours' : `${WINDOW_DAYS} days`;
 const API_SINCE = WINDOW_DAYS <= 1 ? 'today' : 'week';
 
-// Search terms covering the full profile (run in parallel)
-const SEARCH_TERMS = ['Java', 'Full Stack', 'Software Engineer'];
+// Search terms covering the full profile (run in parallel).
+// NOTE: terms are client-side substring filters over each company's full job set
+// (the API is queried without a keyword — see orchestrator.ts). So each term must be
+// a DISTINCT substring to widen coverage. 'Java Developer' / 'Full Stack Java' are
+// omitted because they're already subsumed by 'Java' / 'Full Stack'. Broad stems like
+// 'Backend' catch "Backend Engineer", "Backend Developer", "Backend Software Engineer".
+const SEARCH_TERMS = [
+  'Java',
+  'Full Stack',
+  'Software Engineer',
+  'Software Developer',
+  'Backend',
+  'Back End',
+  'Application Developer',
+];
 
 // Tuning knobs
 const BATCH_SIZE = 50;           // companies per batch
-const BATCH_CONCURRENCY = 3;    // concurrent batches per search term (3 terms × 3 = 9 total)
+const BATCH_CONCURRENCY = 3;    // concurrent batches per search term
 
 // Split slugs into batches
 function makeBatches(slugs, size) {

@@ -842,6 +842,14 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: "SailPoint", slug: 'sailpoint', careerUrl: "https://www.sailpoint.com/company/careers", platform: 'workday', platformIdentifier: "sailpoint|wd1|SailPoint" },
   { name: "Delinea", slug: 'delinea', careerUrl: "https://delinea.com/careers", platform: 'ashby', platformIdentifier: "delinea" },
   { name: "Yubico", slug: 'yubico', careerUrl: "https://www.yubico.com/careers/", platform: 'greenhouse', platformIdentifier: "yubico" },
+  // batch2 additions — verified to return jobs (greenhouse) or valid CSRF-protected Workday tenants (422)
+  { name: "Gong", slug: 'gong', careerUrl: "https://www.gong.io/careers", platform: 'greenhouse', platformIdentifier: "gongio" },
+  { name: "Glean", slug: 'glean', careerUrl: "https://www.glean.com/careers", platform: 'greenhouse', platformIdentifier: "gleanwork" },
+  { name: "GreyNoise", slug: 'greynoise', careerUrl: "https://www.greynoise.io/careers", platform: 'greenhouse', platformIdentifier: "greynoiseintelligence" },
+  { name: "AON", slug: 'aon', careerUrl: "https://aon.wd1.myworkdayjobs.com", platform: 'workday', platformIdentifier: "aon|wd1|AON_Careers" },
+  { name: "Westfield Insurance", slug: 'westfield-insurance', careerUrl: "https://westfieldinsurance.wd1.myworkdayjobs.com", platform: 'workday', platformIdentifier: "westfieldinsurance|wd1|Westfield_Careers" },
+  { name: "WTW", slug: 'wtw', careerUrl: "https://careers.wtwco.com", platform: 'workday', platformIdentifier: "willistowerswatson|wd1|External" },
+  { name: "Charles Schwab", slug: 'charles-schwab', careerUrl: "https://www.schwabjobs.com", platform: 'workday', platformIdentifier: "charlesschwab|wd1|External" },
 ];
 
 class CompanyRegistry {

@@ -83,6 +83,7 @@ career-jobs-mcp/
 │       └── retry.ts                # Exponential backoff with configurable retries
 ├── tools/                          # One file per MCP tool (search, list, add, etc.)
 ├── find-java-24h.mjs               # Standalone: search all 600+ companies for Java roles
+├── export-jobs-xlsx.mjs            # Standalone: same search, exported to an Excel sheet with an "Applied?" checkbox
 ├── probe-registry.mjs              # Standalone: health-check all companies, remove broken ones
 ├── run-search.mjs                  # Standalone: broader search with month window
 ├── data/cache.db                   # SQLite cache (auto-created on first run)
@@ -146,6 +147,31 @@ node probe-registry.mjs
 # Health-check only — report issues but make no changes
 node probe-registry.mjs --dry-run
 ```
+
+### Export Results to Excel (with an "Applied?" checkbox)
+
+`export-jobs-xlsx.mjs` runs the exact same search + resume-match filters as `find-java-24h.mjs`,
+but writes the results to `job-results.xlsx` instead of printing a table. Each row has a clickable
+**Apply** hyperlink and an **Applied?** column (☐ / ☑) so you can track which jobs you've applied to —
+ticking a row (☑) greys it out and strikes it through via conditional formatting.
+
+```bash
+# Export the last 3 days to job-results.xlsx (default)
+node export-jobs-xlsx.mjs
+
+# 24-hour window
+node export-jobs-xlsx.mjs --today
+
+# 7-day window
+node export-jobs-xlsx.mjs --week
+
+# Write to a custom path
+node export-jobs-xlsx.mjs --out "C:\Users\me\Desktop\jobs.xlsx"
+```
+
+The `Applied?` cell is a data-validation dropdown (☐ ↔ ☑) that works in every Excel version and
+Google Sheets. For a one-click native checkbox in Excel 365 or Google Sheets, select the column and
+use **Insert ▸ Checkbox** after opening the file.
 
 **Example output:**
 

@@ -91,6 +91,7 @@ Run `node probe-registry.mjs` to verify all company career sites are reachable a
 | `node find-java-24h.mjs` | Full batch search — Java/Full Stack/SE across all registry companies, 3-day window |
 | `node find-java-24h.mjs --today` | Same, 24-hour window |
 | `node find-java-24h.mjs --week` | Same, 7-day window |
+| `node export-jobs-xlsx.mjs` | Same search as `find-java-24h.mjs`, exported to `job-results.xlsx` with a clickable Apply link and an "Applied?" checkbox column (accepts `--today`/`--week`/`--out <path>`) |
 | `node get-5-companies.mjs` | Targeted fetch for Deloitte, SAP, Lyft, Visa, Infosys with special scrapers |
 | `node deloitte-scrape.mjs` | Puppeteer DOM scraper for Deloitte (Avature ATS, server-rendered) |
 | `node probe-registry.mjs` | Health-check all companies, removes broken registry entries |

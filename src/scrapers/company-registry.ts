@@ -850,6 +850,39 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: "Westfield Insurance", slug: 'westfield-insurance', careerUrl: "https://westfieldinsurance.wd1.myworkdayjobs.com", platform: 'workday', platformIdentifier: "westfieldinsurance|wd1|Westfield_Careers" },
   { name: "WTW", slug: 'wtw', careerUrl: "https://careers.wtwco.com", platform: 'workday', platformIdentifier: "willistowerswatson|wd1|External" },
   { name: "Charles Schwab", slug: 'charles-schwab', careerUrl: "https://www.schwabjobs.com", platform: 'workday', platformIdentifier: "charlesschwab|wd1|External" },
+  // batch7 additions (2026-07-16) — every entry probed AND verified to return jobs at runtime (no CSRF-blocked tenants)
+  // Enterprise / Fortune 500 IT
+  { name: 'Fiserv', slug: 'fiserv', careerUrl: 'https://careers.fiserv.com', platform: 'workday', platformIdentifier: 'fiserv|wd5|EXT' },
+  { name: 'CarMax', slug: 'carmax', careerUrl: 'https://careers.carmax.com', platform: 'workday', platformIdentifier: 'carmax|wd1|External' },
+  { name: 'Gartner', slug: 'gartner', careerUrl: 'https://jobs.gartner.com', platform: 'workday', platformIdentifier: 'gartner|wd5|EXT' },
+  { name: 'Cardinal Health', slug: 'cardinal-health', careerUrl: 'https://jobs.cardinalhealth.com', platform: 'workday', platformIdentifier: 'cardinalhealth|wd1|EXT' },
+  { name: 'McKesson', slug: 'mckesson', careerUrl: 'https://careers.mckesson.com', platform: 'workday', platformIdentifier: 'mckesson|wd3|External_Careers' },
+  { name: 'Medtronic', slug: 'medtronic', careerUrl: 'https://jobs.medtronic.com', platform: 'workday', platformIdentifier: 'medtronic|wd1|MedtronicCareers' },
+  { name: 'General Motors', slug: 'general-motors', careerUrl: 'https://search-careers.gm.com', platform: 'workday', platformIdentifier: 'generalmotors|wd5|Careers_GM' },
+  { name: 'Fannie Mae', slug: 'fannie-mae', careerUrl: 'https://www.fanniemae.com/careers', platform: 'workday', platformIdentifier: 'fanniemae|wd1|FannieMaeCareers' },
+  { name: 'Sabre', slug: 'sabre', careerUrl: 'https://www.sabre.com/locations/careers', platform: 'workday', platformIdentifier: 'sabre|wd1|SabreJobs' },
+  { name: 'Chewy', slug: 'chewy', careerUrl: 'https://careers.chewy.com', platform: 'workday', platformIdentifier: 'chewy|wd5|External' },
+  { name: "Lowe's", slug: 'lowes', careerUrl: 'https://talent.lowes.com', platform: 'workday', platformIdentifier: 'lowes|wd5|LWS_External_CS' },
+  { name: 'Caterpillar', slug: 'caterpillar', careerUrl: 'https://careers.caterpillar.com', platform: 'workday', platformIdentifier: 'cat|wd5|CaterpillarCareers' },
+  { name: '3M', slug: '3m', careerUrl: 'https://www.3m.com/3M/en_US/careers-us', platform: 'workday', platformIdentifier: '3m|wd1|Search' },
+  { name: 'CDW', slug: 'cdw', careerUrl: 'https://www.cdwjobs.com', platform: 'workday', platformIdentifier: 'cdw|wd5|careers' },
+  // Consulting / IT services
+  { name: 'Kyndryl', slug: 'kyndryl', careerUrl: 'https://careers.kyndryl.com', platform: 'workday', platformIdentifier: 'kyndryl|wd5|KyndrylProfessionalCareers' },
+  { name: 'ICF', slug: 'icf', careerUrl: 'https://www.icf.com/careers', platform: 'workday', platformIdentifier: 'icf|wd5|ICFExternal_Career_Site' },
+  // Mid-size product companies
+  { name: 'Guidewire', slug: 'guidewire', careerUrl: 'https://careers.guidewire.com', platform: 'workday', platformIdentifier: 'guidewire|wd5|External' },
+  { name: 'DigitalOcean', slug: 'digitalocean', careerUrl: 'https://www.digitalocean.com/careers', platform: 'greenhouse', platformIdentifier: 'digitalocean98' },
+  { name: 'Zocdoc', slug: 'zocdoc', careerUrl: 'https://www.zocdoc.com/about/careers', platform: 'greenhouse', platformIdentifier: 'zocdoc' },
+  { name: 'Huntress', slug: 'huntress', careerUrl: 'https://www.huntress.com/careers', platform: 'greenhouse', platformIdentifier: 'huntress' },
+  { name: 'Motive', slug: 'motive', careerUrl: 'https://gomotive.com/careers', platform: 'greenhouse', platformIdentifier: 'gomotive' },
+  { name: 'Yext', slug: 'yext', careerUrl: 'https://www.yext.com/careers', platform: 'greenhouse', platformIdentifier: 'yext' },
+  // Well-funded startups
+  { name: 'Addepar', slug: 'addepar', careerUrl: 'https://addepar.com/careers', platform: 'greenhouse', platformIdentifier: 'addepar1' },
+  { name: 'Temporal', slug: 'temporal', careerUrl: 'https://temporal.io/careers', platform: 'greenhouse', platformIdentifier: 'temporaltechnologies' },
+  { name: 'Sierra', slug: 'sierra', careerUrl: 'https://sierra.ai/careers', platform: 'ashby', platformIdentifier: 'sierra' },
+  { name: 'Cursor', slug: 'cursor', careerUrl: 'https://cursor.com/careers', platform: 'ashby', platformIdentifier: 'cursor' },
+  { name: 'Decagon', slug: 'decagon', careerUrl: 'https://decagon.ai/careers', platform: 'ashby', platformIdentifier: 'decagon' },
+  { name: 'Harvey', slug: 'harvey', careerUrl: 'https://www.harvey.ai/careers', platform: 'ashby', platformIdentifier: 'harvey' },
 ];
 
 class CompanyRegistry {

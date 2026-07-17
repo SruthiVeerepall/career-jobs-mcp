@@ -93,8 +93,8 @@ export class WorkdayScraper extends BaseScraper {
 
     if (res.status === 200) return res.data;
 
-    // 422 = CSRF/session required. Prefetch cookies + CSRF token once, then retry.
-    if (res.status === 422 && Object.keys(this.sessionHeaders).length === 0) {
+    // 422/401 = CSRF/session required. Prefetch cookies + CSRF token once, then retry.
+    if ((res.status === 422 || res.status === 401) && Object.keys(this.sessionHeaders).length === 0) {
       this.logProgress(`CSRF required for ${this.config.name}, fetching session…`);
       this.sessionHeaders = await this.fetchCSRFHeaders(baseHost, site);
       const retry = await axios.post<WorkdaySearchResponse>(apiUrl, body, {

@@ -40,6 +40,9 @@ const API_SINCE = WINDOW_DAYS <= 1 ? 'today' : 'week';
 // Concurrency ceiling (constant regardless of company count). Override with SCRAPE_CONCURRENCY.
 const CONCURRENCY = Number(process.env.SCRAPE_CONCURRENCY ?? 24);
 
+// Cross-company job boards — results show the real employer as "{Employer} (via {Board})".
+const JOB_BOARDS = new Set(['LinkedIn', 'SimplyHired', 'BuiltIn.com', 'RemoteOK', 'Remotive', 'We Work Remotely']);
+
 async function run() {
   console.log(`\nCLAUDE.md rules: Resume-match ≥60% | last ${WINDOW_LABEL} | Junior–Senior | US | No clearance`);
   console.log(`Profile: Java/Full Stack — Spring Boot, Angular, React, AWS, Kafka, Microservices`);
@@ -91,8 +94,10 @@ async function run() {
       seen.add(key);
       jobs.push({
         title,
-        // LinkedIn results carry the real hiring company in companyName
-        company: company.company === 'LinkedIn' && job.companyName ? `${job.companyName} (via LinkedIn)` : company.company,
+        // Job-board results carry the real hiring company in companyName
+        company: JOB_BOARDS.has(company.company) && job.companyName && job.companyName !== company.company
+          ? `${job.companyName} (via ${company.company})`
+          : company.company,
         locations: (job.locations || []).join(' | ') || 'N/A',
         postedDate: job.postedDate
           ? new Date(job.postedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })

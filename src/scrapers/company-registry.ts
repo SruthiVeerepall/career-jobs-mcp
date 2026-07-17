@@ -14,6 +14,11 @@ import { AppleScraper } from './platforms/apple.js';
 import { TeslaScraper } from './platforms/tesla.js';
 import { McKinseyScraper } from './platforms/mckinsey.js';
 import { LinkedInScraper } from './platforms/linkedin.js';
+import { SimplyHiredScraper } from './platforms/simplyhired.js';
+import { BuiltInScraper } from './platforms/builtin.js';
+import { RemoteOKScraper } from './platforms/remoteok.js';
+import { RemotiveScraper } from './platforms/remotive.js';
+import { WeWorkRemotelyScraper } from './platforms/weworkremotely.js';
 import { logger } from '../utils/logger.js';
 
 const PRECONFIGURED: CompanyConfig[] = [
@@ -934,9 +939,16 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: 'Browserbase', slug: 'browserbase', careerUrl: 'https://www.browserbase.com/careers', platform: 'ashby', platformIdentifier: 'browserbase' },
   { name: 'OpenEvidence', slug: 'openevidence', careerUrl: 'https://www.openevidence.com/careers', platform: 'ashby', platformIdentifier: 'openevidence' },
   { name: 'Chroma', slug: 'chroma', careerUrl: 'https://www.trychroma.com/careers', platform: 'ashby', platformIdentifier: 'trychroma' },
-  // LinkedIn job-board source (2026-07-17) — cross-company guest search; returns direct
-  // linkedin.com/jobs/view links with the real hiring company as companyName.
+  // Job-board sources (2026-07-17) — cross-company boards; each returns direct apply
+  // links with the real hiring company as companyName. Batch scripts show these as
+  // "{Employer} (via {Board})". Indeed/ZipRecruiter/Glassdoor/Monster/CareerBuilder
+  // are bot-walled (HTTP 403) and cannot be added.
   { name: 'LinkedIn', slug: 'linkedin', careerUrl: 'https://www.linkedin.com/jobs', platform: 'linkedin' },
+  { name: 'SimplyHired', slug: 'simplyhired', careerUrl: 'https://www.simplyhired.com', platform: 'simplyhired' },
+  { name: 'BuiltIn.com', slug: 'builtin-jobs', careerUrl: 'https://builtin.com/jobs', platform: 'builtin' },
+  { name: 'RemoteOK', slug: 'remoteok', careerUrl: 'https://remoteok.com', platform: 'remoteok' },
+  { name: 'Remotive', slug: 'remotive', careerUrl: 'https://remotive.com', platform: 'remotive' },
+  { name: 'We Work Remotely', slug: 'weworkremotely', careerUrl: 'https://weworkremotely.com', platform: 'weworkremotely' },
 ];
 
 class CompanyRegistry {
@@ -995,6 +1007,16 @@ class CompanyRegistry {
         return new McKinseyScraper(config);
       case 'linkedin':
         return new LinkedInScraper(config);
+      case 'simplyhired':
+        return new SimplyHiredScraper(config);
+      case 'builtin':
+        return new BuiltInScraper(config);
+      case 'remoteok':
+        return new RemoteOKScraper(config);
+      case 'remotive':
+        return new RemotiveScraper(config);
+      case 'weworkremotely':
+        return new WeWorkRemotelyScraper(config);
       default:
         throw new Error(`Unsupported platform: ${config.platform}`);
     }

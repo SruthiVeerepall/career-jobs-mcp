@@ -146,13 +146,31 @@ These companies use ATS platforms that cannot be queried via the standard regist
 - **Workaround:** Direct the user to search LinkedIn for "Infosys software engineer" filtered to United States.
 - **Do NOT add to registry** — portal only returns India-based roles.
 
-#### LinkedIn (cross-company job board — IN the registry)
-- **In registry** as `platform: 'linkedin', slug: 'linkedin'` — included automatically in `find-java-24h.mjs` / `export-jobs-xlsx.mjs` runs.
-- **Method:** public guest endpoint (no login/API key): `GET https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=…&location=United States&f_TPR=r604800&start=N` — returns HTML job cards parsed with cheerio (`src/scrapers/platforms/linkedin.ts`).
-- **Search terms:** when no `jobTitle` filter is given it runs the profile terms `Java`, `Full Stack Developer`, `Software Engineer` (up to ~50 postings per term, deduped by posting id).
-- **Output:** `companyName` = the real hiring employer from the card; `applyUrl` = direct `https://www.linkedin.com/jobs/view/{id}/` link; `postedDate` = real ISO date from `<time datetime>`. Batch scripts display the company as `"{Employer} (via LinkedIn)"`.
-- **Date filter mapping:** `postedSince: 'today'` → `f_TPR=r86400`, `'week'`/default → `r604800`, `'month'` → `r2592000`; the 3-day cutoff is applied client-side like all other sources.
-- **Caveats:** guest endpoint can rate-limit (429) under heavy use — requests go through the shared rate limiter; page size varies (10–25). Skipped by `probe-registry.mjs` (no JSON API).
+### Job-Board Sources (cross-company — IN the registry)
+
+Six job boards are registered alongside the company scrapers and included automatically in
+`find-java-24h.mjs` / `export-jobs-xlsx.mjs` runs. Each returns the **real hiring employer**
+in `companyName` (batch scripts display `"{Employer} (via {Board})"`) and a **direct apply
+link** in `applyUrl`. All are cached 24h and skipped by `probe-registry.mjs` (no probeable
+JSON API). When no `jobTitle` filter is given, keyword-driven boards search the profile
+terms (`Java`, `Full Stack Developer`, `Software Engineer`) and dedupe by posting id.
+The 3-day cutoff is always applied client-side like all other sources.
+
+| Board | Slug | Method | Date filter | Notes |
+|-------|------|--------|-------------|-------|
+| LinkedIn | `linkedin` | Guest HTML endpoint `/jobs-guest/jobs/api/seeMoreJobPostings/search` (cheerio) | `f_TPR=r86400/r604800/r2592000` | Direct `linkedin.com/jobs/view/{id}/` links; page size varies 10–25; can 429 under heavy use |
+| SimplyHired | `simplyhired` | `__NEXT_DATA__` JSON embedded in `/search?q=…&l=United States&t={days}` | `t=1/7/30` days | Indeed-owned; `dateOnIndeed` epoch-ms → ISO; 20 jobs/page |
+| BuiltIn.com | `builtin-jobs` | HTML cards `[data-id="job-card"]` on `/jobs?search=…&country=USA` (cheerio) | `daysSinceUpdated=1/7/30` | US tech-focused; relative dates ("2 Hours Ago") converted to ISO |
+| RemoteOK | `remoteok` | Public JSON API `https://remoteok.com/api` | none (client-side only) | Latest ~100 remote jobs; `tags` param unreliable so full feed is fetched |
+| Remotive | `remotive` | Public JSON API `/api/remote-jobs?search=…&limit=100` | none (client-side only) | Remote-only; non-commercial use API |
+| We Work Remotely | `weworkremotely` | RSS feeds (programming, full-stack, back-end categories) | none (client-side only) | Item titles are `"Company: Title"`; region in `<region>` |
+
+- **Remote-board location handling:** remote-only boards normalize US-friendly regions
+  (`Worldwide`, `Anywhere`, `USA`, `Americas`) to `"Remote — …"` so `isUSJob()` keeps them;
+  other regions (e.g. `Europe`) pass through raw and get excluded downstream.
+- **NOT addable:** Indeed, ZipRecruiter, Glassdoor, Monster, CareerBuilder — all return
+  HTTP 403 bot-walls (Cloudflare/PerimeterX) on every known endpoint. Dice has a working
+  API but was excluded by user preference.
 
 ---
 
@@ -161,7 +179,7 @@ These companies use ATS platforms that cannot be queried via the standard regist
 
 ### Platforms skipped by probe (no standard JSON API)
 - `oracle-orc`, `icims`, `icims-jra`, `custom` — these need browser-based scraping.
-- `linkedin` — guest HTML endpoint, verified at runtime instead.
+- `linkedin`, `simplyhired`, `builtin`, `remoteok`, `remotive`, `weworkremotely` — job-board sources, verified at runtime instead.
 
 ### Known Workday 422s (CSRF-protected, kept in registry)
 Companies like Google, Microsoft, JPMorgan, Goldman Sachs return HTTP 422 from the probe because their Workday endpoints require a CSRF session. The scraper now handles these by prefetching the careers page to harvest session cookies and the `CALYPSO_CSRF_TOKEN`, then retrying the POST — so they should return results at runtime. Amazon is `platform: 'custom'` (not Workday) and uses Puppeteer; its generic selectors may still return zero results.

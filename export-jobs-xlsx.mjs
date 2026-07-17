@@ -30,6 +30,9 @@ const CONCURRENCY = Number(process.env.SCRAPE_CONCURRENCY ?? 24);
 const outIdx = process.argv.indexOf('--out');
 const OUT = outIdx !== -1 && process.argv[outIdx + 1] ? process.argv[outIdx + 1] : 'job-results.xlsx';
 
+// Cross-company job boards — results show the real employer as "{Employer} (via {Board})".
+const JOB_BOARDS = new Set(['LinkedIn', 'SimplyHired', 'BuiltIn.com', 'RemoteOK', 'Remotive', 'We Work Remotely']);
+
 function platformOf(u) {
   if (/greenhouse/.test(u)) return 'Greenhouse';
   if (/lever\.co/.test(u)) return 'Lever';
@@ -40,6 +43,11 @@ function platformOf(u) {
   if (/amazon\.jobs/.test(u)) return 'Amazon';
   if (/apple\.com/.test(u)) return 'Apple';
   if (/linkedin\.com/.test(u)) return 'LinkedIn';
+  if (/simplyhired\.com/.test(u)) return 'SimplyHired';
+  if (/builtin\.com/.test(u)) return 'BuiltIn';
+  if (/remoteok\.com/i.test(u)) return 'RemoteOK';
+  if (/remotive\.com/.test(u)) return 'Remotive';
+  if (/weworkremotely\.com/.test(u)) return 'WeWorkRemotely';
   return 'Other';
 }
 
@@ -80,8 +88,10 @@ async function run() {
       seen.add(key);
       jobs.push({
         title,
-        // LinkedIn results carry the real hiring company in companyName
-        company: company.company === 'LinkedIn' && job.companyName ? `${job.companyName} (via LinkedIn)` : company.company,
+        // Job-board results carry the real hiring company in companyName
+        company: JOB_BOARDS.has(company.company) && job.companyName && job.companyName !== company.company
+          ? `${job.companyName} (via ${company.company})`
+          : company.company,
         locations: (job.locations || []).join(' | ') || 'N/A',
         posted: job.postedDate
           ? new Date(job.postedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })

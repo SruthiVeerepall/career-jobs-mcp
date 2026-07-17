@@ -34,7 +34,7 @@ export interface SearchFilters {
   remoteOnly?: boolean;
 }
 
-export type CareerPlatform = 'greenhouse' | 'lever' | 'workday' | 'smartrecruiters' | 'ashby' | 'oracle-orc' | 'icims' | 'icims-jra' | 'custom' | 'amazon' | 'apple' | 'tesla' | 'mckinsey' | 'linkedin';
+export type CareerPlatform = 'greenhouse' | 'lever' | 'workday' | 'smartrecruiters' | 'ashby' | 'oracle-orc' | 'icims' | 'icims-jra' | 'custom' | 'amazon' | 'apple' | 'tesla' | 'mckinsey' | 'linkedin' | 'simplyhired' | 'builtin' | 'remoteok' | 'remotive' | 'weworkremotely';
 
 export interface CompanyConfig {
   name: string;

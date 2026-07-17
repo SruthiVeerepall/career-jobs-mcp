@@ -146,6 +146,14 @@ These companies use ATS platforms that cannot be queried via the standard regist
 - **Workaround:** Direct the user to search LinkedIn for "Infosys software engineer" filtered to United States.
 - **Do NOT add to registry** — portal only returns India-based roles.
 
+#### LinkedIn (cross-company job board — IN the registry)
+- **In registry** as `platform: 'linkedin', slug: 'linkedin'` — included automatically in `find-java-24h.mjs` / `export-jobs-xlsx.mjs` runs.
+- **Method:** public guest endpoint (no login/API key): `GET https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=…&location=United States&f_TPR=r604800&start=N` — returns HTML job cards parsed with cheerio (`src/scrapers/platforms/linkedin.ts`).
+- **Search terms:** when no `jobTitle` filter is given it runs the profile terms `Java`, `Full Stack Developer`, `Software Engineer` (up to ~50 postings per term, deduped by posting id).
+- **Output:** `companyName` = the real hiring employer from the card; `applyUrl` = direct `https://www.linkedin.com/jobs/view/{id}/` link; `postedDate` = real ISO date from `<time datetime>`. Batch scripts display the company as `"{Employer} (via LinkedIn)"`.
+- **Date filter mapping:** `postedSince: 'today'` → `f_TPR=r86400`, `'week'`/default → `r604800`, `'month'` → `r2592000`; the 3-day cutoff is applied client-side like all other sources.
+- **Caveats:** guest endpoint can rate-limit (429) under heavy use — requests go through the shared rate limiter; page size varies (10–25). Skipped by `probe-registry.mjs` (no JSON API).
+
 ---
 
 ### Platforms with working JSON APIs (probeable)
@@ -153,6 +161,7 @@ These companies use ATS platforms that cannot be queried via the standard regist
 
 ### Platforms skipped by probe (no standard JSON API)
 - `oracle-orc`, `icims`, `icims-jra`, `custom` — these need browser-based scraping.
+- `linkedin` — guest HTML endpoint, verified at runtime instead.
 
 ### Known Workday 422s (CSRF-protected, kept in registry)
 Companies like Google, Microsoft, JPMorgan, Goldman Sachs return HTTP 422 from the probe because their Workday endpoints require a CSRF session. The scraper now handles these by prefetching the careers page to harvest session cookies and the `CALYPSO_CSRF_TOKEN`, then retrying the POST — so they should return results at runtime. Amazon is `platform: 'custom'` (not Workday) and uses Puppeteer; its generic selectors may still return zero results.

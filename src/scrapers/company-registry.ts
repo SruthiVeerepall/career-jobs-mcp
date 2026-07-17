@@ -13,6 +13,7 @@ import { AmazonScraper } from './platforms/amazon.js';
 import { AppleScraper } from './platforms/apple.js';
 import { TeslaScraper } from './platforms/tesla.js';
 import { McKinseyScraper } from './platforms/mckinsey.js';
+import { LinkedInScraper } from './platforms/linkedin.js';
 import { logger } from '../utils/logger.js';
 
 const PRECONFIGURED: CompanyConfig[] = [
@@ -933,6 +934,9 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: 'Browserbase', slug: 'browserbase', careerUrl: 'https://www.browserbase.com/careers', platform: 'ashby', platformIdentifier: 'browserbase' },
   { name: 'OpenEvidence', slug: 'openevidence', careerUrl: 'https://www.openevidence.com/careers', platform: 'ashby', platformIdentifier: 'openevidence' },
   { name: 'Chroma', slug: 'chroma', careerUrl: 'https://www.trychroma.com/careers', platform: 'ashby', platformIdentifier: 'trychroma' },
+  // LinkedIn job-board source (2026-07-17) — cross-company guest search; returns direct
+  // linkedin.com/jobs/view links with the real hiring company as companyName.
+  { name: 'LinkedIn', slug: 'linkedin', careerUrl: 'https://www.linkedin.com/jobs', platform: 'linkedin' },
 ];
 
 class CompanyRegistry {
@@ -989,6 +993,8 @@ class CompanyRegistry {
         return new TeslaScraper(config);
       case 'mckinsey':
         return new McKinseyScraper(config);
+      case 'linkedin':
+        return new LinkedInScraper(config);
       default:
         throw new Error(`Unsupported platform: ${config.platform}`);
     }

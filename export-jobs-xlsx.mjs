@@ -39,6 +39,7 @@ function platformOf(u) {
   if (/icims/.test(u)) return 'iCIMS';
   if (/amazon\.jobs/.test(u)) return 'Amazon';
   if (/apple\.com/.test(u)) return 'Apple';
+  if (/linkedin\.com/.test(u)) return 'LinkedIn';
   return 'Other';
 }
 
@@ -79,7 +80,8 @@ async function run() {
       seen.add(key);
       jobs.push({
         title,
-        company: company.company,
+        // LinkedIn results carry the real hiring company in companyName
+        company: company.company === 'LinkedIn' && job.companyName ? `${job.companyName} (via LinkedIn)` : company.company,
         locations: (job.locations || []).join(' | ') || 'N/A',
         posted: job.postedDate
           ? new Date(job.postedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })

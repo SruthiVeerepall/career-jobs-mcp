@@ -91,7 +91,8 @@ async function run() {
       seen.add(key);
       jobs.push({
         title,
-        company: company.company,
+        // LinkedIn results carry the real hiring company in companyName
+        company: company.company === 'LinkedIn' && job.companyName ? `${job.companyName} (via LinkedIn)` : company.company,
         locations: (job.locations || []).join(' | ') || 'N/A',
         postedDate: job.postedDate
           ? new Date(job.postedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })

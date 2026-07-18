@@ -32,42 +32,23 @@ This MCP searches company career sites and returns job listings. Every job searc
 - Group results by platform (Workday, Greenhouse, Lever, Ashby) when there are many results.
 - If zero results are found, say so clearly and suggest broadening the date window.
 
-### 6. Resume-Match Filter — ≥60% profile alignment
+### 6. Resume-Match Filter — ≥60% profile alignment (profile-driven)
 
-Every search result must be relevant to **Sruthi Veerepalli's** profile. Only return roles where the job title aligns with her target roles AND the implied skills match at least 60% of her resume profile.
+Every search result must be relevant to the **active candidate profile**. Only return roles where the job title aligns with the profile's target roles AND the implied skills match at least 60% of the profile.
 
-**Candidate profile:** Java / Full Stack Developer, 5 years of experience.
-- Core: Java 8/11/17, Spring Boot, Spring MVC, Spring Security, Spring Cloud, Spring Batch, Hibernate, JPA
-- Frontend: Angular, React.js, Node.js, TypeScript, JavaScript, HTML5, CSS3
-- Cloud: AWS (EC2, Lambda, S3, RDS, EKS, SQS, API Gateway, DynamoDB), Azure (AKS)
-- DevOps: Docker, Kubernetes, GitHub Actions, Jenkins, Terraform, Maven
-- Messaging: Apache Kafka, ActiveMQ, RabbitMQ, AWS SQS
-- Databases: PostgreSQL, MySQL, MongoDB, DynamoDB, Oracle, IBM DB2
-- Observability: Splunk, Honeycomb, Prometheus
-- Testing: JUnit, Mockito, Playwright (Java), Selenium
-- Patterns: Microservices, REST, SOAP, GraphQL, MVC, CI/CD, Agile/TDD
+**Where the profile comes from** (`src/profile/profile-manager.ts`):
+- The **`uploadResume` MCP tool** parses plain resume text into a profile — detected skills ranked into CORE(10)/HIGH(7)/MID(5)/LOW(3) weights, years of experience, target roles, and job-board search terms — and saves it to **`data/profile.json`** (gitignored).
+- The **`getProfile` MCP tool** shows the active profile; `uploadResume` with `reset: true` restores the built-in default.
+- When no `data/profile.json` exists, the **built-in default** applies: Java / Full Stack Developer, 5 yrs (java/spring boot = 10; spring/microservices/full stack = 7; angular/react/aws/kafka/hibernate/jpa/rest/cloud = 5; docker/kubernetes/ci-cd/jenkins/splunk/postgresql/mongodb/node.js/typescript/j2ee/javascript = 3).
+- `src/utils/job-filters.ts` builds all scoring regexes, target-role matching, exclusions, and the seniority cutoff from the loaded profile **at module load** — long-running scripts must be restarted after a profile change, and `dist/` must be rebuilt after source changes.
 
-**Target role titles** (search ALL of these, not just "Java Developer"):
-- Java Developer, Java Full Stack Developer, Full Stack Java Developer
-- Full Stack Developer, Full Stack Engineer
-- Software Engineer, Software Developer
-- Backend Developer, Backend Engineer
-- Application Developer, Java Software Engineer
+**How matching works** (identical mechanics regardless of profile):
+- **Score threshold:** a title scoring ≥ `matchThreshold` (default 5) from the profile's skill weights is a match.
+- **Target-role fallback:** a title scoring 0 still matches if it contains a target-role stem (e.g. "Software Engineer").
+- **Exclusions:** role families in the profile's `excludeRoles` (e.g. Data Scientist, QA Engineer for a backend profile) are always rejected. Resume parsing automatically un-excludes families the resume actually covers (e.g. an ML-heavy resume keeps ML roles).
+- **Seniority:** the level-exclusion regex adapts to `yearsOfExperience` — ≤5 yrs excludes Principal/Staff/Lead/Architect/Director/VP/Manager/etc.; 6–9 yrs allows Staff/Lead/Manager; 10+ only excludes executive titles.
 
-**Resume skill scoring weights** (used to compute match % from job title keywords):
-```
-CORE   (10 pts): java, spring boot
-HIGH   ( 7 pts): spring, microservices, full stack, full-stack, fullstack
-MID    ( 5 pts): angular, react, aws, kafka, hibernate, jpa, rest, restful, cloud
-LOW    ( 3 pts): docker, kubernetes, ci/cd, jenkins, github actions, splunk, postgresql, mongodb, node.js, typescript, j2ee
-```
-
-**60% match threshold = minimum score of 5 points** from the above weights applied to the job title text.
-- A title like "Senior Java Full Stack Developer" scores 10 (java) + 7 (full stack) = 17 → well above threshold.
-- A title like "Software Engineer" scores 0 from keyword weights → still included if it is a recognized target role title.
-- Exclude roles with no Java/Spring/Full Stack/Backend signal AND zero score (e.g., pure Data Scientist, ML Engineer, DevOps Engineer, QA Engineer).
-
-**Search terms to use in `find-java-24h.mjs`:** Run searches for `Java`, `Full Stack`, and `Software Engineer` across all companies to maximize coverage of her profile.
+**Search terms:** the job-board scrapers (LinkedIn, SimplyHired, BuiltIn, Remotive) search the profile's `searchTerms` (default: `Java`, `Full Stack Developer`, `Software Engineer`).
 
 ---
 
@@ -88,7 +69,8 @@ Run `node probe-registry.mjs` to verify all company career sites are reachable a
 ### Scripts
 | Script | Purpose |
 |--------|---------|
-| `node find-java-24h.mjs` | Full batch search — Java/Full Stack/SE across all registry companies, 3-day window |
+| `node upload-resume.mjs <file>` | Set the candidate profile from a resume file (.pdf/.docx/.txt/.md) — no AI needed. `--show` prints the active profile, `--reset` restores the default |
+| `node find-java-24h.mjs` | Full batch search — profile search terms across all registry companies, 3-day window |
 | `node find-java-24h.mjs --today` | Same, 24-hour window |
 | `node find-java-24h.mjs --week` | Same, 7-day window |
 | `node export-jobs-xlsx.mjs` | Same search as `find-java-24h.mjs`, exported to `job-results.xlsx` with a clickable Apply link and an "Applied?" checkbox column (accepts `--today`/`--week`/`--out <path>`) |

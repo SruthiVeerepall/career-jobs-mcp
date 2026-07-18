@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { JobListing, SearchFilters } from '../../types.js';
 import { BaseScraper } from '../base-scraper.js';
+import { loadProfile } from '../../profile/profile-manager.js';
 
 interface RemotiveJob {
   id: number;
@@ -24,11 +25,10 @@ interface RemotiveResponse {
  * other regions pass through raw and get excluded downstream.
  */
 export class RemotiveScraper extends BaseScraper {
-  private static readonly DEFAULT_TERMS = ['Java', 'Full Stack', 'Software Engineer'];
   private static readonly HOST = 'remotive.com';
 
   async fetchJobs(filters: SearchFilters): Promise<JobListing[]> {
-    const terms = filters.jobTitle ? [filters.jobTitle] : RemotiveScraper.DEFAULT_TERMS;
+    const terms = filters.jobTitle ? [filters.jobTitle] : loadProfile().searchTerms;
     const seen = new Map<string, JobListing>();
 
     for (const term of terms) {

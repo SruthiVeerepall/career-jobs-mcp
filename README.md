@@ -1,33 +1,35 @@
 # Career Jobs MCP
 
-> An AI-powered job search engine that scrapes **600+ company career sites directly** — no LinkedIn, no Indeed, no third-party aggregators. Built as a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server so it works natively inside Claude AI.
+> An AI-powered, **resume-driven** job search engine that scrapes **820+ company career sites directly** plus **6 major job boards** (LinkedIn, SimplyHired, BuiltIn, RemoteOK, Remotive, We Work Remotely). Upload your resume once — every search is then matched against *your* skills, experience level, and target roles. Built as a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server so it works natively inside Claude AI.
 
 ---
 
 ## What Is This?
 
-Most job search tools show you the same listings from LinkedIn or Indeed, which are often outdated or missing jobs entirely. This tool goes **directly to each company's own career portal** and fetches real-time job listings.
+Most job search tools show you the same listings from a single aggregator, often outdated or missing jobs entirely. This tool goes **directly to each company's own career portal** — and additionally pulls from six job boards — then filters everything against a profile built from **your resume**.
 
-You tell Claude: *"Find Java Full Stack jobs posted in the last 3 days, US only, no senior+ roles"* — and it searches across 600+ companies simultaneously in under 2 minutes.
+You tell Claude: *"Here's my resume — find me matching jobs posted in the last 3 days, US only"* — and it searches across 820+ companies and the job boards simultaneously.
 
 ```
 You ──► Claude AI ──► Career Jobs MCP ──► Greenhouse API  ──► Stripe, Airbnb, Reddit...
                                       ──► Lever API       ──► Netflix, Brex...
                                       ──► Workday API     ──► JPMorgan, Goldman Sachs...
                                       ──► Ashby API       ──► Linear, Ramp...
-                                      ──► 600+ more companies
+                                      ──► Job boards      ──► LinkedIn, SimplyHired, BuiltIn...
+                                      ──► 820+ more companies
 ```
 
 ---
 
 ## How It Works
 
-1. **You ask Claude** to search for jobs matching your profile
-2. **Claude calls this MCP server** with your search criteria
-3. **The server fans out** across 600+ company career portals concurrently
-4. **Each platform scraper** hits the official ATS (Applicant Tracking System) JSON API — no browser needed for most companies
-5. **Results are filtered** by date, location, experience level, clearance requirements, and resume keyword match
-6. **A ranked table** is returned directly in your Claude conversation
+1. **Upload your resume** (once) — the `uploadResume` tool parses it into a profile: skills with weights, years of experience, target roles, and search terms
+2. **You ask Claude** to search for jobs
+3. **Claude calls this MCP server** with your search criteria
+4. **The server fans out** across 820+ company career portals + 6 job boards concurrently
+5. **Each platform scraper** hits the official ATS (Applicant Tracking System) JSON API — no browser needed for most companies
+6. **Results are filtered** by date, location, experience level, clearance requirements, and **≥60% match against your resume profile**
+7. **A ranked table** is returned directly in your Claude conversation — every row has a direct apply link
 
 ---
 
@@ -35,10 +37,12 @@ You ──► Claude AI ──► Career Jobs MCP ──► Greenhouse API  ─�
 
 | Feature | Details |
 |---------|---------|
-| **600+ companies** | Tech, finance, healthcare, e-commerce, defense, and more |
+| **Resume-driven matching** | Upload your resume once — skills, weights, experience level, and search terms are derived automatically |
+| **820+ companies** | Tech, finance, healthcare, e-commerce, defense, and more |
+| **6 job boards** | LinkedIn, SimplyHired, BuiltIn.com, RemoteOK, Remotive, We Work Remotely — direct apply links, real employer names |
 | **6 ATS platforms** | Greenhouse, Lever, Ashby, SmartRecruiters, Workday, Custom (Puppeteer) |
 | **Smart filtering** | Date window, US-only, experience level, no clearance, resume-match scoring |
-| **Resume scoring** | Keyword-weight algorithm ranks jobs by % match to your profile |
+| **Adaptive seniority** | ≤5 yrs excludes Principal/Staff/Lead+; 6–9 yrs allows Staff/Lead; 10+ only excludes executive titles |
 | **24-hour cache** | SQLite cache avoids hammering the same site twice |
 | **Rate limiting** | 2s per-host throttle + exponential backoff retries — respectful scraping |
 | **No API keys needed** | Uses publicly accessible ATS JSON APIs |
@@ -62,18 +66,26 @@ When this server is registered with Claude, Claude can call tools like `searchMu
 career-jobs-mcp/
 ├── src/
 │   ├── index.ts                    # Entry point — starts the MCP server
-│   ├── server.ts                   # Registers all 5 MCP tools with Claude
+│   ├── server.ts                   # Registers all 7 MCP tools with Claude
 │   ├── types.ts                    # TypeScript types: JobListing, CompanyConfig, Filters
+│   ├── profile/
+│   │   └── profile-manager.ts      # Resume parser + active profile (data/profile.json)
 │   ├── scrapers/
 │   │   ├── base-scraper.ts         # Shared scraper logic (filtering, level detection)
 │   │   ├── orchestrator.ts         # Coordinates cache + scrape per company
-│   │   ├── company-registry.ts     # Master list of 600+ companies with ATS config
+│   │   ├── company-registry.ts     # Master list of 820+ companies with ATS config
 │   │   └── platforms/
 │   │       ├── greenhouse.ts       # Greenhouse JSON API scraper
 │   │       ├── lever.ts            # Lever JSON API scraper
 │   │       ├── ashby.ts            # Ashby JSON API scraper
 │   │       ├── smartrecruiters.ts  # SmartRecruiters JSON API scraper
 │   │       ├── workday.ts          # Workday scraper (CSRF-aware session handling)
+│   │       ├── linkedin.ts         # LinkedIn guest-search job board scraper
+│   │       ├── simplyhired.ts      # SimplyHired job board scraper
+│   │       ├── builtin.ts          # BuiltIn.com job board scraper
+│   │       ├── remoteok.ts         # RemoteOK job board scraper
+│   │       ├── remotive.ts         # Remotive job board scraper
+│   │       ├── weworkremotely.ts   # We Work Remotely RSS scraper
 │   │       └── custom-puppeteer.ts # Headless Chrome fallback for JS-rendered sites
 │   ├── cache/
 │   │   └── cache-manager.ts        # SQLite cache with 24-hour TTL
@@ -82,7 +94,8 @@ career-jobs-mcp/
 │       ├── rate-limiter.ts         # Per-host request throttle
 │       └── retry.ts                # Exponential backoff with configurable retries
 ├── tools/                          # One file per MCP tool (search, list, add, etc.)
-├── find-java-24h.mjs               # Standalone: search all 600+ companies for Java roles
+├── upload-resume.mjs               # Standalone: set the profile from a resume file (.pdf/.docx/.txt/.md)
+├── find-java-24h.mjs               # Standalone: search all 820+ companies + job boards for matching roles
 ├── export-jobs-xlsx.mjs            # Standalone: same search, exported to an Excel sheet with an "Applied?" checkbox
 ├── probe-registry.mjs              # Standalone: health-check all companies, remove broken ones
 ├── run-search.mjs                  # Standalone: broader search with month window
@@ -126,10 +139,30 @@ cp .env.example .env
 
 ### Option A — Run Standalone Scripts (No Claude Needed)
 
-These scripts run directly in your terminal and print a markdown job table:
+Everything works from the terminal — including resume upload. Full flow:
 
 ```bash
-# Search all 600+ companies for Java / Full Stack / Software Engineer roles (last 3 days)
+# 1. Set your profile from your resume file (.pdf, .docx, .txt, or .md)
+node upload-resume.mjs "C:\path\to\my-resume.pdf"
+
+# 2. Get results as an Excel sheet (job-results.xlsx, with Applied? checkboxes)
+node export-jobs-xlsx.mjs
+
+#    ...or as a table in the terminal
+node find-java-24h.mjs
+```
+
+Profile management:
+
+```bash
+node upload-resume.mjs --show     # print the active profile (skills, weights, roles)
+node upload-resume.mjs --reset    # go back to the built-in default profile
+```
+
+All script options:
+
+```bash
+# Search all 820+ companies + 6 job boards for roles matching the active profile (last 3 days)
 node find-java-24h.mjs
 
 # Same search but 7-day window
@@ -176,16 +209,17 @@ use **Insert ▸ Checkbox** after opening the file.
 **Example output:**
 
 ```
-CLAUDE.md rules: Resume-match ≥60% | last 3 days | Junior–Senior | US | No clearance
-Search: [Java, Full Stack, Software Engineer] in parallel | 574 companies | 12 batches
+CLAUDE.md rules: Resume-match ≥60% | last 3 days | ≤5 yrs | US | No clearance
+Profile: Java / Full Stack Developer — java, spring boot, spring, microservices, full stack, angular (source: resume-upload)
+Fetch-once: 827 companies | 24 concurrent | window=week
 
-Found 271 jobs (last 3 days | Junior–Senior | US | No clearance | ≥60% resume match):
+Found 271 jobs (last 3 days | ≤5 yrs | US | No clearance | ≥60% resume match):
 
-| # | Title                                      | Company         | Location     | Posted | Score | Apply  |
-|---|--------------------------------------------|-----------------|--------------|--------|-------|--------|
-| 1 | Senior Software Engineer - Full Stack      | U.S. Bancorp    | Irving, TX   | May 18 | 12    | [Apply]|
-| 2 | Senior Software Engineer – Java            | U.S. Bancorp    | Irving, TX   | May 18 | 10    | [Apply]|
-| 3 | Java Software Developer (Mid-Senior Level) | Interactive Brokers | Greenwich, CT | May 15 | 10 | [Apply]|
+| # | Title                                      | Company                  | Location     | Posted | Score | Apply  |
+|---|--------------------------------------------|--------------------------|--------------|--------|-------|--------|
+| 1 | Java Full Stack Developer with Angular     | PETADATA (via LinkedIn)  | Austin, TX   | Jul 15 | 22    | [Apply]|
+| 2 | Senior Software Engineer - Full Stack      | U.S. Bancorp             | Irving, TX   | Jul 16 | 12    | [Apply]|
+| 3 | Java Software Developer (Mid-Senior Level) | Interactive Brokers      | Greenwich, CT| Jul 15 | 10    | [Apply]|
 ...
 ```
 
@@ -210,12 +244,30 @@ Or add manually to your Claude Code MCP settings file:
 }
 ```
 
-#### Step 2 — Ask Claude to search
+#### Step 2 — Upload your resume (once)
+
+Paste your resume text into the chat and say:
+
+- *"Here's my resume — upload it so job searches match my profile"*
+
+Claude calls the `uploadResume` tool, which builds your profile (skills → scoring weights,
+years of experience → seniority ceiling, target roles → search terms) and saves it to
+`data/profile.json` (gitignored — never committed). For a PDF resume, just attach it —
+Claude extracts the text and passes it to the tool. To check what's active, ask
+*"show my job search profile"* (`getProfile`); to start over, *"reset my job profile"*.
+
+If you skip this step, a built-in default profile (Java / Full Stack, 5 yrs) is used.
+
+> **Note:** the standalone terminal scripts read the profile at startup — re-run them after
+> uploading a new resume.
+
+#### Step 3 — Ask Claude to search
 
 Once registered, you can ask Claude naturally:
 
-- *"Search for Java Full Stack jobs posted in the last 3 days, US only"*
+- *"Find jobs matching my resume posted in the last 3 days, US only"*
 - *"Find Software Engineer roles at Stripe, Airbnb, and Netflix"*
+- *"Search LinkedIn and SimplyHired for jobs matching my profile"*
 - *"Add Walmart's career site and search for backend roles"*
 - *"List all companies in the registry"*
 
@@ -223,7 +275,17 @@ Once registered, you can ask Claude naturally:
 
 ## MCP Tools Reference
 
-The server exposes 5 tools that Claude (or any MCP client) can call:
+The server exposes 7 tools that Claude (or any MCP client) can call:
+
+### `uploadResume`
+Build the candidate profile every search matches against. Pass plain resume text (or a `.txt`/`.md` file path); pass `reset: true` to restore the built-in default.
+```json
+{ "resumeText": "Full Stack Developer with 5+ years... Java, Spring Boot, Angular, AWS..." }
+```
+Returns the parsed profile: headline, years of experience, skill weights (10/7/5/3 tiers), target roles, job-board search terms, and exclusions.
+
+### `getProfile`
+Show the active profile (from `data/profile.json`, or the built-in default when no resume has been uploaded).
 
 ### `searchCompanyJobs`
 Search a single company's career site.
@@ -256,7 +318,7 @@ Get the full job description, requirements, and apply URL for a cached job.
 ```
 
 ### `listCompanies`
-Returns all 600+ supported companies with their platform, career URL, and last scraped timestamp.
+Returns all 820+ supported companies with their platform, career URL, and last scraped timestamp.
 
 ### `addCompanyCareerSite`
 Register a new company so it's searchable going forward.
@@ -280,23 +342,25 @@ Platform is auto-detected from the URL. For Workday sites, pass `platformIdentif
 | **SmartRecruiters** | Public JSON API (`api.smartrecruiters.com`) | Visa, Bosch |
 | **Workday** | Session-based API with CSRF token handling | JPMorgan, Goldman Sachs, Adobe, Salesforce, U.S. Bancorp |
 | **Custom (Puppeteer)** | Headless Chrome + CSS selectors | Amazon, Apple, Google, Tesla |
+| **Job boards** | LinkedIn guest search, SimplyHired embedded JSON, BuiltIn HTML cards, RemoteOK/Remotive JSON APIs, WWR RSS | Cross-company — results show `"{Employer} (via {Board})"` with direct apply links |
 
 > **Why Workday is special:** Most Workday endpoints require a CSRF session token. This scraper prefetches the careers page to harvest cookies and the `CALYPSO_CSRF_TOKEN`, then retries the API POST — so it works on CSRF-protected Workday tenants like JPMorgan and Goldman Sachs.
+
+> **Why not Indeed / ZipRecruiter / Glassdoor / Monster?** They return HTTP 403 bot-protection walls on every public endpoint, so they cannot be scraped reliably. SimplyHired is Indeed-owned and mirrors much of its inventory.
 
 ---
 
 ## Personalizing for Your Profile
 
-Edit `CLAUDE.md` at the root of the project to set:
+**Just upload your resume** — no config editing needed. The `uploadResume` tool derives:
 
-- **Your target role titles** (Java Developer, Full Stack, Software Engineer, etc.)
-- **Skill keyword weights** for resume-match scoring
-- **Experience level ceiling** (default: Senior = ~5 years max)
-- **Date window** (default: 3 days)
-- **Location preference** (default: US only)
-- **Exclusion rules** (no clearance, no Principal/Staff/Lead/Director titles)
+- **Skill keyword weights** — detected skills ranked into CORE(10)/HIGH(7)/MID(5)/LOW(3) tiers
+- **Experience ceiling** — ≤5 yrs excludes Principal/Staff/Lead+ titles; 6–9 yrs allows Staff/Lead; 10+ only excludes executive titles
+- **Target role titles** — inferred from your stack (backend, full stack, frontend, ML, data, mobile…)
+- **Job-board search terms** — the top terms the LinkedIn/SimplyHired/BuiltIn/Remotive scrapers query
+- **Exclusion rules** — role families outside your profile are rejected; families your resume covers are automatically kept
 
-The scoring engine applies your keyword weights to every job title and only returns matches above your threshold (default: ≥5 points = 60% match).
+The profile lives in `data/profile.json` (gitignored). The scoring engine applies your weights to every job title and only returns matches above your threshold (default: ≥5 points = 60% match). Search-wide rules (3-day window, US-only, no clearance) stay in `CLAUDE.md`.
 
 ---
 

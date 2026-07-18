@@ -6,6 +6,7 @@ import { searchMultipleCompanies, searchMultipleCompaniesSchema } from './tools/
 import { getJobDetails, getJobDetailsSchema } from './tools/get-job-details.js';
 import { listCompanies } from './tools/list-companies.js';
 import { addCompanyCareerSite, addCompanyCareerSiteSchema } from './tools/add-company-career-site.js';
+import { uploadResume, uploadResumeSchema, getProfile } from './tools/upload-resume.js';
 import { logger } from './utils/logger.js';
 import { closeSharedBrowser } from './scrapers/platforms/custom-puppeteer.js';
 import { cacheManager } from './cache/cache-manager.js';
@@ -58,6 +59,24 @@ export async function startServer(): Promise<void> {
     addCompanyCareerSiteSchema,
     async (args) => ({
       content: [{ type: 'text', text: JSON.stringify(await addCompanyCareerSite(args), null, 2) }],
+    }),
+  );
+
+  server.tool(
+    'uploadResume',
+    'Upload resume text to build the candidate profile that all job searches match against (skills, weights, target roles, search terms). Pass reset:true to restore the built-in default profile.',
+    uploadResumeSchema,
+    async (args) => ({
+      content: [{ type: 'text', text: JSON.stringify(await uploadResume(args), null, 2) }],
+    }),
+  );
+
+  server.tool(
+    'getProfile',
+    'Show the active candidate profile used for resume-match filtering (from data/profile.json, or the built-in default).',
+    {},
+    async () => ({
+      content: [{ type: 'text', text: JSON.stringify(await getProfile(), null, 2) }],
     }),
   );
 

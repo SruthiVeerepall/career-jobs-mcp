@@ -197,7 +197,7 @@ async function run() {
   // ============================================================
   if (allJobs.length > 0) {
     console.log(`\n\n${'='.repeat(80)}`);
-    console.log(`SAP US JOBS (${allJobs.length} matching Sruthi's profile)`);
+    console.log(`SAP US JOBS (${allJobs.length} matching the active profile)`);
     console.log('='.repeat(80));
     console.log('| # | Title | Location | Posted | Score | Apply |');
     console.log('|---|-------|----------|--------|-------|-------|');

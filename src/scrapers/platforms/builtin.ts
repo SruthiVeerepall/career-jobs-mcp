@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import type { JobListing, SearchFilters } from '../../types.js';
 import { BaseScraper } from '../base-scraper.js';
+import { loadProfile } from '../../profile/profile-manager.js';
 
 /**
  * Built In (builtin.com) — US tech job board, server-rendered HTML. No login.
@@ -10,11 +11,10 @@ import { BaseScraper } from '../base-scraper.js';
  * posted: "N Hours/Days Ago" span, location/level in font-barlow spans.
  */
 export class BuiltInScraper extends BaseScraper {
-  private static readonly DEFAULT_TERMS = ['Java Developer', 'Full Stack Developer', 'Software Engineer'];
   private static readonly HOST = 'builtin.com';
 
   async fetchJobs(filters: SearchFilters): Promise<JobListing[]> {
-    const terms = filters.jobTitle ? [filters.jobTitle] : BuiltInScraper.DEFAULT_TERMS;
+    const terms = filters.jobTitle ? [filters.jobTitle] : loadProfile().searchTerms;
     const seen = new Map<string, JobListing>();
 
     for (const term of terms) {

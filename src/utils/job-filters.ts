@@ -1,8 +1,34 @@
-// Shared filter/scoring logic for Sruthi Veerepalli's resume-match search.
+// Shared filter/scoring logic for the resume-match job search.
 // Rules per CLAUDE.md rules #2 (experience level), #3 (location), #4 (clearance), #6 (resume match).
+// All candidate-specific values come from the active profile (data/profile.json,
+// managed by the uploadResume MCP tool) — see src/profile/profile-manager.ts.
 
-// Senior / >5yr title patterns — EXCLUDE
-export const OVER_5YR = /\bprincipal\b|\bstaff\b|\blead\b|\barchitect\b|\bdirector\b|\bvp\b|\bhead of\b|\bmanager\b|\bexecutive\b|\bdistinguished\b|\bfellow\b/i;
+import { loadProfile } from '../profile/profile-manager.js';
+
+const profile = loadProfile();
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function altGroup(terms: string[]): string {
+  return terms.map((t) => `\\b${escapeRegex(t).replace(/\\?\s+/g, '.?')}\\b`).join('|');
+}
+
+// Seniority exclusion — titles implying more experience than the candidate has.
+// ≤5 yrs: exclude everything above Senior. 6–9 yrs: allow Staff/Lead/Manager.
+// 10+: only exclude executive titles.
+function buildLevelExclude(years: number): RegExp {
+  if (years <= 5) {
+    return /\bprincipal\b|\bstaff\b|\blead\b|\barchitect\b|\bdirector\b|\bvp\b|\bhead of\b|\bmanager\b|\bexecutive\b|\bdistinguished\b|\bfellow\b/i;
+  }
+  if (years < 10) {
+    return /\bdirector\b|\bvp\b|\bhead of\b|\bexecutive\b|\bdistinguished\b|\bfellow\b/i;
+  }
+  return /\bvp\b|\bexecutive\b|\bchief\b/i;
+}
+
+export const OVER_5YR = buildLevelExclude(profile.yearsOfExperience);
 
 // Security clearance — EXCLUDE
 export const CLEARANCE = /security clearance|secret clearance|top secret|ts\/sci|dod clearance|clearance required|us citizen|u\.s\. citizen|citizenship required|must be a citizen|active clearance|public trust/i;
@@ -32,37 +58,28 @@ export function isUSJob(locations: string[] | undefined): boolean {
   });
 }
 
-// Resume skill scoring weights — per CLAUDE.md rule #6 (score >= 5 = 60% match)
-export const RESUME_WEIGHTS: Array<{ pattern: RegExp; weight: number }> = [
-  { pattern: /\bjava\b/i, weight: 10 },
-  { pattern: /\bspring boot\b/i, weight: 10 },
-  { pattern: /\bspring\b/i, weight: 7 },
-  { pattern: /\bmicroservices?\b/i, weight: 7 },
-  { pattern: /\bfull.?stack\b/i, weight: 7 },
-  { pattern: /\bangular\b/i, weight: 5 },
-  { pattern: /\breact\b/i, weight: 5 },
-  { pattern: /\baws\b/i, weight: 5 },
-  { pattern: /\bkafka\b/i, weight: 5 },
-  { pattern: /\bhibernate\b/i, weight: 5 },
-  { pattern: /\bjpa\b/i, weight: 5 },
-  { pattern: /\brest(ful)?\b/i, weight: 5 },
-  { pattern: /\bcloud\b/i, weight: 5 },
-  { pattern: /\bdocker\b/i, weight: 3 },
-  { pattern: /\bkubernetes\b/i, weight: 3 },
-  { pattern: /\bci\/cd\b/i, weight: 3 },
-  { pattern: /\bjenkins\b/i, weight: 3 },
-  { pattern: /\bsplunk\b/i, weight: 3 },
-  { pattern: /\bpostgresql\b/i, weight: 3 },
-  { pattern: /\bmongodb\b/i, weight: 3 },
-  { pattern: /\bnode\.?js\b/i, weight: 3 },
-  { pattern: /\btypescript\b/i, weight: 3 },
-  { pattern: /\bj2ee\b/i, weight: 3 },
-  { pattern: /\bjavascript\b/i, weight: 3 },
-];
+// Resume skill scoring weights — from the active profile (rule #6).
+// Word-bounded, case-insensitive; "spring boot" also matches "spring-boot".
+const SKILL_PATTERN_OVERRIDES: Record<string, RegExp> = {
+  rest: /\brest(ful)?\b/i,
+  react: /\breact(\.?js)?\b/i,
+  angular: /\bangular(js)?\b/i,
+  'c#': /\bc#|\.net\b/i,
+  'c++': /\bc\+\+/i,
+};
 
-export const TARGET_ROLES = /\b(java|full.?stack|fullstack|software engineer|software developer|backend|back.end|application developer)\b/i;
-export const EXCLUDE_ROLES = /\b(data scientist|machine learning|ml engineer|devops engineer|qa engineer|test engineer|security engineer|network engineer|database administrator|dba|data engineer|ui developer|ux designer|product manager|scrum master|business analyst|data analyst)\b/i;
-export const RESUME_MATCH_THRESHOLD = 5;
+export const RESUME_WEIGHTS: Array<{ pattern: RegExp; weight: number }> = profile.skillWeights.map(
+  ({ skill, weight }) => ({
+    pattern:
+      SKILL_PATTERN_OVERRIDES[skill.toLowerCase()] ??
+      new RegExp(`\\b${escapeRegex(skill).replace(/\\?\s+/g, '.?').replace(/\\\.js/i, '\\.?js')}\\b`, 'i'),
+    weight,
+  }),
+);
+
+export const TARGET_ROLES = new RegExp(altGroup(profile.targetRoles), 'i');
+export const EXCLUDE_ROLES = new RegExp(altGroup(profile.excludeRoles), 'i');
+export const RESUME_MATCH_THRESHOLD = profile.matchThreshold;
 
 export function resumeScore(title: string): number {
   let score = 0;

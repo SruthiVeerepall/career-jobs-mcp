@@ -939,6 +939,42 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: 'Browserbase', slug: 'browserbase', careerUrl: 'https://www.browserbase.com/careers', platform: 'ashby', platformIdentifier: 'browserbase' },
   { name: 'OpenEvidence', slug: 'openevidence', careerUrl: 'https://www.openevidence.com/careers', platform: 'ashby', platformIdentifier: 'openevidence' },
   { name: 'Chroma', slug: 'chroma', careerUrl: 'https://www.trychroma.com/careers', platform: 'ashby', platformIdentifier: 'trychroma' },
+  // batch9 additions (2026-07-18) — US IT/software, health insurance, and trading firms.
+  // Every entry probed against the live ATS API and confirmed to return jobs.
+  // Trading / market-making / exchanges
+  { name: 'Virtu Financial', slug: 'virtu-financial', careerUrl: 'https://www.virtu.com/careers', platform: 'greenhouse', platformIdentifier: 'virtu' },
+  { name: 'Jump Trading', slug: 'jump-trading', careerUrl: 'https://www.jumptrading.com/careers', platform: 'greenhouse', platformIdentifier: 'jumptrading' },
+  { name: 'Tower Research Capital', slug: 'tower-research-capital', careerUrl: 'https://tower-research.com/open-positions', platform: 'greenhouse', platformIdentifier: 'towerresearchcapital' },
+  { name: 'Akuna Capital', slug: 'akuna-capital', careerUrl: 'https://akunacapital.com/careers', platform: 'greenhouse', platformIdentifier: 'akunacapital' },
+  { name: 'Five Rings', slug: 'five-rings', careerUrl: 'https://fiverings.com/careers', platform: 'greenhouse', platformIdentifier: 'fiveringsllc' },
+  { name: 'Clear Street', slug: 'clear-street', careerUrl: 'https://clearstreet.io/careers', platform: 'greenhouse', platformIdentifier: 'clearstreet' },
+  { name: 'Schonfeld', slug: 'schonfeld', careerUrl: 'https://www.schonfeld.com/careers', platform: 'greenhouse', platformIdentifier: 'schonfeld' },
+  { name: 'Geneva Trading', slug: 'geneva-trading', careerUrl: 'https://genevatrading.com/careers', platform: 'greenhouse', platformIdentifier: 'genevatrading' },
+  { name: 'tastytrade', slug: 'tastytrade', careerUrl: 'https://tastytrade.com/careers', platform: 'greenhouse', platformIdentifier: 'tastytrade' },
+  { name: 'DriveWealth', slug: 'drivewealth', careerUrl: 'https://www.drivewealth.com/careers', platform: 'greenhouse', platformIdentifier: 'drivewealth' },
+  { name: 'Old Mission Capital', slug: 'old-mission-capital', careerUrl: 'https://www.oldmissioncapital.com/careers', platform: 'greenhouse', platformIdentifier: 'oldmissioncapital' },
+  { name: 'iCapital', slug: 'icapital', careerUrl: 'https://icapital.com/careers', platform: 'greenhouse', platformIdentifier: 'icapitalnetwork' },
+  { name: 'Belvedere Trading', slug: 'belvedere-trading', careerUrl: 'https://www.belvederetrading.com/careers', platform: 'lever', platformIdentifier: 'belvederetrading' },
+  { name: 'Kalshi', slug: 'kalshi', careerUrl: 'https://kalshi.com/careers', platform: 'ashby', platformIdentifier: 'kalshi' },
+  { name: 'Imprint', slug: 'imprint', careerUrl: 'https://www.imprint.co/careers', platform: 'ashby', platformIdentifier: 'imprint' },
+  { name: 'CME Group', slug: 'cme-group', careerUrl: 'https://www.cmegroup.com/careers.html', platform: 'workday', platformIdentifier: 'cmegroup|wd1|cme_careers' },
+  { name: 'OCC (Options Clearing)', slug: 'occ', careerUrl: 'https://www.theocc.com/careers', platform: 'workday', platformIdentifier: 'theocc|wd5|Careers' },
+  // Health insurance / health IT
+  { name: 'HCSC (BCBS IL/TX/NM/OK/MT)', slug: 'hcsc', careerUrl: 'https://careers.hcsc.com', platform: 'workday', platformIdentifier: 'hcsc|wd1|HCSC_External' },
+  { name: 'Premera Blue Cross', slug: 'premera-blue-cross', careerUrl: 'https://careers.premera.com', platform: 'workday', platformIdentifier: 'premera|wd5|premera' },
+  { name: 'Point32Health', slug: 'point32health', careerUrl: 'https://www.point32health.org/careers', platform: 'workday', platformIdentifier: 'point32health|wd5|THP' },
+  { name: 'Healthfirst', slug: 'healthfirst', careerUrl: 'https://healthfirst.org/careers', platform: 'workday', platformIdentifier: 'healthfirst|wd1|healthfirst' },
+  { name: 'Waystar', slug: 'waystar', careerUrl: 'https://www.waystar.com/careers', platform: 'workday', platformIdentifier: 'waystar|wd1|waystar' },
+  { name: 'R1 RCM', slug: 'r1-rcm', careerUrl: 'https://www.r1rcm.com/careers', platform: 'workday', platformIdentifier: 'r1rcm|wd1|r1rcm' },
+  { name: 'Availity', slug: 'availity', careerUrl: 'https://www.availity.com/about-us/careers', platform: 'workday', platformIdentifier: 'availity|wd1|Availity_Careers_US' },
+  { name: 'Zelis', slug: 'zelis', careerUrl: 'https://www.zelis.com/careers', platform: 'workday', platformIdentifier: 'zelis|wd1|zeliscareers' },
+  { name: 'Sidecar Health', slug: 'sidecar-health', careerUrl: 'https://sidecarhealth.com/careers', platform: 'greenhouse', platformIdentifier: 'sidecarhealth' },
+  { name: 'Cohere Health', slug: 'cohere-health', careerUrl: 'https://coherehealth.com/careers', platform: 'greenhouse', platformIdentifier: 'coherehealth' },
+  { name: 'Garner Health', slug: 'garner-health', careerUrl: 'https://www.getgarner.com/careers', platform: 'greenhouse', platformIdentifier: 'garnerhealth' },
+  // IT / software
+  { name: 'Genpact', slug: 'genpact', careerUrl: 'https://www.genpact.com/careers', platform: 'workday', platformIdentifier: 'genpact|wd108|External_Careers' },
+  { name: 'Analog Devices', slug: 'analog-devices', careerUrl: 'https://www.analog.com/en/careers.html', platform: 'workday', platformIdentifier: 'analogdevices|wd1|External' },
+  { name: 'Marvell', slug: 'marvell', careerUrl: 'https://careers.marvell.com', platform: 'workday', platformIdentifier: 'marvell|wd1|marvellcareers' },
   // Job-board sources (2026-07-17) — cross-company boards; each returns direct apply
   // links with the real hiring company as companyName. Batch scripts show these as
   // "{Employer} (via {Board})". Indeed/ZipRecruiter/Glassdoor/Monster/CareerBuilder

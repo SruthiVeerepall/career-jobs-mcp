@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { JobListing, SearchFilters } from '../../types.js';
 import { BaseScraper } from '../base-scraper.js';
+import { loadProfile } from '../../profile/profile-manager.js';
 
 interface SimplyHiredJob {
   jobKey: string;
@@ -18,11 +19,10 @@ interface SimplyHiredJob {
  * 20 jobs per page. applyUrl = https://www.simplyhired.com/job/{jobKey}.
  */
 export class SimplyHiredScraper extends BaseScraper {
-  private static readonly DEFAULT_TERMS = ['Java Developer', 'Full Stack Developer', 'Software Engineer'];
   private static readonly HOST = 'www.simplyhired.com';
 
   async fetchJobs(filters: SearchFilters): Promise<JobListing[]> {
-    const terms = filters.jobTitle ? [filters.jobTitle] : SimplyHiredScraper.DEFAULT_TERMS;
+    const terms = filters.jobTitle ? [filters.jobTitle] : loadProfile().searchTerms;
     const seen = new Map<string, JobListing>();
 
     for (const term of terms) {

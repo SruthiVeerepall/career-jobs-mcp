@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import type { JobListing, SearchFilters } from '../../types.js';
 import { BaseScraper } from '../base-scraper.js';
+import { loadProfile } from '../../profile/profile-manager.js';
 
 /**
  * LinkedIn public guest jobs search — no login or API key required.
@@ -16,12 +17,11 @@ import { BaseScraper } from '../base-scraper.js';
  * linkedin.com/jobs/view/{id} link.
  */
 export class LinkedInScraper extends BaseScraper {
-  private static readonly DEFAULT_TERMS = ['Java', 'Full Stack Developer', 'Software Engineer'];
   private static readonly MAX_PER_TERM = 50; // page size varies (10–25), so paginate by count fetched
   private static readonly HOST = 'www.linkedin.com';
 
   async fetchJobs(filters: SearchFilters): Promise<JobListing[]> {
-    const terms = filters.jobTitle ? [filters.jobTitle] : LinkedInScraper.DEFAULT_TERMS;
+    const terms = filters.jobTitle ? [filters.jobTitle] : loadProfile().searchTerms;
     const seen = new Map<string, JobListing>();
 
     for (const term of terms) {

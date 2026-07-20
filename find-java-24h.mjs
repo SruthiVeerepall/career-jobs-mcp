@@ -1,25 +1,8 @@
-/**
- * find-java-24h.mjs
- * Fast parallel search across ALL registry companies for roles matching Sruthi Veerepalli's resume.
- * Rules per CLAUDE.md:
- *   - Default window: 3 days (--today = 24hr, --week = 7 days)
- *   - Level: Junior to Senior only (≤5 yrs)
- *   - Location: US only
- *   - No security clearance
- *   - Resume-match: ≥60% profile alignment (score ≥ 5 from resume skill keywords in title)
- *
- * Performance model (see orchestrator.ts):
- *   Each company is fetched exactly ONCE — with no keyword — and the FULL job set is
- *   cached. All relevance decisions (target roles, resume score, level, location,
- *   clearance, date window) are then applied CLIENT-SIDE via matchesProfile() & friends.
- *   There is no per-keyword network fan-out: `matchesProfile` already encodes every
- *   target-role stem, so searching term-by-term would only re-fetch the same jobs.
- *   Network fetches = number of companies, bounded by SCRAPE_CONCURRENCY. This keeps
- *   the run time linear and predictable as the registry grows.
- */
+
 import { companyRegistry } from './dist/scrapers/company-registry.js';
 import { scrapeMany } from './dist/scrapers/orchestrator.js';
 import { OVER_5YR, CLEARANCE, isUSJob, matchesProfile, resumeScore } from './dist/utils/job-filters.js';
+import { loadProfile } from './dist/profile/profile-manager.js';
 
 // Load all companies, excluding custom/oracle-orc (Puppeteer-based) platforms.
 // Custom companies are mostly non-US (Tencent, Baidu, etc.) or have unreliable scrapers
@@ -44,8 +27,10 @@ const CONCURRENCY = Number(process.env.SCRAPE_CONCURRENCY ?? 24);
 const JOB_BOARDS = new Set(['LinkedIn', 'SimplyHired', 'BuiltIn.com', 'RemoteOK', 'Remotive', 'We Work Remotely']);
 
 async function run() {
-  console.log(`\nCLAUDE.md rules: Resume-match ≥60% | last ${WINDOW_LABEL} | Junior–Senior | US | No clearance`);
-  console.log(`Profile: Java/Full Stack — Spring Boot, Angular, React, AWS, Kafka, Microservices`);
+  const profile = loadProfile();
+  const topSkills = profile.skillWeights.slice(0, 6).map(s => s.skill).join(', ');
+  console.log(`\nCLAUDE.md rules: Resume-match ≥60% | last ${WINDOW_LABEL} | ≤${profile.yearsOfExperience} yrs | US | No clearance`);
+  console.log(`Profile: ${profile.headline} — ${topSkills} (source: ${profile.source})`);
   console.log(`Fetch-once: ${ALL_SLUGS.length} companies | ${CONCURRENCY} concurrent | window=${API_SINCE}\n`);
 
   const start = Date.now();

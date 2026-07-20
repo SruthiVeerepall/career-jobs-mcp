@@ -975,6 +975,21 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: 'Genpact', slug: 'genpact', careerUrl: 'https://www.genpact.com/careers', platform: 'workday', platformIdentifier: 'genpact|wd108|External_Careers' },
   { name: 'Analog Devices', slug: 'analog-devices', careerUrl: 'https://www.analog.com/en/careers.html', platform: 'workday', platformIdentifier: 'analogdevices|wd1|External' },
   { name: 'Marvell', slug: 'marvell', careerUrl: 'https://careers.marvell.com', platform: 'workday', platformIdentifier: 'marvell|wd1|marvellcareers' },
+  // New US companies (2026-07-20) — verified live Greenhouse boards, non-duplicate
+  { name: 'Carvana', slug: 'carvana', careerUrl: 'https://www.carvana.com/careers', platform: 'greenhouse', platformIdentifier: 'carvana' },
+  { name: 'Xometry', slug: 'xometry', careerUrl: 'https://www.xometry.com/careers', platform: 'greenhouse', platformIdentifier: 'xometry' },
+  { name: 'Sweetgreen', slug: 'sweetgreen', careerUrl: 'https://www.sweetgreen.com/careers', platform: 'greenhouse', platformIdentifier: 'sweetgreen' },
+  { name: 'DoubleVerify', slug: 'doubleverify', careerUrl: 'https://doubleverify.com/careers', platform: 'greenhouse', platformIdentifier: 'doubleverify' },
+  { name: 'Instawork', slug: 'instawork', careerUrl: 'https://www.instawork.com/careers', platform: 'greenhouse', platformIdentifier: 'instawork' },
+  { name: 'Maven Clinic', slug: 'maven-clinic', careerUrl: 'https://www.mavenclinic.com/careers', platform: 'greenhouse', platformIdentifier: 'mavenclinic' },
+  { name: 'Ondo Finance', slug: 'ondo', careerUrl: 'https://ondo.finance/careers', platform: 'greenhouse', platformIdentifier: 'ondofinance' },
+  { name: 'Tia', slug: 'tia', careerUrl: 'https://www.asktia.com/careers', platform: 'greenhouse', platformIdentifier: 'tia' },
+  { name: 'Glossier', slug: 'glossier', careerUrl: 'https://www.glossier.com/careers', platform: 'greenhouse', platformIdentifier: 'glossier' },
+  { name: 'Rent the Runway', slug: 'rent-the-runway', careerUrl: 'https://www.renttherunway.com/careers', platform: 'greenhouse', platformIdentifier: 'renttherunway' },
+  { name: 'SmartAsset', slug: 'smartasset', careerUrl: 'https://www.smartasset.com/careers', platform: 'greenhouse', platformIdentifier: 'smartasset' },
+  { name: 'KAYAK', slug: 'kayak', careerUrl: 'https://www.kayak.com/careers', platform: 'greenhouse', platformIdentifier: 'kayak' },
+  { name: 'Postscript', slug: 'postscript', careerUrl: 'https://postscript.io/careers', platform: 'greenhouse', platformIdentifier: 'postscript' },
+  { name: 'Cameo', slug: 'cameo', careerUrl: 'https://www.cameo.com/careers', platform: 'greenhouse', platformIdentifier: 'cameo' },
   // Job-board sources (2026-07-17) — cross-company boards; each returns direct apply
   // links with the real hiring company as companyName. Batch scripts show these as
   // "{Employer} (via {Board})". Indeed/ZipRecruiter/Glassdoor/Monster/CareerBuilder

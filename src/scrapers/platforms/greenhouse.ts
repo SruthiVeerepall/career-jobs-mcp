@@ -9,6 +9,7 @@ interface GreenhouseJob {
   absolute_url: string;
   location: { name: string };
   departments?: { name: string }[];
+  first_published?: string;
   updated_at?: string;
   content?: string;
   metadata?: { name: string; value: unknown }[];
@@ -54,7 +55,10 @@ export class GreenhouseScraper extends BaseScraper {
       level: this.normalizeJobLevel(job.title),
       description,
       applyUrl: job.absolute_url,
-      postedDate: job.updated_at,
+      // `updated_at` bumps on ANY edit — a job re-saved today looks brand new even if it
+      // was published months ago. `first_published` is the real posting date and is
+      // already present in the ?content=true payload.
+      postedDate: job.first_published ?? job.updated_at,
       sourceUrl: job.absolute_url,
       scrapedAt: new Date().toISOString(),
       raw: { metadata: job.metadata },

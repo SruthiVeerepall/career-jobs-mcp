@@ -20,6 +20,7 @@
 import { companyRegistry } from './dist/scrapers/company-registry.js';
 import { scrapeMany } from './dist/scrapers/orchestrator.js';
 import { OVER_5YR, CLEARANCE, isUSJob, matchesProfile, resumeScore } from './dist/utils/job-filters.js';
+import { parsePostedDate } from './dist/utils/posted-date.js';
 
 // Load all companies, excluding custom/oracle-orc (Puppeteer-based) platforms.
 // Custom companies are mostly non-US (Tencent, Baidu, etc.) or have unreliable scrapers
@@ -71,11 +72,23 @@ async function run() {
   console.log(`\nCompleted in ${elapsed}s`);
   console.log(`Raw total: ${grandTotalRaw} jobs across ${ALL_SLUGS.length} companies (API window: ${API_SINCE})`);
   if (failures.length > 0) console.log(`Failures: ${failures.length} companies unreachable`);
+  // Name the job boards when they fail. They contribute most of the results, so a silent
+  // LinkedIn 429 looks identical to "nothing matched" — which is exactly how a
+  // rate-limited run gets mistaken for a broken filter.
+  const boardFailures = failures.filter(r => JOB_BOARDS.has(r.company));
+  for (const f of boardFailures) {
+    console.log(`  !! ${f.company} FAILED — contributed 0 results this run: ${f.error}`);
+  }
 
   // Apply CLAUDE.md filters + resume-match scoring, dedup across companies.
   const cutoff = Date.now() - WINDOW_DAYS * DAY_MS;
   const jobs = [];
   const seen = new Set();
+  // Postings the window dropped only because the source published no usable date.
+  // The orchestrator applies that exclusion before we see the jobs, so take its count
+  // (`undatedExcluded`) rather than counting locally — reported below so the exclusion
+  // is visible rather than silent.
+  let undatedDropped = results.reduce((n, r) => n + (r.undatedExcluded ?? 0), 0);
 
   for (const company of results) {
     if (company.error || !company.jobs.length) continue;
@@ -85,9 +98,18 @@ async function run() {
       if (CLEARANCE.test(title)) continue;
       if (!isUSJob(job.locations)) continue;
       if (!matchesProfile(title)) continue;
-      if (job.postedDate) {
-        const posted = new Date(job.postedDate).getTime();
-        if (!isNaN(posted) && posted < cutoff) continue;
+      // Strict: an undated or unparseable posting cannot be shown to be inside the
+      // window, so it is excluded. Previously it bypassed the check entirely.
+      // `windowVerified` sources (LinkedIn) already applied the window against the real
+      // timestamp; their published date is only day-precise, so re-cutting it here would
+      // wrongly discard jobs they just certified.
+      const posted = parsePostedDate(job.postedDate);
+      if (!job.windowVerified) {
+        if (posted === null) {
+          undatedDropped++;
+          continue;
+        }
+        if (posted < cutoff) continue;
       }
       const key = job.applyUrl || `${company.company}::${title}`;
       if (seen.has(key)) continue;
@@ -99,13 +121,28 @@ async function run() {
           ? `${job.companyName} (via ${company.company})`
           : company.company,
         locations: (job.locations || []).join(' | ') || 'N/A',
-        postedDate: job.postedDate
-          ? new Date(job.postedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-          : 'N/A',
+        // Rendered in UTC on purpose. Date-only sources (LinkedIn) parse to UTC midnight,
+        // so formatting in local time shifted them a day earlier — a job posted 21:00Z
+        // yesterday displayed two calendar days back and looked stale despite being
+        // inside the window. UTC keeps the printed date in the source's own frame.
+        // "(repost)" marks a republished listing: the date is the repost time, so the
+        // opening itself may be older. See JobListing.isRepost.
+        postedDate:
+          (posted === null
+            ? 'within window'
+            : new Date(posted).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                timeZone: 'UTC',
+              })) + (job.isRepost ? ' (repost)' : ''),
         applyUrl: job.applyUrl || '',
         score: resumeScore(title),
       });
     }
+  }
+
+  if (undatedDropped > 0) {
+    console.log(`Excluded ${undatedDropped} postings whose source published no usable date (age unverifiable).`);
   }
 
   if (jobs.length === 0) {

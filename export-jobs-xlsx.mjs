@@ -14,6 +14,7 @@ import ExcelJS from 'exceljs';
 import { companyRegistry } from './dist/scrapers/company-registry.js';
 import { scrapeMany } from './dist/scrapers/orchestrator.js';
 import { OVER_5YR, CLEARANCE, isUSJob, matchesProfile, resumeScore } from './dist/utils/job-filters.js';
+import { parsePostedDate } from './dist/utils/posted-date.js';
 
 const ALL_SLUGS = [...companyRegistry.companies.values()]
   .filter(c => c.platform !== 'custom' && c.platform !== 'oracle-orc')
@@ -67,9 +68,17 @@ async function run() {
     },
   );
 
+  // Name the job boards when they fail — they supply most rows, so a silent LinkedIn 429
+  // is indistinguishable from "nothing matched" unless it is called out.
+  for (const f of results.filter(r => r.error && JOB_BOARDS.has(r.company))) {
+    console.log(`  !! ${f.company} FAILED — contributed 0 rows this run: ${f.error}`);
+  }
+
   const cutoff = Date.now() - WINDOW_DAYS * DAY_MS;
   const jobs = [];
   const seen = new Set();
+  // The orchestrator drops undated postings before we see them, so take its count.
+  let undatedDropped = results.reduce((n, r) => n + (r.undatedExcluded ?? 0), 0);
   for (const company of results) {
     if (company.error || !company.jobs.length) continue;
     for (const job of company.jobs) {
@@ -78,9 +87,15 @@ async function run() {
       if (CLEARANCE.test(title)) continue;
       if (!isUSJob(job.locations)) continue;
       if (!matchesProfile(title)) continue;
-      if (job.postedDate) {
-        const posted = new Date(job.postedDate).getTime();
-        if (!isNaN(posted) && posted < cutoff) continue;
+      // Strict: undated/unparseable postings cannot be shown to be inside the window.
+      // `windowVerified` sources already applied the window with a real timestamp.
+      const posted = parsePostedDate(job.postedDate);
+      if (!job.windowVerified) {
+        if (posted === null) {
+          undatedDropped++;
+          continue;
+        }
+        if (posted < cutoff) continue;
       }
       const url = job.applyUrl || '';
       const key = url || `${company.company}::${title}`;
@@ -93,9 +108,18 @@ async function run() {
           ? `${job.companyName} (via ${company.company})`
           : company.company,
         locations: (job.locations || []).join(' | ') || 'N/A',
-        posted: job.postedDate
-          ? new Date(job.postedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-          : 'N/A',
+        // "(repost)" marks a republished listing — date is the repost time, opening may
+        // be older. See JobListing.isRepost.
+        // UTC on purpose — see find-java-24h.mjs: local formatting shifted date-only
+        // sources a day earlier and made in-window jobs look stale.
+        posted:
+          (posted === null
+            ? 'within window'
+            : new Date(posted).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                timeZone: 'UTC',
+              })) + (job.isRepost ? ' (repost)' : ''),
         score: resumeScore(title),
         platform: platformOf(url),
         url,
@@ -105,6 +129,9 @@ async function run() {
   jobs.sort((a, b) => b.score - a.score);
 
   const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+  if (undatedDropped > 0) {
+    console.log(`Excluded ${undatedDropped} postings whose source published no usable date (age unverifiable).`);
+  }
   console.log(`\nFound ${jobs.length} jobs in ${elapsed}s. Writing ${OUT}...`);
 
   // ---- Build the workbook -------------------------------------------------

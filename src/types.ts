@@ -11,6 +11,24 @@ export interface JobListing {
   benefits?: string[];
   applyUrl: string;
   postedDate?: string;
+  /**
+   * The source advertised this as a RE-post, so `postedDate` is the republish date, not
+   * the original opening date. The board exposes no original date, so the age is real but
+   * the listing may be a recycled one. Surfaced in output rather than silently trusted.
+   */
+  isRepost?: boolean;
+  /**
+   * The SOURCE already filtered this job to the requested `postedSince` window, using the
+   * real posting timestamp it holds internally (e.g. LinkedIn's `f_TPR=r86400`). Set only
+   * when that server-side filter is posting-time based and authoritative.
+   *
+   * When true the client-side date check is skipped, because our own `postedDate` may be
+   * a lossy reconstruction — LinkedIn publishes only a DATE, so a job posted at 23:00
+   * yesterday reads as 40h old and would be wrongly dropped even though LinkedIn just
+   * certified it as within 24h. Trusting the precise upstream answer beats re-deriving a
+   * worse one. Safe against caching because cache rows are keyed by window.
+   */
+  windowVerified?: boolean;
   scrapedAt: string;
   sourceUrl: string;
   raw?: Record<string, unknown>;
@@ -61,4 +79,9 @@ export interface ScrapeResult {
   scrapedAt: string;
   fromCache: boolean;
   error?: string;
+  /**
+   * Jobs dropped by a `postedSince` window solely because the source published no
+   * usable posting date. Reported so a silent exclusion is visible to callers.
+   */
+  undatedExcluded?: number;
 }

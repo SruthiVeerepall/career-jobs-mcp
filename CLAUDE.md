@@ -8,9 +8,10 @@ This MCP searches company career sites and returns job listings. Every job searc
 ## Job Search Rules
 
 ### 1. Posting Age — default window is 3 days
-- Return jobs posted **within the last 3 days** (`postedSince: 'week'` is the closest filter; post-filter by ≤3 days when accurate dates are available).
-- If the user asks for "24 hours" specifically, use `postedSince: 'today'` and note that results may be sparse since most ATS systems batch-refresh postings, not daily.
+- Return jobs posted **within the last 3 days** (`postedSince: 'week'` is the closest filter; post-filter by ≤3 days).
+- If the user asks for "24 hours" specifically, use `postedSince: 'today'`. Results will be sparse — most ATS systems batch-refresh postings rather than publishing daily, and postings whose age cannot be verified are excluded (see Posting-Date Handling).
 - Never return jobs older than 3 days unless the user explicitly asks for a wider window.
+- A posting with no usable date is **excluded**, not assumed fresh. The window is a guarantee, not a best effort.
 
 ### 2. Experience Level — junior to senior (≤5 years)
 - **Include** titles that indicate junior, entry-level, associate, mid-level, or senior roles (Senior is the ceiling — roughly 5 years of experience).
@@ -73,12 +74,62 @@ LOW    ( 3 pts): docker, kubernetes, ci/cd, jenkins, github actions, splunk, pos
 
 ## Technical Notes
 
-### Workday Date Parsing
-Workday returns relative strings like `"Posted Yesterday"` or `"Posted 4 Days Ago"` — not ISO dates.
-The scraper at `src/scrapers/platforms/workday.ts` converts these via `parseWorkdayDate()` to real ISO-8601 timestamps. Always use the compiled `dist/` version after any source change (`npm run build`).
+### Posting-Date Handling (the date window depends on this)
+
+All window logic lives in `src/utils/posted-date.ts`. Two invariants:
+
+1. **Strict.** A job whose posting date is missing or unparseable is **excluded** when a
+   window is requested — its age cannot be verified, and rule #1 says never return jobs
+   older than the window. The orchestrator is the single strict gate; it reports the drop
+   count as `ScrapeResult.undatedExcluded`, which the batch scripts print. Scrapers
+   themselves stay lenient (`withinPostedWindowOrUndated`) because their output is what
+   gets cached — a `today` scrape must not permanently strip undated jobs from the cache.
+2. **Absolute.** Day-granular relative strings are anchored to the **start of that
+   calendar day**, never to `Date.now()` at scrape time. A scrape-relative stamp
+   rejuvenates on every cache read, letting a job whose true age approaches 48h pass a
+   24h window.
+
+Per-source date fields — verify these when adding a platform, since "last updated" is
+**not** "posted":
+
+| Source | Field | Note |
+|---|---|---|
+| Greenhouse | `first_published` | **Not `updated_at`** — that bumps on any edit; using it reported months-old jobs as posted today. Already present in the `?content=true` payload. |
+| Lever | `createdAt` | true posting date |
+| Ashby | `publishedAt` | true posting date |
+| SmartRecruiters | `releasedDate` | true posting date |
+| Workday | `postedOn` | relative, day granularity; `parseWorkdayDate()` → start of that day. `"Posted Yesterday"` is 24–48h old, so it is outside a 24h window but inside 3-day/7-day. |
+| BuiltIn | `parseBuiltInAgo()` | hour/minute stay relative; day/week anchor to start of day. **Reposts** — see below. |
+| LinkedIn | `time[datetime]` | date only, plus authoritative server-side `f_TPR` filter (verified tight) |
+| SimplyHired | `dateOnIndeed` | epoch ms; server-side `t=1` verified tight |
+
+**BuiltIn reposts.** BuiltIn cards can read `"Reposted 14 Hours Ago"`. Its own structured
+`datePosted` equals the republish time and it exposes **no** original posting date, so the
+date cannot be corrected the way Greenhouse's could. The age is accurate for the
+republish, but the opening may be older, so these are flagged with `JobListing.isRepost`
+and rendered as `"Aug 2 (repost)"` in the batch output rather than silently trusted.
+BuiltIn's `daysSinceUpdated` param itself was checked and **is** tight — `=1` returns only
+hours-old and "Yesterday" cards.
+
+Always rebuild (`npm run build`) after any source change — the scripts run the compiled `dist/`.
 
 ### Cache
-- Cache TTL is 24 hours (SQLite at `data/cache.db`).
+- SQLite at `data/cache.db`. Global ceiling 24h (`CACHE_TTL_HOURS`), but the **effective
+  TTL scales with the search window**: a row may not be served once it has consumed more
+  than 5% of the window it was scraped for — `today` ≈ **1.2h**, `week` ≈ **8.4h**,
+  `month` 24h.
+  - Why: a flat 24h TTL is incompatible with a 24h freshness window. A `linkedin|today`
+    row written 22h earlier held 127 jobs that all passed the 24h cut *when cached* and
+    **none** that passed it 22h later — yet the row was still "valid", so it was served
+    instead of re-scraped and `--today` collapsed to 3 results across all sources. A cache
+    entry must not outlive the freshness of its own contents.
+  - This also bounds the staleness `windowVerified` jobs can carry, since they skip the
+    client-side age check entirely.
+  - Consequence: `--today` re-scrapes roughly hourly. That is the correct trade — a 24h
+    window cannot be served from a many-hour-old cache.
+- Cache rows are keyed by **slug + posted-window**. Scrapers narrow results server-side by
+  `postedSince`, so what is cached is window-specific; sharing one row across windows made
+  a `--week` run right after `--today` return almost nothing.
 - Use `forceRefresh: true` or delete `data/cache.db` to get fresh results.
 - After deleting the cache, all companies are re-scraped on the next request.
 

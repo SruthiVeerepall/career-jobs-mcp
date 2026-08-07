@@ -39,6 +39,13 @@ export class LinkedInScraper extends BaseScraper {
     return [...seen.values()].filter((j) => this.matchesFilters(j, filters));
   }
 
+  /**
+   * `f_TPR` is LinkedIn's own posting-time range filter, applied server-side against the
+   * full timestamp. The guest HTML then exposes only a date, so re-deriving the age
+   * client-side loses up to 24h of precision and would discard jobs LinkedIn already
+   * certified — worst in the early UTC hours, when almost none of the 24h window falls on
+   * today's UTC date. Mark these as verified so the client-side date check stands down.
+   */
   private async fetchPage(keywords: string, start: number, filters: SearchFilters): Promise<JobListing[]> {
     const params = new URLSearchParams({
       keywords,
@@ -64,10 +71,12 @@ export class LinkedInScraper extends BaseScraper {
     });
     if (!html) return [];
 
-    return this.parseCards(html);
+    // f_TPR is always sent, but only treat results as verified when the caller actually
+    // asked for a window — otherwise there is nothing to have been verified against.
+    return this.parseCards(html, Boolean(filters.postedSince));
   }
 
-  private parseCards(html: string): JobListing[] {
+  private parseCards(html: string, windowVerified: boolean): JobListing[] {
     const $ = cheerio.load(html);
     const jobs: JobListing[] = [];
 
@@ -90,6 +99,7 @@ export class LinkedInScraper extends BaseScraper {
         level: this.normalizeJobLevel(title),
         applyUrl,
         postedDate,
+        windowVerified,
         sourceUrl: applyUrl,
         scrapedAt: new Date().toISOString(),
       });

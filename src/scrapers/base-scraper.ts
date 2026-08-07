@@ -2,6 +2,7 @@ import type { CompanyConfig, JobListing, SearchFilters } from '../types.js';
 import { logger } from '../utils/logger.js';
 import { withRetry } from '../utils/retry.js';
 import { rateLimiter } from '../utils/rate-limiter.js';
+import { withinPostedWindowOrUndated } from '../utils/posted-date.js';
 
 export abstract class BaseScraper {
   constructor(protected readonly config: CompanyConfig) {}
@@ -45,12 +46,11 @@ export abstract class BaseScraper {
       if (!job.department.toLowerCase().includes(filters.department.toLowerCase())) return false;
     }
     if (filters.remoteOnly && !job.locations.some((l) => /remote/i.test(l))) return false;
-    if (filters.postedSince && job.postedDate) {
-      const posted = new Date(job.postedDate).getTime();
-      const now = Date.now();
-      const day = 86400000;
-      const limits = { today: day, week: 7 * day, month: 30 * day } as const;
-      if (now - posted > limits[filters.postedSince]) return false;
+    // Lenient here by design: scraper output is what gets cached, so undated jobs are
+    // kept. The orchestrator applies the strict window to the response after caching.
+    // Jobs the source already window-filtered by real timestamp are left alone.
+    if (!job.windowVerified && !withinPostedWindowOrUndated(job.postedDate, filters.postedSince)) {
+      return false;
     }
     return true;
   }

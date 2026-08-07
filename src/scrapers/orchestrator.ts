@@ -4,6 +4,7 @@ import { cacheManager } from '../cache/cache-manager.js';
 import { companyRegistry } from './company-registry.js';
 import { logger } from '../utils/logger.js';
 import { withTimeout } from '../utils/retry.js';
+import { countUndated, jobWithinWindow } from '../utils/posted-date.js';
 
 const SCRAPE_TIMEOUT_MS = Number(process.env.SCRAPE_TIMEOUT_MS ?? 30000);
 
@@ -31,7 +32,7 @@ function fetchAndCache(config: CompanyConfig, cacheFilters: SearchFilters): Prom
       SCRAPE_TIMEOUT_MS * 4,
       `scrape ${config.name}`,
     );
-    cacheManager.saveCompanyScrape(config.slug, allJobs);
+    cacheManager.saveCompanyScrape(config.slug, allJobs, cacheFilters.postedSince);
     return allJobs;
   })().finally(() => inFlight.delete(key));
 
@@ -56,7 +57,9 @@ export async function scrapeCompany(
   }
 
   if (!options.forceRefresh) {
-    const cached = cacheManager.getCompanyScrape(config.slug);
+    // Keyed by window too: a `today` scrape caches a narrow set that must not be served
+    // back to a later `week` / unfiltered request.
+    const cached = cacheManager.getCompanyScrape(config.slug, filters.postedSince);
     if (cached) {
       const filtered = cached.jobs.filter((j) => matchesFilters(j, filters));
       return {
@@ -64,6 +67,7 @@ export async function scrapeCompany(
         jobs: filtered,
         scrapedAt: cached.scrapedAt,
         fromCache: true,
+        undatedExcluded: filters.postedSince ? countUndated(cached.jobs) : 0,
       };
     }
   }
@@ -79,6 +83,7 @@ export async function scrapeCompany(
       jobs: allJobs.filter((j) => matchesFilters(j, filters)),
       scrapedAt: new Date().toISOString(),
       fromCache: false,
+      undatedExcluded: filters.postedSince ? countUndated(allJobs) : 0,
     };
   } catch (err) {
     logger.error(`Scrape failed for ${config.name}`, err);
@@ -144,12 +149,9 @@ function matchesFilters(job: JobListing, filters: SearchFilters): boolean {
   if (filters.level && job.level && filters.level !== job.level) return false;
   if (filters.department && job.department && !job.department.toLowerCase().includes(filters.department.toLowerCase())) return false;
   if (filters.remoteOnly && !job.locations.some((l) => /remote/i.test(l))) return false;
-  if (filters.postedSince && job.postedDate) {
-    const posted = new Date(job.postedDate).getTime();
-    if (Number.isNaN(posted)) return true;
-    const day = 86400000;
-    const limits = { today: day, week: 7 * day, month: 30 * day } as const;
-    if (Date.now() - posted > limits[filters.postedSince]) return false;
-  }
+  // Strict: missing/unparseable dates are excluded, not passed through. Previously an
+  // undated job bypassed the window entirely and a NaN date explicitly returned true.
+  // Exception: sources that already filtered by the window with a real timestamp.
+  if (!jobWithinWindow(job, filters.postedSince)) return false;
   return true;
 }

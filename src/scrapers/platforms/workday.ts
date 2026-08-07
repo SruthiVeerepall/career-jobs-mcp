@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { JobListing, SearchFilters } from '../../types.js';
 import { BaseScraper } from '../base-scraper.js';
 import { hostFromUrl } from '../../utils/rate-limiter.js';
+import { startOfDaysAgo } from '../../utils/posted-date.js';
 
 interface WorkdayJobPosting {
   title: string;
@@ -165,16 +166,25 @@ export class WorkdayScraper extends BaseScraper {
 
 // Converts Workday relative date strings to ISO-8601.
 // Examples: "Posted Today", "Posted Yesterday", "Posted 4 Days Ago", "Posted 30+ Days Ago"
-export function parseWorkdayDate(raw: string | undefined): string | undefined {
+//
+// Workday only resolves to the calendar day, so each string is anchored to the START of
+// that day rather than to `Date.now()`. Two reasons:
+//   - Stability. A scrape-relative stamp rejuvenates on cache reads: "Posted Today"
+//     saved as `now` still reads as 0h old when the 24h-TTL cache is hit 20h later,
+//     letting a job whose true age approaches 48h pass a 24h window.
+//   - Determinism. "Posted Yesterday" as `now - 24h` sat exactly on the 24h boundary and
+//     was then compared with `>` microseconds later, so it was always dropped by a race
+//     rather than by a decision. Midnight-anchored, it is 24-48h old and excluded from a
+//     24h window on purpose, while still qualifying for the 3-day and 7-day windows.
+export function parseWorkdayDate(raw: string | undefined, now = Date.now()): string | undefined {
   if (!raw) return undefined;
   const s = raw.toLowerCase().replace(/\s+/g, ' ').trim();
-  const now = Date.now();
-  const day = 86_400_000;
-  if (s.includes('today') || s === 'posted today') return new Date(now).toISOString();
-  if (s.includes('yesterday')) return new Date(now - day).toISOString();
+  if (s.includes('today')) return startOfDaysAgo(0, now);
+  if (s.includes('yesterday')) return startOfDaysAgo(1, now);
   // "posted N days ago" or "N+ days ago"
   const m = s.match(/(\d+)\+?\s+days?\s+ago/);
-  if (m) return new Date(now - parseInt(m[1], 10) * day).toISOString();
-  // Fallback: return the raw string so it's visible but won't parse as a valid date
+  if (m) return startOfDaysAgo(parseInt(m[1], 10), now);
+  // Fallback: return the raw string so it's visible. If it is not a real date it parses
+  // to NaN and the strict window check in the orchestrator excludes the job.
   return raw;
 }

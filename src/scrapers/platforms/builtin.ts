@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import type { JobListing, SearchFilters } from '../../types.js';
 import { BaseScraper } from '../base-scraper.js';
+import { startOfDaysAgo } from '../../utils/posted-date.js';
 
 /**
  * Built In (builtin.com) — US tech job board, server-rendered HTML. No login.
@@ -88,6 +89,10 @@ export class BuiltInScraper extends BaseScraper {
         level: this.normalizeJobLevel(title),
         applyUrl,
         postedDate: this.parseAgo(agoText),
+        // "Reposted 14 Hours Ago" — BuiltIn's own datePosted equals the republish time and
+        // no original date is exposed anywhere, so the date cannot be corrected. Flag it
+        // instead: the listing may be a recycled one being re-advertised.
+        isRepost: /repost/i.test(agoText),
         sourceUrl: applyUrl,
         scrapedAt: new Date().toISOString(),
       });
@@ -96,20 +101,8 @@ export class BuiltInScraper extends BaseScraper {
     return jobs;
   }
 
-  /** "2 Hours Ago" / "3 Days Ago" / "Today" / "Yesterday" → ISO timestamp. */
   private parseAgo(text: string): string | undefined {
-    if (!text) return undefined;
-    const now = Date.now();
-    if (/today|hour|minute/i.test(text)) {
-      const h = text.match(/(\d+)\s*hour/i);
-      return new Date(now - (h ? Number(h[1]) : 0) * 3600000).toISOString();
-    }
-    if (/yesterday/i.test(text)) return new Date(now - 86400000).toISOString();
-    const d = text.match(/(\d+)\s*day/i);
-    if (d) return new Date(now - Number(d[1]) * 86400000).toISOString();
-    const w = text.match(/(\d+)\s*week/i);
-    if (w) return new Date(now - Number(w[1]) * 7 * 86400000).toISOString();
-    return undefined;
+    return parseBuiltInAgo(text);
   }
 
   private daysParam(postedSince: SearchFilters['postedSince']): string {
@@ -123,4 +116,46 @@ export class BuiltInScraper extends BaseScraper {
         return '7';
     }
   }
+}
+
+/**
+ * "2 Hours Ago" / "3 Days Ago" / "Today" / "Yesterday" → ISO timestamp.
+ * Also handles the "Reposted …" prefix, which carries the same shapes.
+ *
+ * Hour/minute strings are genuinely relative and stay relative. Day-granular strings are
+ * anchored to the start of that calendar day so the timestamp does not rejuvenate across
+ * cache reads (see parseWorkdayDate for the same reasoning).
+ *
+ * Note the date is the REPOST time when the text says "Reposted". BuiltIn's own
+ * `datePosted` agrees with that and exposes no original date, so the age is accurate for
+ * the republish but the opening may be older — hence the separate `isRepost` flag.
+ */
+export function parseBuiltInAgo(text: string | undefined, now = Date.now()): string | undefined {
+  if (!text) return undefined;
+  // BuiltIn words singular quantities: "An Hour Ago", "A Day Ago" — not just "1 Hour Ago".
+  // Matching digits alone made those unparseable, and since unparseable now means
+  // EXCLUDED, it silently dropped the freshest listings on the board.
+  const amount = (unit: string): number | undefined => {
+    // `\+?` tolerates the "30+ Days Ago" form; `\s+` keeps "an"/"a" from gluing onto the
+    // unit ("aday") while still allowing "An Hour".
+    const m = text.match(new RegExp(`\\b(\\d+|an?)\\+?\\s+${unit}`, 'i'));
+    if (!m) return undefined;
+    const raw = m[1].toLowerCase();
+    return raw === 'a' || raw === 'an' ? 1 : Number(raw);
+  };
+
+  const hours = amount('hour');
+  if (hours !== undefined) return new Date(now - hours * 3600000).toISOString();
+  if (/minute/i.test(text)) return new Date(now).toISOString();
+  if (/today/i.test(text)) return startOfDaysAgo(0, now);
+  if (/yesterday/i.test(text)) return startOfDaysAgo(1, now);
+  const days = amount('day');
+  if (days !== undefined) return startOfDaysAgo(days, now);
+  const weeks = amount('week');
+  if (weeks !== undefined) return startOfDaysAgo(weeks * 7, now);
+  const months = amount('month');
+  if (months !== undefined) return startOfDaysAgo(months * 30, now);
+  // Unrecognized → undefined. The strict window check excludes it rather than letting an
+  // unknown-age job through.
+  return undefined;
 }

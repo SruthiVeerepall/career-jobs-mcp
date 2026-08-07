@@ -6,6 +6,8 @@ import { searchMultipleCompanies, searchMultipleCompaniesSchema } from './tools/
 import { getJobDetails, getJobDetailsSchema } from './tools/get-job-details.js';
 import { listCompanies } from './tools/list-companies.js';
 import { addCompanyCareerSite, addCompanyCareerSiteSchema } from './tools/add-company-career-site.js';
+import { searchJobsForResume, searchJobsForResumeSchema } from './tools/search-jobs-for-resume.js';
+import { parseResume, parseResumeSchema } from './tools/parse-resume.js';
 import { logger } from './utils/logger.js';
 import { closeSharedBrowser } from './scrapers/platforms/custom-puppeteer.js';
 import { cacheManager } from './cache/cache-manager.js';
@@ -15,6 +17,27 @@ export async function startServer(): Promise<void> {
     name: 'career-jobs-mcp',
     version: '0.1.0',
   });
+
+  // Primary entry point: a resume in, a ranked table of apply links out. Every filter
+  // (role families, seniority band, skill scoring, board keywords, country) is derived
+  // from the resume itself — no candidate is hard-coded.
+  server.tool(
+    'searchJobsForResume',
+    'Search every configured career site and job board for roles matching a resume, and return a ranked table of direct apply links. Accepts the resume as text (resumeText) or a file path (resumePath: .pdf/.docx/.txt/.md).',
+    searchJobsForResumeSchema,
+    async (args) => ({
+      content: [{ type: 'text', text: await searchJobsForResume(args) }],
+    }),
+  );
+
+  server.tool(
+    'parseResume',
+    'Extract the candidate profile from a resume — skills, years of experience, role families, seniority band, and the keywords the job boards will be searched with — without running a search.',
+    parseResumeSchema,
+    async (args) => ({
+      content: [{ type: 'text', text: JSON.stringify(await parseResume(args), null, 2) }],
+    }),
+  );
 
   server.tool(
     'searchCompanyJobs',

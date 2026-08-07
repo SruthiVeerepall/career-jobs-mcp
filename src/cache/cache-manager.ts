@@ -64,8 +64,12 @@ class CacheManager {
    * unfiltered request reads back as if it were the whole board.
    * The `jobs` table stays keyed on the true slug so getJob() is unaffected.
    */
-  private scrapeKey(companySlug: string, window?: string): string {
-    return window ? `${companySlug}|${window}` : companySlug;
+  private scrapeKey(companySlug: string, window?: string, variant?: string): string {
+    const base = window ? `${companySlug}|${window}` : companySlug;
+    // Keyword-driven boards return a different job set per search term, so a row scraped
+    // for one resume's terms must not be served to another's. `variant` carries those
+    // terms; company scrapers pass none and keep their existing keys.
+    return variant ? `${base}|${variant}` : base;
   }
 
   /** Longest a row scraped for `window` may be served. See MAX_WINDOW_FRACTION. */
@@ -75,8 +79,8 @@ class CacheManager {
     return Math.min(TTL_HOURS, windowHours * MAX_WINDOW_FRACTION);
   }
 
-  getCompanyScrape(companySlug: string, window?: string): { jobs: JobListing[]; scrapedAt: string } | null {
-    const key = this.scrapeKey(companySlug, window);
+  getCompanyScrape(companySlug: string, window?: string, variant?: string): { jobs: JobListing[]; scrapedAt: string } | null {
+    const key = this.scrapeKey(companySlug, window, variant);
     const row = this.db
       .prepare('SELECT scraped_at, jobs_json FROM company_scrapes WHERE company_slug = ?')
       .get(key) as { scraped_at: number; jobs_json: string } | undefined;
@@ -98,7 +102,7 @@ class CacheManager {
     }
   }
 
-  saveCompanyScrape(companySlug: string, jobs: JobListing[], window?: string): void {
+  saveCompanyScrape(companySlug: string, jobs: JobListing[], window?: string, variant?: string): void {
     const now = Date.now();
     const insertCompany = this.db.prepare(
       'INSERT OR REPLACE INTO company_scrapes (company_slug, scraped_at, jobs_json) VALUES (?, ?, ?)',
@@ -108,7 +112,7 @@ class CacheManager {
     );
 
     const tx = this.db.transaction(() => {
-      insertCompany.run(this.scrapeKey(companySlug, window), now, JSON.stringify(jobs));
+      insertCompany.run(this.scrapeKey(companySlug, window, variant), now, JSON.stringify(jobs));
       for (const job of jobs) {
         insertJob.run(
           job.id,

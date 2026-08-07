@@ -5,6 +5,61 @@ This MCP searches company career sites and returns job listings. Every job searc
 
 ---
 
+## Résumé-Driven Search (preferred entry point)
+
+**When the user supplies a résumé — a file path or pasted text — use the résumé pipeline, not
+the fixed profile below.** It derives everything rules #2 and #6 hard-code (skills and their
+weights, target role families, seniority ceiling, board search keywords, country) from the
+document itself, so it works for any candidate without a code change.
+
+| Surface | Use |
+|---|---|
+| `searchJobsForResume` (MCP tool) | Résumé in → ranked markdown table of direct apply links. `resumeText` or `resumePath`; `postedWithinDays` (default 3), `limit`, `companies`, `remoteOnly`, `format: 'markdown'\|'json'`. |
+| `parseResume` (MCP tool) | Show the derived profile without scraping. Run this first on an unfamiliar résumé. |
+| `node find-jobs-for-resume.mjs --resume <path>` | Same search from the CLI. `--today`/`--week`/`--days n`, `--limit`, `--years`, `--country`, `--remote-only`, `--profile-only`, `--json`. |
+| `node export-jobs-xlsx.mjs --resume <path>` | Same search, written to the tracked spreadsheet. |
+
+Formats: `.pdf`, `.docx`, `.txt`, `.md`, `.html`. Scanned PDFs have no text layer and are
+rejected with a message asking for pasted text.
+
+**Overrides** when a résumé parses wrong: `yearsOfExperience`, `country`, `matchThreshold`,
+`extraSearchTerms`. Rules #1, #3, #4 and #5 (window, US-only, no clearance, output format)
+apply identically on this path.
+
+### How the profile is derived (`src/resume/`)
+
+| File | Responsibility |
+|---|---|
+| `extract-text.ts` | File → plain text. `pdf-parse` / `mammoth` are loaded on demand so a missing optional dep degrades to a message, not a startup crash. **Import `pdf-parse/lib/pdf-parse.js`, not the package root** — the root runs a debug branch under ESM that reads an unpublished sample file. |
+| `skill-taxonomy.ts` | Skill list with tiers (core 10 / high 7 / mid 5 / low 3), role families, title→family rules, seniority ladder. No candidate specifics. |
+| `build-profile.ts` | Text → `CandidateProfile`. |
+| `match-jobs.ts` | `judgeTitle()` — family, seniority, clearance, score — plus the dedupe/window pass. |
+| `search.ts` / `render.ts` | Orchestration and markdown output. |
+
+Two decisions worth not re-litigating:
+
+1. **Role families come from titles the candidate has HELD, not from listed tooling.** A Java
+   developer whose skills section lists Docker, Kubernetes, Terraform and Jenkins has real
+   DevOps tooling but has never held a DevOps role; scoring by skills alone surfaced SRE
+   postings they would not be shortlisted for. Skills are the fallback only when no title is
+   found. `extractTitles()` therefore rejects prose — a bullet reading "Collaborated with the
+   DevOps team on CI/CD" matches the DevOps family pattern and must not count as a held title.
+2. **Years are inferred from the experience section only.** A degree started in 2014 sits in
+   the same document and added four phantom years when the whole file was scanned.
+
+Sanity check: the sample Java/Full-Stack résumé must reproduce this exact profile —
+families `fullstack, generic-swe, backend, frontend` (no `devops`), band `Entry → Senior`,
+`Senior Java Full Stack Developer` scoring 17. `test/resume-profile.test.mjs` asserts this.
+
+### Board keywords are per-résumé
+`SearchFilters.searchTerms` carries the résumé's terms to the four keyword-driven boards
+(LinkedIn, SimplyHired, BuiltIn, Remotive) via `BaseScraper.resolveSearchTerms()`; each board's
+`DEFAULT_TERMS` is now only a fallback. **Their cache rows are keyed by those terms** — one
+résumé's results must not be served to another. Company scrapers are deliberately *not* keyed
+by terms: they fetch their whole board regardless, so keying them would fragment the cache.
+
+---
+
 ## Job Search Rules
 
 ### 1. Posting Age — default window is 3 days
@@ -34,6 +89,10 @@ This MCP searches company career sites and returns job listings. Every job searc
 - If zero results are found, say so clearly and suggest broadening the date window.
 
 ### 6. Resume-Match Filter — ≥60% profile alignment
+
+> This section is the **fallback profile**, used by `find-java-24h.mjs`, `run-search.mjs`, and
+> `export-jobs-xlsx.mjs` when no résumé is given. When the user supplies a résumé, the
+> equivalent values are derived from it instead — see *Résumé-Driven Search* above.
 
 Every search result must be relevant to **Sruthi Veerepalli's** profile. Only return roles where the job title aligns with her target roles AND the implied skills match at least 60% of her resume profile.
 

@@ -22,7 +22,7 @@ export class SimplyHiredScraper extends BaseScraper {
   private static readonly HOST = 'www.simplyhired.com';
 
   async fetchJobs(filters: SearchFilters): Promise<JobListing[]> {
-    const terms = filters.jobTitle ? [filters.jobTitle] : SimplyHiredScraper.DEFAULT_TERMS;
+    const terms = this.resolveSearchTerms(filters, SimplyHiredScraper.DEFAULT_TERMS);
     const seen = new Map<string, JobListing>();
 
     for (const term of terms) {

@@ -28,7 +28,7 @@ export class RemotiveScraper extends BaseScraper {
   private static readonly HOST = 'remotive.com';
 
   async fetchJobs(filters: SearchFilters): Promise<JobListing[]> {
-    const terms = filters.jobTitle ? [filters.jobTitle] : RemotiveScraper.DEFAULT_TERMS;
+    const terms = this.resolveSearchTerms(filters, RemotiveScraper.DEFAULT_TERMS);
     const seen = new Map<string, JobListing>();
 
     for (const term of terms) {

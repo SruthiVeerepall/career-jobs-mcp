@@ -161,6 +161,9 @@ Per-source date fields — verify these when adding a platform, since "last upda
 | BuiltIn | `parseBuiltInAgo()` | hour/minute stay relative; day/week anchor to start of day. **Reposts** — see below. |
 | LinkedIn | `time[datetime]` | date only, plus authoritative server-side `f_TPR` filter (verified tight) |
 | SimplyHired | `dateOnIndeed` | epoch ms; server-side `t=1` verified tight |
+| Eightfold | `t_create` | epoch **seconds** — multiply by 1000. **Not `t_update`**, which bumps on any edit, the same trap as Greenhouse's `updated_at` |
+| Rippling | `createdOn` | **list response has no date at all** — only the per-job detail endpoint carries it, so the scraper must fan out per job or every result gets dropped as undated |
+| Aurora | `publishedDate` | `YYYY-MM-DD`; `updatedAt` sits beside it and is deliberately unused |
 
 **BuiltIn reposts.** BuiltIn cards can read `"Reposted 14 Hours Ago"`. Its own structured
 `datePosted` equals the republish time and it exposes **no** original posting date, so the
@@ -195,6 +198,28 @@ Always rebuild (`npm run build`) after any source change — the scripts run the
 ### Probe / Health-check
 Run `node probe-registry.mjs` to verify all company career sites are reachable and automatically remove broken entries from the registry. Do this before large batch searches.
 
+**The probe retries transient failures before condemning an entry.** A 5xx/429/timeout is
+retried once, and anything still transient is reported as *uncertain* (kept) rather than
+broken (deleted). Without this, one blip deleted healthy companies: Zebra, Nordstrom and MRI
+Software were each reported broken while serving hundreds of jobs on the very next request.
+Only a definitive 404 removes an entry.
+
+#### When a company legitimately breaks
+Three fixes, in order of preference — a 404 usually means the company **changed ATS**, not
+that it stopped hiring, so look before deleting:
+
+1. **Re-discover the identifier.** Run the discovery scripts above on just that company.
+   Boards move: Fireworks AI and Brooklinen went Greenhouse → Ashby, Root Insurance went
+   Greenhouse → Rippling, Netflix went Lever → Eightfold.
+2. **Add a platform** if the new ATS is one we don't speak yet and exposes dates.
+3. **Delete, leaving a comment saying why**, only when the jobs are genuinely unreachable —
+   bot-walled (Glassdoor, Gainsight), auth-gated (Atlassian's GraphQL), non-existent tenant
+   (Interactive Brokers), or already covered by another entry (dbt Labs merged into
+   Fivetran, whose Greenhouse board is in the registry).
+
+Routing an unreachable company to `custom` (Puppeteer) is **not** a fix: `CustomPuppeteerScraper`
+sets no `postedDate`, so every job it returns is dropped by the strict window gate.
+
 ### Scripts
 | Script | Purpose |
 |--------|---------|
@@ -206,6 +231,32 @@ Run `node probe-registry.mjs` to verify all company career sites are reachable a
 | `node deloitte-scrape.mjs` | Puppeteer DOM scraper for Deloitte (Avature ATS, server-rendered) |
 | `node probe-registry.mjs` | Health-check all companies, removes broken registry entries |
 | `node probe-registry.mjs --dry-run` | Report only, no changes |
+
+### Adding companies to the registry
+
+Never hand-write a `platformIdentifier` — guessed board tokens are frequently *some other
+company's* board. The four scripts below take a list of `Company Name|https://careers-url`
+lines and end at a verified entry. Run them in order on the same input file:
+
+| Script | Purpose |
+|--------|---------|
+| `node discover-companies.mjs <input.txt>` | HTTP pass: follows the careers URL and scrapes the page for a Greenhouse/Lever/Ashby/SmartRecruiters/Workday id, then verifies it against the ATS API |
+| `node discover-companies-browser.mjs <input.txt>` | Second pass over whatever the first could not resolve. Loads each site in headless Chrome and watches network calls, which is the only way to see the ATS on a JS-rendered careers page. Records the ATS name (iCIMS, Taleo, SuccessFactors, Phenom, Avature, Eightfold…) when it finds an unsupported one, so a failure explains itself |
+| `node validate-discovered.mjs <input.txt>` | Prints each board's real name, job count and three sample postings — **the mandatory review step** |
+| `node merge-registry.mjs <input.txt>` | Splices the verified entries into `company-registry.ts`, above the job-board sources block, skipping slugs already present |
+
+**Why `validate-discovered.mjs` is not optional.** When page-scraping finds nothing,
+`discover-companies.mjs` falls back to trying slug variants of the company name, including
+its first word. That reaches a live board often enough to look like success while belonging
+to a completely different employer — `us` is the board of "itel" and not US Foods, `eli` is
+not Eli Lilly, `union` is not Union Pacific, `flock` is a UK motor-fleet insurer and not
+Flock Safety. Only the sample postings distinguish these, so read them before merging. A
+board that verifies with **0 jobs** is likewise not usable.
+
+Two more checks worth repeating: a Workday endpoint can answer HTTP 200 with an HTML body
+rather than the jobs JSON (Otis does), and an acquired company's careers URL now resolves to
+the acquirer's tenant (discover.com/careers → the Capital One tenant), which would duplicate
+an existing entry.
 
 ### Special Company Scrapers (not in registry — require custom methods)
 
@@ -289,6 +340,8 @@ The 3-day cutoff is always applied client-side like all other sources.
 
 ### Platforms skipped by probe (no standard JSON API)
 - `oracle-orc`, `icims`, `icims-jra`, `custom` — these need browser-based scraping.
+- `eightfold`, `rippling`, `aurora` — real JSON APIs, but not the shared board shape the
+  probe speaks; verified at runtime instead.
 - `linkedin`, `simplyhired`, `builtin`, `remoteok`, `remotive`, `weworkremotely` — job-board sources, verified at runtime instead.
 
 ### Known Workday 422s (CSRF-protected, kept in registry)

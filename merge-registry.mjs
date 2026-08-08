@@ -43,17 +43,21 @@ const block = [
   ...byPlat.lever.map(fmt),
   '  // ── Ashby ──────────────────────────────────',
   ...byPlat.ashby.map(fmt),
+  '  // ── SmartRecruiters ────────────────────────',
+  ...byPlat.smartrecruiters.map(fmt),
   '  // ── Workday ────────────────────────────────',
   ...byPlat.workday.map(fmt),
 ].join('\n');
 
 const regPath = 'src/scrapers/company-registry.ts';
 let src = await fs.readFile(regPath, 'utf8');
-const marker = '  // ── Custom (Puppeteer) - Big tech with bespoke career sites ─────────';
+// Company entries go above the cross-company job-board sources, which must stay
+// last in the array.
+const marker = '  // Job-board sources (2026-07-17) — cross-company boards; each returns direct apply';
 if (!src.includes(marker)) throw new Error('marker not found in registry');
 src = src.replace(marker, block + '\n\n' + marker);
 await fs.writeFile(regPath, src);
 
-const total = byPlat.greenhouse.length + byPlat.lever.length + byPlat.ashby.length + byPlat.workday.length;
+const total = Object.values(byPlat).reduce((n, l) => n + l.length, 0);
 console.log(`Inserted ${total} new entries into ${regPath}`);
-console.log(`  greenhouse=${byPlat.greenhouse.length}  lever=${byPlat.lever.length}  ashby=${byPlat.ashby.length}  workday=${byPlat.workday.length}`);
+console.log(`  greenhouse=${byPlat.greenhouse.length}  lever=${byPlat.lever.length}  ashby=${byPlat.ashby.length}  smartrecruiters=${byPlat.smartrecruiters.length}  workday=${byPlat.workday.length}`);

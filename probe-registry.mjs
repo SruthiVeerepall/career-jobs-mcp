@@ -89,6 +89,27 @@ const PROBERS = {
   workday: probeWorkday,
 };
 
+// A single 5xx/429/timeout says the server was busy, not that the board is gone —
+// Zebra, Nordstrom and MRI Software were all reported broken by one such blip while
+// serving hundreds of jobs on retry. Only a definitive answer (404, or a repeated
+// failure) is allowed to remove an entry.
+const TRANSIENT = new Set([0, 408, 425, 429, 500, 502, 503, 504]);
+
+async function probeWithRetry(prober, identifier) {
+  let result;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      result = await prober(identifier);
+    } catch (e) {
+      result = { ok: false, status: 0, error: e.code || e.message };
+    }
+    if (result.ok || result.uncertain || !TRANSIENT.has(result.status)) return result;
+    if (attempt === 0) await new Promise((r) => setTimeout(r, 2000));
+  }
+  // Still transient after a retry — flag as uncertain so it is kept, not deleted.
+  return { ...result, uncertain: true };
+}
+
 // ── Concurrency pool ──────────────────────────────────────────────────────────
 
 async function runPool(tasks, concurrency) {
@@ -125,12 +146,7 @@ async function main() {
 
   const tasks = toProbe.map(company => async () => {
     const prober = PROBERS[company.platform];
-    let result;
-    try {
-      result = await prober(company.platformIdentifier);
-    } catch (e) {
-      result = { ok: false, status: 0, error: e.code || e.message };
-    }
+    const result = await probeWithRetry(prober, company.platformIdentifier);
     done++;
     if (done % 50 === 0 || done === toProbe.length) {
       process.stderr.write(`  Progress: ${done}/${toProbe.length}\n`);

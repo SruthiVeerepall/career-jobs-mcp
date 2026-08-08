@@ -15,3 +15,5 @@ new-*-entries.ts
 scrape-results.log
 scrape-err.log
 batch2-progress.log
+validated-*.json
+companies-final.txt

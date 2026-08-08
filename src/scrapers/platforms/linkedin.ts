@@ -21,7 +21,7 @@ export class LinkedInScraper extends BaseScraper {
   private static readonly HOST = 'www.linkedin.com';
 
   async fetchJobs(filters: SearchFilters): Promise<JobListing[]> {
-    const terms = filters.jobTitle ? [filters.jobTitle] : LinkedInScraper.DEFAULT_TERMS;
+    const terms = this.resolveSearchTerms(filters, LinkedInScraper.DEFAULT_TERMS);
     const seen = new Map<string, JobListing>();
 
     for (const term of terms) {

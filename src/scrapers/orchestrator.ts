@@ -20,8 +20,25 @@ const SCRAPE_CONCURRENCY = Number(process.env.SCRAPE_CONCURRENCY ?? 24);
 // don't affect what gets fetched or cached.
 const inFlight = new Map<string, Promise<JobListing[]>>();
 
+/**
+ * Boards that index every employer and therefore need keywords — a no-keyword fetch there
+ * is meaningless. Only these see `filters.searchTerms`, and only their cache rows are keyed
+ * by it; company scrapers fetch their whole board regardless, so keying them by terms would
+ * fragment the cache and force needless re-scrapes.
+ */
+const KEYWORD_DRIVEN_PLATFORMS = new Set(['linkedin', 'simplyhired', 'builtin', 'remotive']);
+
+/** Cache/in-flight discriminator for the search terms a keyword-driven board was fetched with. */
+function termVariant(config: CompanyConfig, filters: SearchFilters): string | undefined {
+  if (!KEYWORD_DRIVEN_PLATFORMS.has(config.platform)) return undefined;
+  const terms = filters.searchTerms?.filter((t) => t.trim().length > 0);
+  if (!terms || terms.length === 0) return undefined;
+  return terms.map((t) => t.trim().toLowerCase()).sort().join(',');
+}
+
 function fetchAndCache(config: CompanyConfig, cacheFilters: SearchFilters): Promise<JobListing[]> {
-  const key = `${config.slug}|${cacheFilters.postedSince ?? ''}|${cacheFilters.remoteOnly ?? ''}`;
+  const variant = termVariant(config, cacheFilters);
+  const key = `${config.slug}|${cacheFilters.postedSince ?? ''}|${cacheFilters.remoteOnly ?? ''}|${variant ?? ''}`;
   const existing = inFlight.get(key);
   if (existing) return existing;
 
@@ -32,7 +49,7 @@ function fetchAndCache(config: CompanyConfig, cacheFilters: SearchFilters): Prom
       SCRAPE_TIMEOUT_MS * 4,
       `scrape ${config.name}`,
     );
-    cacheManager.saveCompanyScrape(config.slug, allJobs, cacheFilters.postedSince);
+    cacheManager.saveCompanyScrape(config.slug, allJobs, cacheFilters.postedSince, variant);
     return allJobs;
   })().finally(() => inFlight.delete(key));
 
@@ -59,7 +76,7 @@ export async function scrapeCompany(
   if (!options.forceRefresh) {
     // Keyed by window too: a `today` scrape caches a narrow set that must not be served
     // back to a later `week` / unfiltered request.
-    const cached = cacheManager.getCompanyScrape(config.slug, filters.postedSince);
+    const cached = cacheManager.getCompanyScrape(config.slug, filters.postedSince, termVariant(config, filters));
     if (cached) {
       const filtered = cached.jobs.filter((j) => matchesFilters(j, filters));
       return {
@@ -76,7 +93,13 @@ export async function scrapeCompany(
     // Fetch without title filter so the cache stores all jobs.
     // Title/level/dept filters are applied client-side below and on every cache read.
     // fetchAndCache coalesces concurrent identical fetches into one network call.
-    const cacheFilters: SearchFilters = { postedSince: filters.postedSince, remoteOnly: filters.remoteOnly };
+    const cacheFilters: SearchFilters = {
+      postedSince: filters.postedSince,
+      remoteOnly: filters.remoteOnly,
+      // Keyword-driven boards need terms at fetch time — unlike jobTitle, this cannot be
+      // deferred to the client-side pass, because a board never returns an unfiltered feed.
+      searchTerms: filters.searchTerms,
+    };
     const allJobs = await fetchAndCache(config, cacheFilters);
     return {
       company: config.name,

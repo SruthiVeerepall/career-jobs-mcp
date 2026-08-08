@@ -124,9 +124,60 @@ cp .env.example .env
 
 ## Usage
 
-### Option A — Run Standalone Scripts (No Claude Needed)
+### Option A — Search From Your Résumé
 
-These scripts run directly in your terminal and print a markdown job table:
+Point the search at a résumé file and it does the rest: it reads the résumé, works out your
+skills, years of experience, role families and seniority band, and returns a ranked table of
+direct apply links.
+
+```bash
+# Résumé in → job links out (last 3 days)
+node find-jobs-for-resume.mjs --resume ./resume.pdf
+
+# 24-hour window
+node find-jobs-for-resume.mjs --resume ./resume.docx --today
+
+# 7-day window, top 50 results
+node find-jobs-for-resume.mjs --resume ./resume.txt --week --limit 50
+
+# See what was read out of the résumé, without running a search
+node find-jobs-for-resume.mjs --resume ./resume.pdf --profile-only
+
+# Machine-readable output
+node find-jobs-for-resume.mjs --resume ./resume.pdf --json > jobs.json
+```
+
+Accepted formats: `.pdf`, `.docx`, `.txt`, `.md`, `.html`. (Scanned/image-only PDFs have no
+text layer — paste the text instead.)
+
+| Flag | Effect |
+|------|--------|
+| `--resume <path>` | Résumé file. Required. |
+| `--today` / `--week` / `--days <n>` | Freshness window. Default 3 days. |
+| `--limit <n>` | Cap the number of results. |
+| `--years <n>` | Override the years of experience read from the résumé. |
+| `--country <code>` | Override the country restriction (`US`, `CA`, `ANY`, …). |
+| `--remote-only` | Remote postings only. |
+| `--profile-only` | Print the parsed profile and exit. |
+| `--json` | Emit JSON instead of the markdown table. |
+
+**What gets derived from the résumé**
+
+| Derived | How |
+|---------|-----|
+| Skills + weights | Matched against a taxonomy; tier sets the weight (language/primary framework 10 → tooling 3). |
+| Years of experience | An explicit claim ("5 years of experience") if present, else the span of the dates in the experience section. Education dates are ignored. |
+| Seniority band | From the years, plus any seniority in your own titles. 5 yrs → Entry…Senior; Lead/Staff/Principal are filtered out. |
+| Role families | From the job titles you have **held**, not from tooling you have listed. A Java developer who lists Docker and Terraform does not get shown SRE roles. |
+| Board search terms | Your own titles with seniority words stripped, then your strongest skill, then a per-family default. |
+| Country | The contact block at the top of the résumé. Offshore offices in your history don't relocate the search. |
+
+Run `--profile-only` first on a new résumé: if the years or role families come out wrong,
+every result is wrong the same way, and `--years` / `--country` are how you correct it.
+
+### Option B — Run the Fixed-Profile Scripts
+
+These use the profile written into `CLAUDE.md` rather than a résumé file:
 
 ```bash
 # Search all 600+ companies for Java / Full Stack / Software Engineer roles (last 3 days)
@@ -167,6 +218,9 @@ node export-jobs-xlsx.mjs --week
 
 # Write to a custom path
 node export-jobs-xlsx.mjs --out "C:\Users\me\Desktop\jobs.xlsx"
+
+# Match against a résumé instead of the CLAUDE.md profile
+node export-jobs-xlsx.mjs --resume ./resume.pdf --week
 ```
 
 The `Applied?` cell is a data-validation dropdown (☐ ↔ ☑) that works in every Excel version and
@@ -189,7 +243,7 @@ Found 271 jobs (last 3 days | Junior–Senior | US | No clearance | ≥60% resum
 ...
 ```
 
-### Option B — Use as an MCP Server with Claude
+### Option C — Use as an MCP Server with Claude
 
 #### Step 1 — Register with Claude Code
 
@@ -214,6 +268,7 @@ Or add manually to your Claude Code MCP settings file:
 
 Once registered, you can ask Claude naturally:
 
+- *"Here's my resume — find me jobs posted in the last 3 days"* (attach or point at the file)
 - *"Search for Java Full Stack jobs posted in the last 3 days, US only"*
 - *"Find Software Engineer roles at Stripe, Airbnb, and Netflix"*
 - *"Add Walmart's career site and search for backend roles"*
@@ -223,7 +278,31 @@ Once registered, you can ask Claude naturally:
 
 ## MCP Tools Reference
 
-The server exposes 5 tools that Claude (or any MCP client) can call:
+The server exposes 7 tools that Claude (or any MCP client) can call:
+
+### `searchJobsForResume`
+The main entry point: résumé in, ranked apply links out. Every filter is derived from the
+résumé, so no configuration is needed for a new candidate.
+```json
+{
+  "resumePath": "C:/Users/me/Documents/resume.pdf",
+  "postedWithinDays": 3,
+  "limit": 50
+}
+```
+Or paste the text directly with `resumeText`. Returns a markdown table of
+`# | Title | Company | Location | Posted | Match | Apply URL` by default; pass
+`"format": "json"` for structured matches.
+
+Optional overrides when the résumé is read wrong: `yearsOfExperience`, `country`
+(`"US"` / `"CA"` / `"ANY"`), `matchThreshold`, `extraSearchTerms`, `companies`, `remoteOnly`.
+
+### `parseResume`
+Show what the searcher read out of a résumé — skills and weights, years of experience,
+role families, seniority band, board search terms — without spending a scrape on it.
+```json
+{ "resumePath": "C:/Users/me/Documents/resume.pdf" }
+```
 
 ### `searchCompanyJobs`
 Search a single company's career site.
@@ -286,6 +365,11 @@ Platform is auto-detected from the URL. For Workday sites, pass `platformIdentif
 ---
 
 ## Personalizing for Your Profile
+
+**The simplest way is to pass your résumé** — `searchJobsForResume` / `find-jobs-for-resume.mjs`
+derive the target titles, skill weights, seniority ceiling and location rule from the document
+itself, so there is nothing to edit. Use the sections below only for the fixed-profile scripts
+(`find-java-24h.mjs`, `run-search.mjs`).
 
 Edit `CLAUDE.md` at the root of the project to set:
 

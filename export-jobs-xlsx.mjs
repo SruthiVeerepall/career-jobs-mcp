@@ -9,12 +9,17 @@
  *
  * Flags mirror find-java-24h.mjs:  --today (24h) | --week (7d) | default 3 days
  * Output path override:            --out <path>
+ * Resume-driven search:            --resume <path to .pdf/.docx/.txt/.md>
+ *
+ * With --resume, every filter is derived from that resume instead of the profile baked
+ * into job-filters.js, so the workbook can be produced for any candidate.
  */
 import ExcelJS from 'exceljs';
 import { companyRegistry } from './dist/scrapers/company-registry.js';
 import { scrapeMany } from './dist/scrapers/orchestrator.js';
 import { OVER_5YR, CLEARANCE, isUSJob, matchesProfile, resumeScore } from './dist/utils/job-filters.js';
 import { parsePostedDate } from './dist/utils/posted-date.js';
+import { searchJobsForResume } from './dist/resume/search.js';
 
 const ALL_SLUGS = [...companyRegistry.companies.values()]
   .filter(c => c.platform !== 'custom' && c.platform !== 'oracle-orc')
@@ -28,8 +33,13 @@ const WINDOW_LABEL = WINDOW_DAYS === 1 ? '24 hours' : `${WINDOW_DAYS} days`;
 const API_SINCE = WINDOW_DAYS <= 1 ? 'today' : 'week';
 const CONCURRENCY = Number(process.env.SCRAPE_CONCURRENCY ?? 24);
 
-const outIdx = process.argv.indexOf('--out');
-const OUT = outIdx !== -1 && process.argv[outIdx + 1] ? process.argv[outIdx + 1] : 'job-results.xlsx';
+function flagValue(name) {
+  const i = process.argv.indexOf(`--${name}`);
+  return i !== -1 && process.argv[i + 1] && !process.argv[i + 1].startsWith('--') ? process.argv[i + 1] : undefined;
+}
+
+const OUT = flagValue('out') ?? 'job-results.xlsx';
+const RESUME = flagValue('resume');
 
 // Cross-company job boards — results show the real employer as "{Employer} (via {Board})".
 const JOB_BOARDS = new Set(['LinkedIn', 'SimplyHired', 'BuiltIn.com', 'RemoteOK', 'Remotive', 'We Work Remotely']);
@@ -52,7 +62,48 @@ function platformOf(u) {
   return 'Other';
 }
 
-async function run() {
+/**
+ * Resume-driven collection. Returns rows in the same shape as the legacy path so the
+ * workbook builder below is identical either way.
+ */
+async function collectFromResume() {
+  console.log(`\nExporting jobs matched against ${RESUME} — last ${WINDOW_LABEL}`);
+  const start = Date.now();
+  const result = await searchJobsForResume({
+    resumePath: RESUME,
+    postedWithinDays: WINDOW_DAYS,
+    concurrency: CONCURRENCY,
+    onProgress: (done, total) => {
+      if (done % 100 === 0 || done === total) process.stderr.write(`  ${done}/${total} sources done\n`);
+    },
+  });
+
+  const p = result.profile;
+  console.log(`Profile: ${p.name ?? 'candidate'} — ${p.yearsOfExperience ?? '?'} yrs | ${p.families.join(', ')} | ${p.minLevel}–${p.maxLevel} | ${p.country}`);
+  console.log(`Search terms: ${p.searchTerms.join(', ')}`);
+  for (const note of p.notes) console.log(`  ! ${note}`);
+  for (const f of result.meta.failedBoards) {
+    console.log(`  !! ${f.company} FAILED — contributed 0 rows this run: ${f.error}`);
+  }
+  if (result.stats.droppedUndated > 0) {
+    console.log(`Excluded ${result.stats.droppedUndated} postings whose source published no usable date (age unverifiable).`);
+  }
+
+  return {
+    jobs: result.matches.map((m) => ({
+      title: m.title,
+      company: m.via ? `${m.company} (via ${m.via})` : m.company,
+      locations: m.locations,
+      posted: m.postedDate,
+      score: m.score,
+      platform: platformOf(m.applyUrl),
+      url: m.applyUrl,
+    })),
+    elapsed: ((Date.now() - start) / 1000).toFixed(1),
+  };
+}
+
+async function collectFromRegistryProfile() {
   console.log(`\nExporting resume-match jobs — last ${WINDOW_LABEL} | Junior–Senior | US | No clearance | ≥60% match`);
   console.log(`Fetch-once: ${ALL_SLUGS.length} companies | ${CONCURRENCY} concurrent | window=${API_SINCE}\n`);
 
@@ -132,6 +183,12 @@ async function run() {
   if (undatedDropped > 0) {
     console.log(`Excluded ${undatedDropped} postings whose source published no usable date (age unverifiable).`);
   }
+  return { jobs, elapsed };
+}
+
+async function run() {
+  const { jobs, elapsed } = RESUME ? await collectFromResume() : await collectFromRegistryProfile();
+
   console.log(`\nFound ${jobs.length} jobs in ${elapsed}s. Writing ${OUT}...`);
 
   // ---- Build the workbook -------------------------------------------------

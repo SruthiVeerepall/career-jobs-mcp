@@ -55,6 +55,18 @@ export abstract class BaseScraper {
     return true;
   }
 
+  /**
+   * Keywords a cross-company board should query, in precedence order:
+   * an explicit `jobTitle`, then the candidate profile's `searchTerms`, then the board's
+   * own fallback. Company scrapers never call this — they fetch their whole board.
+   */
+  protected resolveSearchTerms(filters: SearchFilters, fallback: readonly string[]): string[] {
+    if (filters.jobTitle) return [filters.jobTitle];
+    const fromProfile = filters.searchTerms?.map((t) => t.trim()).filter((t) => t.length > 0);
+    if (fromProfile && fromProfile.length > 0) return fromProfile;
+    return [...fallback];
+  }
+
   protected logProgress(message: string): void {
     logger.info(`[${this.config.name}] ${message}`);
   }

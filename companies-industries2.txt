@@ -1,0 +1,198 @@
+Crusoe Energy|https://www.crusoe.ai/careers
+Form Energy|https://formenergy.com/careers
+Commonwealth Fusion Systems|https://cfs.energy/careers
+Helion Energy|https://www.helionenergy.com/careers
+TerraPower|https://www.terrapower.com/careers
+X-energy|https://x-energy.com/careers
+Antora Energy|https://antoraenergy.com/careers
+Sublime Systems|https://sublime-systems.com/careers
+Boston Metal|https://www.bostonmetal.com/careers
+Redwood Materials|https://www.redwoodmaterials.com/careers
+Electric Hydrogen|https://eh2.com/careers
+Fervo Energy|https://fervoenergy.com/careers
+LanzaTech|https://lanzatech.com/careers
+Arcadia|https://www.arcadia.com/careers
+Palmetto|https://palmetto.com/careers
+Aurora Solar|https://aurorasolar.com/careers
+Omnidian|https://www.omnidian.com/careers
+Base Power|https://www.basepowercompany.com/careers
+Bowery Farming|https://boweryfarming.com/careers
+Plenty|https://www.plenty.ag/careers
+Farmers Business Network|https://www.fbn.com/careers
+Benson Hill|https://bensonhill.com/careers
+Pivot Bio|https://www.pivotbio.com/careers
+Inari|https://inari.com/careers
+Apeel Sciences|https://www.apeel.com/careers
+Perfect Day|https://perfectday.com/careers
+Impossible Foods|https://impossiblefoods.com/careers
+Beyond Meat|https://www.beyondmeat.com/careers
+Chobani|https://www.chobani.com/careers
+Oatly|https://www.oatly.com/careers
+Misfits Market|https://www.misfitsmarket.com/careers
+Thistle|https://www.thistle.co/careers
+HelloFresh|https://www.hellofresh.com/careers
+Wonder|https://www.wonder.com/careers
+CloudKitchens|https://careers.cloudkitchens.com
+EquipmentShare|https://www.equipmentshare.com/careers
+Built Technologies|https://www.getbuilt.com/careers
+Dusty Robotics|https://www.dustyrobotics.com/careers
+BuildOps|https://buildops.com/careers
+OpenSpace|https://www.openspace.ai/careers
+Buildertrend|https://buildertrend.com/careers
+Higharc|https://www.higharc.com/careers
+Homebound|https://www.homebound.com/careers
+Divvy Homes|https://www.divvyhomes.com/careers
+Flyhomes|https://www.flyhomes.com/careers
+Orchard|https://orchard.com/careers
+Stord|https://www.stord.com/careers
+ShipBob|https://www.shipbob.com/careers
+Flexe|https://www.flexe.com/careers
+Zipline|https://www.flyzipline.com/careers
+Gatik|https://gatik.ai/careers
+Einride|https://www.einride.tech/careers
+Locus Robotics|https://locusrobotics.com/careers
+RightHand Robotics|https://www.righthandrobotics.com/careers
+Vecna Robotics|https://www.vecnarobotics.com/careers
+Symbotic|https://www.symbotic.com/careers
+Loadsmart|https://loadsmart.com/careers
+Transfix|https://transfix.io/careers
+Optimal Dynamics|https://www.optimaldynamics.com/careers
+Arrive Logistics|https://www.arrivelogistics.com/careers
+Lineage|https://www.onelineage.com/careers
+Bright Machines|https://www.brightmachines.com/careers
+Path Robotics|https://www.path-robotics.com/careers
+Divergent Technologies|https://www.divergent3d.com/careers
+Velo3D|https://velo3d.com/careers
+Desktop Metal|https://www.desktopmetal.com/careers
+Markforged|https://markforged.com/careers
+Formlabs|https://formlabs.com/careers
+Carbon|https://www.carbon3d.com/careers
+VulcanForms|https://vulcanforms.com/careers
+Instrumental|https://instrumental.com/careers
+Tulip Interfaces|https://tulip.co/careers
+MaintainX|https://www.getmaintainx.com/careers
+Fictiv|https://www.fictiv.com/careers
+Protolabs|https://www.protolabs.com/careers
+Oak Street Health|https://www.oakstreethealth.com/careers
+VillageMD|https://www.villagemd.com/careers
+Cityblock Health|https://www.cityblock.com/careers
+Carbon Health|https://carbonhealth.com/careers
+Crossover Health|https://crossoverhealth.com/careers
+Privia Health|https://www.priviahealth.com/careers
+agilon health|https://www.agilonhealth.com/careers
+ChenMed|https://www.chenmed.com/careers
+DispatchHealth|https://www.dispatchhealth.com/careers
+Honor|https://www.joinhonor.com/careers
+Papa|https://www.papa.com/careers
+Spring Health|https://springhealth.com/careers
+Charlie Health|https://www.charliehealth.com/careers
+Eleanor Health|https://www.eleanorhealth.com/careers
+Boulder Care|https://www.boulder.care/careers
+Ophelia|https://ophelia.com/careers
+Next Insurance|https://www.nextinsurance.com/careers
+Newfront|https://www.newfront.com/careers
+Vouch|https://www.vouch.us/careers
+Counterpart|https://www.yourcounterpart.com/careers
+Cowbell|https://cowbell.insure/careers
+Openly|https://openly.com/careers
+Clearcover|https://clearcover.com/careers
+Sure|https://www.sureapp.com/careers
+Steadily|https://www.steadily.com/careers
+Warby Parker|https://www.warbyparker.com/careers
+Allbirds|https://www.allbirds.com/pages/careers
+Purple|https://purple.com/careers
+Article|https://www.article.com/careers
+Grove Collaborative|https://www.grove.co/careers
+Thrive Market|https://thrivemarket.com/careers
+Hims & Hers|https://www.hims.com/careers
+Curology|https://curology.com/careers
+Olaplex|https://olaplex.com/careers
+Solo Brands|https://solobrands.com/careers
+YETI|https://www.yeti.com/careers
+Traeger|https://www.traeger.com/careers
+Tonal|https://www.tonal.com/careers
+Hydrow|https://hydrow.com/careers
+iFIT|https://www.ifit.com/careers
+Vox Media|https://www.voxmedia.com/pages/careers
+BuzzFeed|https://www.buzzfeed.com/about/jobs
+The Athletic|https://theathletic.com/careers
+Axios|https://www.axios.com/careers
+Politico|https://www.politico.com/careers
+Bloomberg|https://www.bloomberg.com/company/careers
+Dow Jones|https://www.dowjones.com/careers
+Conde Nast|https://www.condenast.com/careers
+Hearst|https://www.hearst.com/careers
+Gannett|https://www.gannett.com/careers
+News Corp|https://newscorp.com/careers
+SoundCloud|https://careers.soundcloud.com
+Patreon|https://www.patreon.com/careers
+Fandom|https://www.fandom.com/careers
+Skillshare|https://www.skillshare.com/careers
+Guideline|https://www.guideline.com/careers
+Vestwell|https://www.vestwell.com/careers
+Altruist|https://altruist.com/careers
+Facet|https://facet.com/careers
+Wealthsimple|https://www.wealthsimple.com/careers
+Ellevest|https://www.ellevest.com/careers
+Lime|https://www.li.me/careers
+Revel|https://gorevel.com/careers
+Zum|https://ridezum.com/careers
+HopSkipDrive|https://www.hopskipdrive.com/careers
+Nava|https://www.navapbc.com/careers
+Ad Hoc|https://adhoc.team/careers
+Skylight|https://skylight.digital/careers
+Zencity|https://zencity.io/careers
+Euna Solutions|https://eunasolutions.com/careers
+Panorama Education|https://www.panoramaed.com/careers
+Clever|https://clever.com/careers
+Securly|https://www.securly.com/careers
+GoGuardian|https://www.goguardian.com/careers
+Anthology|https://www.anthology.com/careers
+Clio|https://www.clio.com/careers
+Litera|https://www.litera.com/careers
+DISCO|https://www.csdisco.com/careers
+Lawmatics|https://www.lawmatics.com/careers
+Sonder|https://www.sonder.com/careers
+Placemakr|https://www.placemakr.com/careers
+Landing|https://www.hellolanding.com/careers
+Inspirato|https://www.inspirato.com/careers
+Vacasa|https://www.vacasa.com/careers
+Evolve|https://evolve.com/careers
+Going|https://www.going.com/careers
+Wildlife Studios|https://wildlifestudios.com/careers
+Jam City|https://www.jamcity.com/careers
+Playtika|https://www.playtika.com/careers
+AppLovin|https://www.applovin.com/careers
+IronSource|https://www.is.com/careers
+Unity|https://unity.com/careers
+Discord|https://discord.com/careers
+Rec Room|https://recroom.com/careers
+Second Dinner|https://seconddinner.com/careers
+Skillz|https://www.skillz.com/careers
+DraftKings|https://careers.draftkings.com
+PrizePicks|https://www.prizepicks.com/careers
+Underdog|https://underdogfantasy.com/careers
+Sleeper|https://sleeper.com/careers
+Genies|https://www.genies.com/careers
+Whatnot|https://www.whatnot.com/careers
+Poshmark|https://poshmark.com/careers
+ThredUp|https://www.thredup.com/careers
+The RealReal|https://www.therealreal.com/careers
+Depop|https://www.depop.com/careers
+Grailed|https://www.grailed.com/careers
+Shipt|https://www.shipt.com/careers
+Gopuff|https://gopuff.com/careers
+Drizly|https://drizly.com/careers
+Toast|https://careers.toasttab.com
+SpotOn|https://www.spoton.com/careers
+Lightspeed Commerce|https://www.lightspeedhq.com/careers
+Olo|https://www.olo.com/careers
+Punchh|https://punchh.com/careers
+Restaurant365|https://www.restaurant365.com/careers
+Crunchtime|https://www.crunchtime.com/careers
+7shifts|https://www.7shifts.com/careers
+Homebase|https://joinhomebase.com/careers
+Deputy|https://www.deputy.com/careers
+When I Work|https://wheniwork.com/careers
+Legion Technologies|https://legion.co/careers
+WorkJam|https://www.workjam.com/careers

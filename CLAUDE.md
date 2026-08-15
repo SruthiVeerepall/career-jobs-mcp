@@ -157,7 +157,7 @@ Per-source date fields — verify these when adding a platform, since "last upda
 | Lever | `createdAt` | true posting date |
 | Ashby | `publishedAt` | true posting date |
 | SmartRecruiters | `releasedDate` | true posting date |
-| Workday | `postedOn` | relative, day granularity; `parseWorkdayDate()` → start of that day. `"Posted Yesterday"` is 24–48h old, so it is outside a 24h window but inside 3-day/7-day. |
+| Workday | `postedOn` | relative, day granularity; `parseWorkdayDate()` → start of that day. `"Posted Yesterday"` is 24–48h old, so it is outside a 24h window but inside 3-day/7-day. Some tenants omit the field entirely — see *A board that verifies is not necessarily usable* below. A tenant can also emit a posting with **no title** (Trinity Health does); `jobs.title` is NOT NULL, so one of those failed the whole scrape at cache-write time. `WorkdayScraper` drops titleless postings. |
 | BuiltIn | `parseBuiltInAgo()` | hour/minute stay relative; day/week anchor to start of day. **Reposts** — see below. |
 | LinkedIn | `time[datetime]` | date only, plus authoritative server-side `f_TPR` filter (verified tight) |
 | SimplyHired | `dateOnIndeed` | epoch ms; server-side `t=1` verified tight |
@@ -220,6 +220,14 @@ that it stopped hiring, so look before deleting:
 Routing an unreachable company to `custom` (Puppeteer) is **not** a fix: `CustomPuppeteerScraper`
 sets no `postedDate`, so every job it returns is dropped by the strict window gate.
 
+**A board that verifies is not necessarily usable — check that it carries dates.** Some
+Workday tenants answer 200 with a full job list and no `postedOn` field on any posting;
+the strict gate then drops every job, so the entry costs a scrape per run and returns
+nothing. Corewell Health, Blackstone, Apollo Global Management and agilon health were all
+verified, live and dateless, and are recorded as comments in the registry rather than
+entries. Add this to the review step: pull one page and confirm the per-source date field
+from the table above is actually populated, not just that the endpoint answers.
+
 ### Scripts
 | Script | Purpose |
 |--------|---------|
@@ -257,6 +265,17 @@ Two more checks worth repeating: a Workday endpoint can answer HTTP 200 with an 
 rather than the jobs JSON (Otis does), and an acquired company's careers URL now resolves to
 the acquirer's tenant (discover.com/careers → the Capital One tenant), which would duplicate
 an existing entry.
+
+**Expected yield by company size.** A sweep of 328 large non-tech employers (retail, food,
+airlines, utilities, industrials, automotive, pharma, health systems, insurance, banks,
+media, construction, agriculture) resolved only ~27%: the rest sit on SuccessFactors,
+Oracle Recruiting, Phenom, iCIMS, Taleo, Radancy, BrassRing or Avature, none of which we
+speak. The same-sized sweep of mid-market and growth companies *within those industries*
+resolved ~56%, because they buy Greenhouse/Lever/Ashby. Target the second group when adding
+industry coverage; a Fortune-100 list mostly burns the browser pass for nothing. Eightfold
+is worth a second look but is usually gated — Starbucks, Chevron and Eaton all run it and
+all return `{"message": "Not authorized for PCSX"}` without a tenant key, unlike Netflix's
+open board.
 
 ### Special Company Scrapers (not in registry — require custom methods)
 

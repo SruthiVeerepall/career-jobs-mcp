@@ -60,9 +60,12 @@ export class WorkdayScraper extends BaseScraper {
         }),
       );
 
-      const batch = (data.jobPostings ?? []).map((p) =>
-        this.mapJob(p, baseHost, tenant, site),
-      );
+      // Some tenants emit a posting with no title (Trinity Health does). It is
+      // unusable — title drives level detection, résumé scoring and display —
+      // and `jobs.title` is NOT NULL, so caching one failed the whole scrape.
+      const batch = (data.jobPostings ?? [])
+        .filter((p) => typeof p.title === 'string' && p.title.trim() !== '')
+        .map((p) => this.mapJob(p, baseHost, tenant, site));
       all.push(...batch);
       offset += limit;
       page++;

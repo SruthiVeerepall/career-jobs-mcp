@@ -279,4 +279,8 @@ async function run() {
   console.log(`  Toggle the "Applied?" cell (☐ → ☑) to mark a job done; the row greys out + strikes through.`);
 }
 
-run().catch(err => { console.error('Fatal:', err.message); process.exit(1); });
+run()
+  .catch(err => { console.error('Fatal:', err.message); process.exitCode = 1; })
+  // Close the shared headless Chrome, or an open browser keeps the process alive after
+  // the results are printed.
+  .finally(() => import('./dist/utils/browser.js').then((m) => m.closeSharedBrowser()));;

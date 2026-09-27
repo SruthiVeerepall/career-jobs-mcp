@@ -191,6 +191,14 @@ hours-old and "Yesterday" cards.
 
 Always rebuild (`npm run build`) after any source change — the scripts run the compiled `dist/`.
 
+### Headless Chrome must be closed
+Browser-driven scrapers (iCIMS, custom, Tesla) share ONE Chrome via `src/utils/browser.ts`.
+Every script ends with `.finally(() => closeSharedBrowser())`, and the MCP server closes it on
+SIGINT/SIGTERM. Without that, a run that touched any of those scrapers printed its results
+and then **never exited** (the open browser held the event loop), and force-exiting left
+orphaned `chrome.exe` processes. Don't add a module-local `puppeteer.launch()`; use
+`getBrowser()`, and end any new script the same way.
+
 ### Cache
 - SQLite at `data/cache.db`. Global ceiling 24h (`CACHE_TTL_HOURS`), but the **effective
   TTL scales with the search window**: a row may not be served once it has consumed more

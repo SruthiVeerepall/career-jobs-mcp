@@ -1,31 +1,14 @@
 import * as cheerio from 'cheerio';
-import puppeteer, { type Browser } from 'puppeteer';
 import type { CompanyConfig, CustomSelectors, JobListing, SearchFilters } from '../../types.js';
 import { BaseScraper } from '../base-scraper.js';
+import { getBrowser } from '../../utils/browser.js';
+
+// Kept for existing importers; the shared browser now lives in utils/browser.ts.
+export { closeSharedBrowser } from '../../utils/browser.js';
 import { hostFromUrl } from '../../utils/rate-limiter.js';
 import { withTimeout } from '../../utils/retry.js';
 
-let sharedBrowser: Browser | null = null;
 
-async function getBrowser(): Promise<Browser> {
-  if (sharedBrowser && sharedBrowser.connected) return sharedBrowser;
-  sharedBrowser = await puppeteer.launch({
-    headless: process.env.PUPPETEER_HEADLESS !== 'false',
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-  });
-  return sharedBrowser;
-}
-
-export async function closeSharedBrowser(): Promise<void> {
-  if (sharedBrowser) {
-    try {
-      await sharedBrowser.close();
-    } catch {
-      // ignore
-    }
-    sharedBrowser = null;
-  }
-}
 
 /**
  * Generic scraper for custom career sites. Uses Puppeteer when JS rendering is required,

@@ -1,20 +1,11 @@
 import axios from 'axios';
-import puppeteer, { type Browser, type Frame } from 'puppeteer';
+import type { Frame } from 'puppeteer';
 import type { JobListing, SearchFilters } from '../../types.js';
 import { BaseScraper } from '../base-scraper.js';
+import { getBrowser } from '../../utils/browser.js';
 import { hostFromUrl } from '../../utils/rate-limiter.js';
 import { withTimeout } from '../../utils/retry.js';
 
-let sharedBrowser: Browser | null = null;
-
-async function getBrowser(): Promise<Browser> {
-  if (sharedBrowser && sharedBrowser.connected) return sharedBrowser;
-  sharedBrowser = await puppeteer.launch({
-    headless: process.env.PUPPETEER_HEADLESS !== 'false',
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-  });
-  return sharedBrowser;
-}
 
 interface IcimsRawJob {
   href: string;

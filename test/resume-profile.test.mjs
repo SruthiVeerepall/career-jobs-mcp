@@ -171,3 +171,13 @@ test('matchesCountry applies the US rule for US and keeps remote elsewhere', () 
   assert.equal(matchesCountry(['Remote'], 'CA'), true);
   assert.equal(matchesCountry(['Berlin, Germany'], 'ANY'), true);
 });
+
+test('"Software Dev Engineer" (Amazon\'s title) is a generic SWE role, not unclassified', async () => {
+  const { familyOfTitle } = await import('../dist/resume/skill-taxonomy.js');
+  assert.equal(familyOfTitle('Software Dev Engineer II, AWS Invoicing'), 'generic-swe');
+  assert.equal(familyOfTitle('Sr. Software Dev Engineer'), 'generic-swe');
+  // Unclassified, it slipped past the family gate on the keyword "AWS" alone and reached
+  // a data-engineering-only profile.
+  const data = buildProfile('Data Engineer | Acme | Jun 2024 - Present\nPython, Spark, Airflow, AWS, SQL');
+  assert.equal(judgeTitle('Software Dev Engineer II, AWS Invoicing', data).matched, false);
+});

@@ -9,7 +9,7 @@ import { addCompanyCareerSite, addCompanyCareerSiteSchema } from './tools/add-co
 import { searchJobsForResume, searchJobsForResumeSchema } from './tools/search-jobs-for-resume.js';
 import { parseResume, parseResumeSchema } from './tools/parse-resume.js';
 import { logger } from './utils/logger.js';
-import { closeSharedBrowser } from './scrapers/platforms/custom-puppeteer.js';
+import { closeSharedBrowser } from './utils/browser.js';
 import { cacheManager } from './cache/cache-manager.js';
 
 export async function startServer(): Promise<void> {

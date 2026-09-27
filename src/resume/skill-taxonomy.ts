@@ -163,7 +163,7 @@ export const FAMILY_TITLE_RULES: FamilyDef[] = [
   { family: 'fullstack', label: 'Full Stack', titlePattern: /\bfull.?stack\b/i },
   { family: 'frontend', label: 'Frontend', titlePattern: /\b(front.?end|ui developer|ui engineer|web developer|javascript developer|angular developer|react developer)\b/i },
   { family: 'backend', label: 'Backend', titlePattern: /\b(back.?end|java|python|golang|go|\.net|c#|node\.?js|ruby|php|scala|kotlin|api|server.side|middleware|j2ee) (developer|engineer|programmer)\b|\b(java|python|\.net|backend|back.end) (software )?(developer|engineer)\b/i },
-  { family: 'generic-swe', label: 'General Software Engineering', titlePattern: /\b(software (engineer|developer|development engineer)|application (developer|engineer)|programmer|sde|swe|computer scientist|member of technical staff)\b/i },
+  { family: 'generic-swe', label: 'General Software Engineering', titlePattern: /\b(software (engineer|developer|dev(?:elopment)? engineer)|application (developer|engineer)|programmer|sde|swe|computer scientist|member of technical staff)\b/i },
 ];
 
 /** Roles that are never a fit regardless of family — not engineering-IC positions. */

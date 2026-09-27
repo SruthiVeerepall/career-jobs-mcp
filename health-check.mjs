@@ -99,7 +99,11 @@ async function main() {
   console.log(`\nWrote ${OUT_FILE}. The registry was not modified.`);
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exitCode = 1;
+  })
+  // Close the shared headless Chrome, or an open browser keeps the process alive after
+  // the results are printed.
+  .finally(() => import('./dist/utils/browser.js').then((m) => m.closeSharedBrowser()));;

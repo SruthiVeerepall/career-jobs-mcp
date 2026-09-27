@@ -180,7 +180,11 @@ async function run() {
   console.log(`Failures: ${javaRaw.failures.length + fsRaw.failures.length}`);
 }
 
-run().catch(err => {
-  console.error('Fatal error:', err);
-  process.exit(1);
-});
+run()
+  .catch(err => {
+    console.error('Fatal error:', err);
+    process.exitCode = 1;
+  })
+  // Close the shared headless Chrome, or an open browser keeps the process alive after
+  // the results are printed.
+  .finally(() => import('./dist/utils/browser.js').then((m) => m.closeSharedBrowser()));;

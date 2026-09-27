@@ -101,11 +101,17 @@ export interface MatchStats {
   droppedByDate: number;
   droppedUndated: number;
   duplicates: number;
+  /** Dropped because the description requires a security clearance or US citizenship. */
+  droppedByRequirement: number;
+  /** Kept without a description to screen — the source had none and it could not be fetched. */
+  requirementUnverified: number;
 }
 
 export interface MatchOutcome {
   matches: ResumeJobMatch[];
   stats: MatchStats;
+  /** The scraped job behind each match — the description screen needs it. */
+  sources: Map<ResumeJobMatch, JobListing>;
 }
 
 /**
@@ -130,9 +136,12 @@ export function matchJobs(
     // through so the exclusion is visible rather than silent.
     droppedUndated: results.reduce((n, r) => n + (r.undatedExcluded ?? 0), 0),
     duplicates: 0,
+    droppedByRequirement: 0,
+    requirementUnverified: 0,
   };
 
   const matches: ResumeJobMatch[] = [];
+  const sources = new Map<ResumeJobMatch, JobListing>();
   const seen = new Set<string>();
 
   for (const result of results) {
@@ -175,7 +184,7 @@ export function matchJobs(
       seen.add(key);
 
       const viaBoard = JOB_BOARDS.has(result.company);
-      matches.push({
+      const match: ResumeJobMatch = {
         title,
         company: viaBoard && job.companyName && job.companyName !== result.company ? job.companyName : result.company,
         via: viaBoard ? result.company : undefined,
@@ -187,7 +196,9 @@ export function matchJobs(
         level: verdict.level,
         family: verdict.family,
         matchedSkills: verdict.matchedSkills,
-      });
+      };
+      matches.push(match);
+      sources.set(match, job);
     }
   }
 
@@ -197,6 +208,7 @@ export function matchJobs(
   return {
     matches: options.limit ? matches.slice(0, options.limit) : matches,
     stats,
+    sources,
   };
 }
 

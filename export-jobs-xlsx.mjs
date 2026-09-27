@@ -88,6 +88,12 @@ async function collectFromResume() {
   if (result.stats.droppedUndated > 0) {
     console.log(`Excluded ${result.stats.droppedUndated} postings whose source published no usable date (age unverifiable).`);
   }
+  if (result.stats.droppedByRequirement > 0) {
+    console.log(`Excluded ${result.stats.droppedByRequirement} postings whose description requires a security clearance or US citizenship.`);
+  }
+  if (result.stats.requirementUnverified > 0) {
+    console.log(`${result.stats.requirementUnverified} kept postings had no readable description — clearance/citizenship unchecked.`);
+  }
 
   return {
     jobs: result.matches.map((m) => ({

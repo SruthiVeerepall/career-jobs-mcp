@@ -81,6 +81,19 @@ by terms: they fetch their whole board regardless, so keying them would fragment
 
 ### 4. No Security Clearance
 - Exclude any job requiring security clearance, government clearance, Top Secret / TS-SCI, public trust, or US citizenship as a job requirement.
+- **Enforced on the description, not just the title** (`src/utils/requirement-screen.ts`). Titles
+  almost never state it; "Must be a U.S. citizen" / "Active Secret clearance required" live in
+  the body. The résumé search screens every surviving match in rank order (stopping once
+  `limit` clean jobs are found), using the scraped description or, where a source has none,
+  fetching it (Workday / SmartRecruiters / LinkedIn detail endpoints, else the page's JSON-LD).
+- Screened **sentence by sentence**, skipping EEO / E-Verify boilerplate ("without regard to …
+  citizenship status"), negations ("no clearance required", "Clearance Required to Start:
+  None") and hedging about *some* roles. ITAR / export-control "U.S. person" requirements
+  count as citizenship. `test/requirement-screen.test.mjs` pins real phrasings from Lockheed,
+  CACI, Northrop, SpaceX, Kodiak — add to it rather than loosening a pattern.
+- A job whose description can't be read is **kept and counted** (`requirementUnverified`) —
+  dropping it would discard a whole board on one 429. Every drop is listed with its triggering
+  sentence in `meta.requirementExcluded`, so false positives are auditable.
 
 ### 5. Output Format
 - Always return results as a markdown table with columns: `#`, `Title`, `Company`, `Location`, `Posted`, `Apply URL`.

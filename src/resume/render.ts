@@ -46,9 +46,16 @@ export function renderSearchResult(result: ResumeSearchResult): string {
     `${stats.droppedByLocation} outside ${profile.country}`,
     `${stats.droppedByDate} outside window`,
     `${stats.droppedUndated} undated (age unverifiable)`,
+    `${stats.droppedByRequirement} requiring clearance / US citizenship`,
     `${stats.duplicates} duplicates`,
   ];
   out.push(`_Filtered out: ${dropped.join(', ')}._`);
+  if (stats.requirementUnverified > 0) {
+    out.push(
+      `_${stats.requirementUnverified} listed job${stats.requirementUnverified === 1 ? '' : 's'} had no readable description, ` +
+        `so clearance / citizenship could not be checked — confirm on the posting._`,
+    );
+  }
 
   if (meta.failedBoards.length) {
     out.push('');

@@ -13,6 +13,12 @@ interface AmazonJob {
   job_category: string;
   is_manager: boolean | null;
   is_intern: boolean | null;
+  // Optional: kept so the clearance/citizenship screen reads the text from the list
+  // response instead of fetching one page per job (Amazon states those requirements in
+  // basic_qualifications). If absent, the screen falls back to fetching the job page.
+  description?: string;
+  basic_qualifications?: string;
+  preferred_qualifications?: string;
 }
 
 interface AmazonResponse {
@@ -77,6 +83,12 @@ export class AmazonScraper extends BaseScraper {
           applyUrl: `https://www.amazon.jobs${j.job_path}`,
           postedDate: this.parseDate(j.posted_date),
           department: j.job_category,
+          description:
+            [j.description, j.basic_qualifications, j.preferred_qualifications]
+              .filter((t): t is string => typeof t === 'string' && t.length > 0)
+              .join(' ')
+              .replace(/<br\s*\/?>/gi, '. ')
+              .replace(/<[^>]+>/g, ' ') || undefined,
           sourceUrl: this.config.careerUrl,
           scrapedAt: new Date().toISOString(),
         });

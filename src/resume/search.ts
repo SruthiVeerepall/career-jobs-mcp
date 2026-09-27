@@ -4,6 +4,7 @@ import { scrapeMany } from '../scrapers/orchestrator.js';
 import { buildProfile, type BuildProfileOptions } from './build-profile.js';
 import { extractResumeText, type ResumeInput } from './extract-text.js';
 import { JOB_BOARDS, matchJobs, type MatchStats } from './match-jobs.js';
+import { screenRequirements } from '../utils/requirement-screen.js';
 
 /** Default freshness window, per CLAUDE.md rule #1. */
 export const DEFAULT_WINDOW_DAYS = 3;
@@ -36,6 +37,9 @@ export interface ResumeSearchResult {
     /** Boards that failed. Called out separately — they supply most of the results, so a
      *  rate-limited board looks identical to "nothing matched" unless it is named. */
     failedBoards: Array<{ company: string; error: string }>;
+    /** Jobs dropped by the description screen, with the sentence that triggered each drop,
+     *  so a false positive can be spotted instead of silently costing a real match. */
+    requirementExcluded: Array<{ title: string; company: string; applyUrl: string; kind?: string; evidence?: string }>;
   };
 }
 
@@ -82,7 +86,19 @@ export async function searchJobsForResume(options: ResumeSearchOptions): Promise
   );
   const elapsedSeconds = Number(((Date.now() - start) / 1000).toFixed(1));
 
-  const { matches, stats } = matchJobs(results, profile, { windowDays, limit: options.limit });
+  // No limit here: the description screen below may reject some of the top-ranked jobs,
+  // so the limit is applied to what survives it.
+  const { matches: candidates, stats, sources } = matchJobs(results, profile, { windowDays });
+
+  // CLAUDE.md rule #4. The title check inside matchJobs only catches titles like
+  // "Engineer (TS/SCI)"; the requirement is almost always stated in the description.
+  const screened = await screenRequirements(candidates, (m) => sources.get(m)!, {
+    stopAfter: options.limit,
+  });
+  const matches = screened.kept;
+  stats.droppedByRequirement = screened.blocked.length;
+  stats.requirementUnverified = screened.unverified;
+  stats.matched = matches.length;
 
   const failures = results
     .filter((r) => r.error)
@@ -100,6 +116,13 @@ export async function searchJobsForResume(options: ResumeSearchOptions): Promise
       elapsedSeconds,
       failedCompanies: failures,
       failedBoards: failures.filter((f) => JOB_BOARDS.has(f.company)),
+      requirementExcluded: screened.blocked.map(({ item, verdict }) => ({
+        title: item.title,
+        company: item.company,
+        applyUrl: item.applyUrl,
+        kind: verdict.kind,
+        evidence: verdict.evidence,
+      })),
     },
   };
 }

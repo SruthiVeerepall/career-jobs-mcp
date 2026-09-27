@@ -164,6 +164,9 @@ Per-source date fields — verify these when adding a platform, since "last upda
 | Eightfold | `t_create` | epoch **seconds** — multiply by 1000. **Not `t_update`**, which bumps on any edit, the same trap as Greenhouse's `updated_at` |
 | Rippling | `createdOn` | **list response has no date at all** — only the per-job detail endpoint carries it, so the scraper must fan out per job or every result gets dropped as undated |
 | Aurora | `publishedDate` | `YYYY-MM-DD`; `updatedAt` sits beside it and is deliberately unused |
+| Workday (dateless tenants) | `bulletFields` / detail `startDate` | Some tenants put `"Posted N Days Ago"` in `bulletFields` instead of `postedOn` (SiFive); others omit it from the list entirely (Zoom, Blackbaud, AdventHealth, Lattice) and only the per-job detail carries it. `WorkdayScraper.backfillDates()` fetches detail **only for undated jobs**, preferring the absolute `startDate`. |
+| iCIMS (classic) | detail JSON-LD `datePosted` | The search list shows no date on many tenants (Liberty Mutual, Northwestern Mutual). Each detail page embeds the schema.org JobPosting sent to Google for Jobs; fetched over plain HTTP for undated jobs only. |
+| McKinsey | `postedToLinkedInDate` | From the JSON gateway `gateway.mckinsey.com/.../api/jobs/search` (reachable over plain HTTP; mckinsey.com is not). Answers 422 to an empty `q`, so it runs a fixed term set — not résumé terms, because company cache rows are not keyed by terms. |
 
 **BuiltIn reposts.** BuiltIn cards can read `"Reposted 14 Hours Ago"`. Its own structured
 `datePosted` equals the republish time and it exposes **no** original posting date, so the
@@ -239,6 +242,13 @@ from the table above is actually populated, not just that the endpoint answers.
 | `node deloitte-scrape.mjs` | Puppeteer DOM scraper for Deloitte (Avature ATS, server-rendered) |
 | `node probe-registry.mjs` | Health-check all companies, removes broken registry entries |
 | `node probe-registry.mjs --dry-run` | Report only, no changes |
+| `node repair-uncertain.mjs` | Resolve *uncertain* entries, HTTP pass: follows each careerUrl for a real board, then hunts Workday tenant/site variants |
+| `node repair-uncertain-tenants.mjs` | Workday tenant sweep over curated candidates (incl. acquirers), using the 404-vs-422 existence signal |
+| `node repair-uncertain-browser2.mjs` | Browser pass: crawls one level into the job-search page and sniffs network calls. Run after `repair-uncertain.mjs` (reads its JSON) |
+
+None of the three ever deletes a registry entry — they only report a verified replacement
+identifier. A `--platform X` probe now writes `probe-results-X.json`; only a full sweep
+owns `probe-results.json`.
 
 ### Adding companies to the registry
 
@@ -354,14 +364,78 @@ The 3-day cutoff is always applied client-side like all other sources.
 
 ---
 
-### Platforms with working JSON APIs (probeable)
-- `greenhouse`, `lever`, `ashby`, `smartrecruiters`, `workday`
+### How the probe checks each platform
+- **One JSON request** — `greenhouse`, `lever`, `ashby`, `smartrecruiters`, `workday`.
+- **The real scraper** — every other platform (Oracle, iCIMS, Phenom, Radancy, SuccessFactors,
+  Eightfold, Rippling, Aurora, the bespoke scrapers and the job boards). Nothing is
+  "skipped" any more; these used to be, which hid dead entries such as Disney (portal moved
+  host) and Tesla (bot-walled). Runs in a separate pool of 4 because some drive Chrome.
+  Pass = jobs returned **and some dated**. Anything else is *uncertain* and kept — a scraper
+  failing is never the definitive 404 that deletion requires.
 
-### Platforms skipped by probe (no standard JSON API)
-- `oracle-orc`, `icims`, `icims-jra`, `custom` — these need browser-based scraping.
-- `eightfold`, `rippling`, `aurora` — real JSON APIs, but not the shared board shape the
-  probe speaks; verified at runtime instead.
-- `linkedin`, `simplyhired`, `builtin`, `remoteok`, `remotive`, `weworkremotely` — job-board sources, verified at runtime instead.
+**Eightfold throttles hard.** Several back-to-back full sweeps get the caller's IP a 403
+HTML block page / 429 from every Eightfold tenant for a while. Treat an Eightfold-only
+cluster of uncertain results right after repeated runs as throttling, not breakage. The
+scraper already tries the other API (v2 ↔ PCSX) when the first fails, keeps collected pages
+when a deep page is refused, and **throws** (so nothing is cached) when even the first page
+is refused — returning `[]` there cached "0 jobs" for hours.
 
-### Known Workday 422s (CSRF-protected, kept in registry)
-Companies like Google, Microsoft, JPMorgan, Goldman Sachs return HTTP 422 from the probe because their Workday endpoints require a CSRF session. The scraper now handles these by prefetching the careers page to harvest session cookies and the `CALYPSO_CSRF_TOKEN`, then retrying the POST — so they should return results at runtime. Amazon is `platform: 'custom'` (not Workday) and uses Puppeteer; its generic selectors may still return zero results.
+### Registry duplicates
+One board must have exactly one entry. A duplicate re-scrapes the same board, doubles its
+jobs, and — for an acquired company or a name collision — labels someone else's jobs with
+the wrong employer (Split.io on Harness's board, Carbon Black on Carbon 3D's, Mercury
+Insurance on Mercury's). 24 were removed on 2026-09-26; before adding an entry, check its
+`platform|platformIdentifier` is not already present.
+
+### Workday 422s mean a dead tenant, NOT a CSRF wall
+
+A Workday 422 looks like an auth challenge and is not one. Control test:
+
+| Request | Answer |
+|---|---|
+| real tenant, real site (`rackspace\|wd1\|External`) | 200 with jobs |
+| real tenant, made-up site (`rackspace\|wd1\|BogusSiteName`) | **404** `{"message":"not found: Job_Posting_Site_ID=…"}` |
+| made-up tenant (`bogustenantxyz\|wd1\|External`) | **422**, empty message |
+| every "uncertain" registry entry | **422**, empty message — identical to the made-up tenant |
+
+So a 422 says the tenant subdomain does not resolve: the identifier is wrong and no
+session handshake can fix it. The board has to be re-discovered. This was previously
+recorded here as "CSRF-protected, handled at runtime", which made 44 entries look healthy
+while every one of them returned nothing — `WorkdayScraper`'s CSRF retry was verified
+against all 44 and fixed none. (The CSRF prefetch is still correct for a genuine 401 and
+is left in place; it is simply not what 422 is.)
+
+A **404** is the recoverable one: tenant lives, only the site name is stale.
+
+`probe-registry.mjs` reports both as *uncertain* and never deletes them — a wrong
+identifier should cost a re-discovery, not the company. Resolve with:
+
+```
+node repair-uncertain.mjs            # HTTP pass: careers-URL follow + tenant/site hunt
+node repair-uncertain-browser2.mjs   # browser pass: crawls one level into the job-search page
+```
+
+The browser pass crawls *past* the careers landing page on purpose. Landing pages are
+marketing; Goldman's makes 145 requests and not one touches an ATS. The board only
+appears on the job-search page one click in, so a pass that sniffs only the landing page
+reports "no ATS signal" for nearly everything and means nothing.
+
+Amazon is `platform: 'custom'` (not Workday) and uses Puppeteer; its generic selectors may
+still return zero results.
+
+#### Repair sweep of 2026-08-29 — 44 uncertain -> 31
+
+13 entries were re-pointed to verified, fully-dated boards (975 -> 987 passing). Nothing was
+deleted. What the leftovers actually are, so the discovery is not repeated:
+
+| Company | Finding |
+|---|---|
+| VMware, CyberArk, Splunk | Acquired. Their roles sit on Broadcom / Palo Alto Networks / Cisco boards that are **already registered** under the acquirer, so re-pointing would duplicate a board and label the acquirer's jobs with the acquiree's name. Left as-is, annotated in the registry. |
+| Granicus | Really on iCIMS. Verified: 59 jobs and **zero dates**, so the strict window gate drops all of them — a re-point would cost a scrape and return nothing. |
+| Ciena | Identifier is *correct*; the tenant answers HTTP 502 to everything. Upstream outage. |
+| Dun & Bradstreet | `dnb.wd1` is live but its cxs endpoint returns 403 (`errorCode S22`) to every client. No identifier fixes a deliberate block. |
+| Seagate, MSCI, Kaiser Permanente, Tyler Technologies, Maximus | Run SuccessFactors/Avature, iCIMS/Radancy, Radancy/Avature/Taleo, Jobvite, Avature respectively — host known, but each needs its portal host confirmed before wiring. |
+| Goldman Sachs, Walmart, Google, IBM, Cognizant, Meta, TikTok, KPMG, Infosys, SAIC, Shopify, Klarna, monday.com, Retool, Rippling, Rapid7, Vimeo, Enphase, SolarEdge, Westfield | No public JSON board found by HTTP or browser crawl. Walmart's tenant returns 422 on every `wdN` host even for a bogus site, i.e. it does not resolve publicly at all. |
+
+The acquisition pattern is the recurring one: check whether the acquirer is already in the
+registry **before** re-pointing, or the same board gets scraped twice under two names.

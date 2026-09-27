@@ -8,9 +8,12 @@ interface WorkdayJobPosting {
   title: string;
   externalPath: string;
   locationsText: string;
-  postedOn: string;
+  postedOn?: string;
   bulletFields?: string[];
 }
+
+/** Scrape-local: the detail path for date backfill, stripped before the job is returned. */
+type WorkdayListing = JobListing & { detailPath?: string };
 
 interface WorkdaySearchResponse {
   total: number;
@@ -43,7 +46,7 @@ export class WorkdayScraper extends BaseScraper {
     const apiUrl = `${baseHost}/wday/cxs/${tenant}/${site}/jobs`;
     this.logProgress(`Fetching Workday: ${tenant}/${site}`);
 
-    const all: JobListing[] = [];
+    const all: WorkdayListing[] = [];
     const limit = 20;
     // Cap pages to avoid fetching thousands of jobs when searchText is empty.
     // Workday returns most-recently-posted jobs first, so the first N pages cover recent postings.
@@ -71,7 +74,46 @@ export class WorkdayScraper extends BaseScraper {
       page++;
       if (!data.jobPostings || data.jobPostings.length < limit || offset >= (data.total ?? 0)) break;
     }
+    await this.backfillDates(all, baseHost, tenant, site);
     return all.filter((j) => this.matchesFilters(j, filters));
+  }
+
+  /**
+   * Some tenants (Zoom, Blackbaud, AdventHealth, Lattice) omit `postedOn` from the list
+   * response entirely, so every job would be dropped by the strict window gate. The
+   * per-job detail endpoint still carries it, plus an absolute `startDate` (YYYY-MM-DD)
+   * that is the posting's start — preferred, since it needs no relative-date parsing.
+   * Only undated jobs are fetched, so fully-dated tenants cost nothing extra.
+   */
+  private async backfillDates(jobs: WorkdayListing[], baseHost: string, tenant: string, site: string): Promise<void> {
+    const undated = jobs.filter((j) => !j.postedDate && j.detailPath);
+    if (undated.length === 0) return;
+    this.logProgress(`Backfilling ${undated.length} undated postings from detail endpoint`);
+    const timeout = Number(process.env.SCRAPE_TIMEOUT_MS ?? 30000);
+    const host = hostFromUrl(baseHost);
+    let next = 0;
+    const worker = async (): Promise<void> => {
+      while (next < undated.length) {
+        const job = undated[next++];
+        try {
+          const res = await this.rateLimitedFetch(host, () =>
+            axios.get<{ jobPostingInfo?: { startDate?: string; postedOn?: string } }>(
+              `${baseHost}/wday/cxs/${tenant}/${site}${job.detailPath}`,
+              { timeout, headers: { Accept: 'application/json', ...this.sessionHeaders } },
+            ),
+          );
+          const info = res.data?.jobPostingInfo;
+          job.postedDate =
+            (info?.startDate && /^\d{4}-\d{2}-\d{2}/.test(info.startDate) ? info.startDate : undefined) ??
+            parseWorkdayDate(info?.postedOn);
+        } catch {
+          // Leave it undated: the orchestrator's strict gate excludes it, which is the
+          // correct outcome for a job whose age cannot be verified.
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(4, undated.length) }, worker));
+    for (const j of jobs) delete j.detailPath;
   }
 
   private async postJobs(
@@ -149,7 +191,7 @@ export class WorkdayScraper extends BaseScraper {
     }
   }
 
-  private mapJob(p: WorkdayJobPosting, baseHost: string, tenant: string, site: string): JobListing {
+  private mapJob(p: WorkdayJobPosting, baseHost: string, tenant: string, site: string): WorkdayListing {
     const externalPath = p.externalPath ?? '';
     const applyUrl = externalPath ? `${baseHost}/en-US/${site}${externalPath}` : this.config.careerUrl;
     const id = externalPath.split('/').pop() || `${tenant}-${p.title}`;
@@ -160,9 +202,11 @@ export class WorkdayScraper extends BaseScraper {
       locations: p.locationsText ? [p.locationsText] : [],
       level: this.normalizeJobLevel(p.title),
       applyUrl,
-      postedDate: parseWorkdayDate(p.postedOn),
+      // SiFive-style tenants put "Posted N Days Ago" in bulletFields instead of postedOn.
+      postedDate: parseWorkdayDate(p.postedOn ?? p.bulletFields?.find((b) => /^posted\b/i.test(b))),
       sourceUrl: applyUrl,
       scrapedAt: new Date().toISOString(),
+      detailPath: externalPath || undefined,
     };
   }
 }

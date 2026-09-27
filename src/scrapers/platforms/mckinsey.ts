@@ -1,99 +1,102 @@
-import puppeteer, { type Browser } from 'puppeteer';
+import axios from 'axios';
 import type { JobListing, SearchFilters } from '../../types.js';
 import { BaseScraper } from '../base-scraper.js';
 import { hostFromUrl } from '../../utils/rate-limiter.js';
-import { withTimeout } from '../../utils/retry.js';
 
-let sharedBrowser: Browser | null = null;
-
-async function getBrowser(): Promise<Browser> {
-  if (sharedBrowser && sharedBrowser.connected) return sharedBrowser;
-  sharedBrowser = await puppeteer.launch({
-    headless: process.env.PUPPETEER_HEADLESS !== 'false',
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-  });
-  return sharedBrowser;
+interface McKinseyDoc {
+  jobID: string;
+  title: string;
+  cities?: string[];
+  countries?: string[];
+  functions?: string[];
+  postedToLinkedInDate?: string;
+  jobApplyURL?: string;
+  friendlyURL?: string;
 }
 
+interface McKinseySearchResponse {
+  numFound: number;
+  docs?: McKinseyDoc[];
+}
+
+const API = 'https://gateway.mckinsey.com/apigw-x0cceuow60/v1/api/jobs/search';
+
 /**
- * McKinsey career scraper using Puppeteer.
+ * The API answers 422 to an empty query, so a keyword is always needed. Fixed rather than
+ * per-résumé: company cache rows are not keyed by search terms (see orchestrator), so a
+ * profile-specific fetch would be served to every other profile.
+ */
+const TERMS = ['software', 'engineer', 'developer', 'technology', 'data'];
+
+/**
+ * McKinsey careers scraper — the JSON gateway behind mckinsey.com/careers/search-jobs.
  *
- * McKinsey uses Workday under the hood but their CSRF prefetch page is
- * unreachable via plain HTTP. Puppeteer loads the Workday-powered
- * search page at mckinsey.com/careers and extracts job listings from the DOM.
+ * Replaces a Puppeteer DOM scrape that returned no dates, so the strict window gate
+ * dropped every job. The gateway is reachable over plain HTTP (mckinsey.com itself
+ * is not), and each doc carries `postedToLinkedInDate` — the date the opening was
+ * published — plus a direct Avature apply link.
  *
  * platformIdentifier: not required.
  */
 export class McKinseyScraper extends BaseScraper {
   async fetchJobs(filters: SearchFilters): Promise<JobListing[]> {
-    const term = filters.jobTitle ?? 'software engineer';
-    const url = `https://www.mckinsey.com/careers/search-jobs?query=${encodeURIComponent(term)}`;
-    this.logProgress(`Fetching McKinsey via Puppeteer: ${term}`);
-
-    const jobs = await this.rateLimitedFetch(hostFromUrl(url), () =>
-      this.scrapeWithPuppeteer(url),
-    );
-
-    return jobs.filter((j) => this.matchesFilters(j, filters));
+    const byId = new Map<string, JobListing>();
+    for (const term of TERMS) {
+      for (const job of await this.searchTerm(term)) byId.set(job.id, job);
+    }
+    return [...byId.values()].filter((j) => this.matchesFilters(j, filters));
   }
 
-  private async scrapeWithPuppeteer(url: string): Promise<JobListing[]> {
-    const timeout = Number(process.env.SCRAPE_TIMEOUT_MS ?? 45000);
-    const browser = await getBrowser();
-    const page = await browser.newPage();
-
-    try {
-      await page.setUserAgent(
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  private async searchTerm(term: string): Promise<JobListing[]> {
+    this.logProgress(`Fetching McKinsey: ${term}`);
+    const timeout = Number(process.env.SCRAPE_TIMEOUT_MS ?? 30000);
+    const pageSize = 100;
+    const maxPages = 3;
+    const jobs: JobListing[] = [];
+    for (let page = 0; page < maxPages; page++) {
+      // `start` is a 1-based PAGE number, not a row offset — a row offset 500s past page 1.
+      const url = `${API}?pageSize=${pageSize}&start=${page + 1}&lang=en&q=${encodeURIComponent(term)}`;
+      const res = await this.rateLimitedFetch(hostFromUrl(url), () =>
+        axios.get<McKinseySearchResponse>(url, {
+          timeout,
+          // 422 is the API's "no results" answer, not a failure.
+          validateStatus: (s) => s === 200 || s === 422,
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            Accept: 'application/json',
+            Origin: 'https://www.mckinsey.com',
+            Referer: 'https://www.mckinsey.com/',
+          },
+        }),
       );
-      await withTimeout(
-        page.goto(url, { waitUntil: 'networkidle2' }),
-        timeout,
-        `McKinsey goto ${url}`,
-      );
-
-      // Wait for job results to render (Workday SPA)
-      await new Promise((r) => setTimeout(r, 3000));
-
-      const raw = await page.evaluate((careerUrl) => {
-        const JUNK = /^(apply now|read more|view all|see more|home|search|close|next|previous|sign in|log in)/i;
-        const results: { id: string; title: string; location: string; applyUrl: string }[] = [];
-        const seen = new Set<string>();
-
-        const anchors = Array.from(
-          document.querySelectorAll('a[href*="/job"], a[href*="myworkdayjobs"], a[class*="jobTitle"], [class*="job-result"] a, [class*="jobCard"] a'),
-        ) as HTMLAnchorElement[];
-
-        for (const a of anchors) {
-          const href = a.href || '';
-          const title = (a.textContent ?? '').trim();
-          if (!href || !title || JUNK.test(title) || title.length < 4) continue;
-
-          const id = href.split('/').filter(Boolean).pop() ?? '';
-          if (!id || seen.has(id)) continue;
-          seen.add(id);
-
-          const row = a.closest('li, tr, [class*="row"], [class*="card"], [class*="result"]');
-          const locEl = row?.querySelector('[class*="location"], [class*="city"]');
-          const location = (locEl?.textContent ?? '').trim();
-
-          results.push({ id, title, location, applyUrl: href });
-        }
-        return results;
-      }, this.config.careerUrl);
-
-      return raw.map((r): JobListing => ({
-        id: r.id,
-        companyName: this.config.name,
-        title: r.title,
-        locations: r.location ? [r.location] : [],
-        level: this.normalizeJobLevel(r.title),
-        applyUrl: r.applyUrl,
-        sourceUrl: this.config.careerUrl,
-        scrapedAt: new Date().toISOString(),
-      }));
-    } finally {
-      await page.close();
+      const docs = res.status === 200 ? (res.data.docs ?? []) : [];
+      jobs.push(...docs.filter((d) => d.jobID && d.title).map((d) => this.mapJob(d)));
+      if (docs.length < pageSize || jobs.length >= (res.data.numFound ?? 0)) break;
     }
+    return jobs;
+  }
+
+  private mapJob(d: McKinseyDoc): JobListing {
+    const detailUrl = d.friendlyURL
+      ? `https://www.mckinsey.com/careers/search-jobs/jobs/${d.friendlyURL}`
+      : this.config.careerUrl;
+    const cities = d.cities ?? [];
+    const countries = d.countries ?? [];
+    const locations = cities.length
+      ? cities.map((c, i) => [c, countries[i] ?? countries[0]].filter(Boolean).join(', '))
+      : countries;
+    return {
+      id: d.jobID,
+      companyName: this.config.name,
+      title: d.title.trim(),
+      locations,
+      department: d.functions?.[0],
+      level: this.normalizeJobLevel(d.title),
+      applyUrl: d.jobApplyURL || detailUrl,
+      postedDate: d.postedToLinkedInDate && /^\d{4}-\d{2}-\d{2}/.test(d.postedToLinkedInDate) ? d.postedToLinkedInDate : undefined,
+      sourceUrl: detailUrl,
+      scrapedAt: new Date().toISOString(),
+    };
   }
 }

@@ -1,7 +1,8 @@
 /**
  * probe-registry.mjs
  *
- * Tests every company in the registry against its platform API.
+ * Tests every company in the registry: platforms with a public JSON board API are
+ * probed with one request; every other platform is probed by running its real scraper.
  * Outputs probe-results.json, then removes broken entries from
  * src/scrapers/company-registry.ts.
  *
@@ -9,7 +10,7 @@
  *
  * Options:
  *   --dry-run      Report only; do not patch the registry file
- *   --platform X   Only probe one platform (greenhouse|lever|ashby|smartrecruiters|workday)
+ *   --platform X   Only probe one platform (any platform in the registry)
  *   --concurrency N  Max parallel requests (default 20)
  */
 
@@ -63,13 +64,9 @@ async function probeSmartRecruiters(id) {
   return { ok: res.status === 200, status: res.status };
 }
 
-async function probeWorkday(id) {
-  const parts = id.split('|');
-  if (parts.length !== 3) return { ok: false, status: 0, error: 'bad format' };
-  const [tenant, wd, site] = parts;
-  const url = `https://${tenant}.${wd}.myworkdayjobs.com/wday/cxs/${tenant}/${site}/jobs`;
-  const res = await axios.post(
-    url,
+const wdPost = (tenant, wd, site) =>
+  axios.post(
+    `https://${tenant}.${wd}.myworkdayjobs.com/wday/cxs/${tenant}/${site}/jobs`,
     { limit: 1, offset: 0, searchText: '', appliedFacets: {} },
     {
       timeout: TIMEOUT,
@@ -77,8 +74,48 @@ async function probeWorkday(id) {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
     },
   );
-  // 422 = endpoint exists but CSRF/session required — treat as "uncertain" (not definitely broken)
-  return { ok: res.status === 200, status: res.status, uncertain: res.status === 422 };
+
+async function probeWorkday(id) {
+  const parts = id.split('|');
+  if (parts.length !== 3) return { ok: false, status: 0, error: 'bad format' };
+  const [tenant, wd, site] = parts;
+  const res = await wdPost(tenant, wd, site);
+  if (res.status === 200) return { ok: true, status: 200 };
+
+  // A Workday 422 is NOT a CSRF wall, despite what it looks like. Control test: a real
+  // tenant asked for a nonexistent site answers 404 with
+  // `{"message":"not found: Job_Posting_Site_ID=..."}`, while a made-up tenant answers a
+  // bodyless 422 — exactly what these entries return. So 422 means the tenant subdomain
+  // does not resolve and no session handshake can fix it; the identifier is simply wrong
+  // and the board has to be re-discovered (see repair-uncertain*.mjs).
+  //
+  // Still reported as uncertain rather than broken, so a wrong identifier never costs us
+  // the company: re-discovery keeps the entry, deletion would lose it.
+  if (res.status === 422) {
+    const control = await wdPost(tenant, wd, 'ZzNoSuchSiteZz');
+    const tenantLive = control.status === 404 || control.status === 200;
+    return {
+      ok: false,
+      status: 422,
+      uncertain: true,
+      error: tenantLive
+        ? 'tenant resolves but site id rejected — re-discover the site name'
+        : 'tenant subdomain does not exist — re-discover the board (not a CSRF issue)',
+    };
+  }
+
+  // 404 with a site-id message: tenant is fine, only the site name is stale. Keep it and
+  // re-discover rather than delete a company that is demonstrably still on Workday.
+  if (res.status === 404) {
+    return {
+      ok: false,
+      status: 404,
+      uncertain: true,
+      error: 'tenant resolves, site id not found — re-discover the site name',
+    };
+  }
+
+  return { ok: false, status: res.status, uncertain: res.status === 401 };
 }
 
 const PROBERS = {
@@ -88,6 +125,43 @@ const PROBERS = {
   smartrecruiters: probeSmartRecruiters,
   workday: probeWorkday,
 };
+
+// Platforms with no cheap JSON endpoint (Oracle, iCIMS, Phenom, Radancy, SuccessFactors,
+// Eightfold, the job boards, bespoke scrapers) used to be counted as "skipped" and never
+// checked. They are now probed by running the REAL scraper, which is slower (some drive a
+// headless browser) so they get their own small pool.
+//
+// Pass = jobs came back AND some carry a date — a dateless board is dropped whole by the
+// strict window gate, so it is no more useful than an empty one. Any other outcome is
+// `uncertain`, never `broken`: a scraper failing is not the definitive 404 that deletion
+// requires.
+const SCRAPER_CONCURRENCY = 4;
+const SCRAPER_TIMEOUT = 180000;
+
+async function probeViaScraper(company) {
+  let timer;
+  try {
+    const scraper = companyRegistry.createScraper(company);
+    const jobs = await Promise.race([
+      scraper.fetchJobs({}),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`timeout after ${SCRAPER_TIMEOUT / 1000}s`)), SCRAPER_TIMEOUT);
+      }),
+    ]);
+    const dated = jobs.filter((j) => j.postedDate && !Number.isNaN(Date.parse(j.postedDate))).length;
+    if (jobs.length > 0 && dated > 0) return { ok: true, status: 200, jobs: jobs.length, dated };
+    return {
+      ok: false,
+      status: 200,
+      uncertain: true,
+      error: jobs.length === 0 ? 'scraper returned 0 jobs' : `${jobs.length} jobs, none dated`,
+    };
+  } catch (e) {
+    return { ok: false, status: e.response?.status ?? 0, uncertain: true, error: `scraper: ${(e.message || String(e)).slice(0, 120)}` };
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 // A single 5xx/429/timeout says the server was busy, not that the board is gone —
 // Zebra, Nordstrom and MRI Software were all reported broken by one such blip while
@@ -129,24 +203,21 @@ async function runPool(tasks, concurrency) {
 
 async function main() {
   const all = [...companyRegistry.companies.values()];
-  const toProbe = PLATFORM_FILTER
-    ? all.filter(c => c.platform === PLATFORM_FILTER)
-    : all.filter(c => PROBERS[c.platform]); // skip custom/oracle-orc/icims
-
-  const skipped = all.filter(c => !PROBERS[c.platform]);
+  const toProbe = PLATFORM_FILTER ? all.filter(c => c.platform === PLATFORM_FILTER) : all;
+  const viaApi = toProbe.filter(c => PROBERS[c.platform]);
+  const viaScraper = toProbe.filter(c => !PROBERS[c.platform]);
+  const skipped = []; // every platform is probed now; kept so the report shape is stable
   console.log(`\nRegistry: ${all.length} total companies`);
-  console.log(`Probing:  ${toProbe.length} (${PLATFORM_FILTER || 'all supported platforms'})`);
-  console.log(`Skipping: ${skipped.length} (custom/oracle/icims — no standard JSON API)`);
-  console.log(`Concurrency: ${CONCURRENCY}  Timeout: ${TIMEOUT}ms\n`);
+  console.log(`Probing:  ${toProbe.length} (${PLATFORM_FILTER || 'all platforms'})`);
+  console.log(`  via JSON API:     ${viaApi.length}  (concurrency ${CONCURRENCY}, timeout ${TIMEOUT}ms)`);
+  console.log(`  via real scraper: ${viaScraper.length}  (concurrency ${SCRAPER_CONCURRENCY}, timeout ${SCRAPER_TIMEOUT}ms)\n`);
 
   const passed = [];
   const broken = [];    // definitive 404/error — safe to remove
-  const uncertain = []; // 422/401 — endpoint may exist, needs auth
+  const uncertain = []; // 422/401, or a scraper that failed / returned nothing usable
   let done = 0;
 
-  const tasks = toProbe.map(company => async () => {
-    const prober = PROBERS[company.platform];
-    const result = await probeWithRetry(prober, company.platformIdentifier);
+  const record = (company, result) => {
     done++;
     if (done % 50 === 0 || done === toProbe.length) {
       process.stderr.write(`  Progress: ${done}/${toProbe.length}\n`);
@@ -156,9 +227,17 @@ async function main() {
     else if (result.uncertain) uncertain.push(entry);
     else broken.push(entry);
     return entry;
+  };
+
+  const apiTasks = viaApi.map(company => async () =>
+    record(company, await probeWithRetry(PROBERS[company.platform], company.platformIdentifier)));
+  const scraperTasks = viaScraper.map(company => async () => {
+    const result = await probeViaScraper(company);
+    if (!result.ok) process.stderr.write(`  ? ${company.name} (${company.platform}): ${result.error}\n`);
+    return record(company, result);
   });
 
-  await runPool(tasks, CONCURRENCY);
+  await Promise.all([runPool(apiTasks, CONCURRENCY), runPool(scraperTasks, SCRAPER_CONCURRENCY)]);
 
   // ── Summary ───────────────────────────────────────────────────────────────
   console.log(`\n${'─'.repeat(60)}`);
@@ -186,10 +265,11 @@ async function main() {
     }
   }
   if (uncertain.length > 0) {
-    console.log(`\nUncertain (keeping — needs auth/CSRF) — ${uncertain.length}:`);
+    console.log(`\nUncertain (kept — identifier needs re-discovery, never deleted) — ${uncertain.length}:`);
     for (const c of uncertain.sort((a, b) => a.platform.localeCompare(b.platform))) {
-      console.log(`  [${c.platform.padEnd(16)}] ${c.name.padEnd(40)} id=${c.platformIdentifier}  HTTP ${c.probeStatus}`);
+      console.log(`  [${c.platform.padEnd(16)}] ${c.name.padEnd(40)} id=${c.platformIdentifier}  HTTP ${c.probeStatus}${c.probeError ? `  — ${c.probeError}` : ''}`);
     }
+    console.log(`\n  Resolve these with:  node repair-uncertain.mjs  then  node repair-uncertain-browser2.mjs`);
   }
 
   // ── Save results ──────────────────────────────────────────────────────────
@@ -203,10 +283,16 @@ async function main() {
     skipped: skipped.length,
     passingCompanies: passed.map(c => c.slug),
     brokenCompanies: broken.map(c => ({ slug: c.slug, name: c.name, platform: c.platform, platformIdentifier: c.platformIdentifier, httpStatus: c.probeStatus })),
-    uncertainCompanies: uncertain.map(c => ({ slug: c.slug, name: c.name, platform: c.platform, platformIdentifier: c.platformIdentifier, httpStatus: c.probeStatus })),
+    uncertainCompanies: uncertain.map(c => ({ slug: c.slug, name: c.name, platform: c.platform, platformIdentifier: c.platformIdentifier, httpStatus: c.probeStatus, reason: c.probeError })),
   };
-  fs.writeFileSync(RESULTS_FILE, JSON.stringify(report, null, 2));
-  console.log(`\nFull results saved to: probe-results.json`);
+  // A --platform run only probes a slice of the registry, so writing it to the shared
+  // results file would clobber every other platform's result with an absence. Filtered
+  // runs get their own file; only a full sweep owns probe-results.json.
+  const outFile = PLATFORM_FILTER
+    ? path.join(__dirname, `probe-results-${PLATFORM_FILTER}.json`)
+    : RESULTS_FILE;
+  fs.writeFileSync(outFile, JSON.stringify(report, null, 2));
+  console.log(`\nFull results saved to: ${path.basename(outFile)}`);
 
   // ── Patch registry ────────────────────────────────────────────────────────
   if (!DRY_RUN && broken.length > 0) {
@@ -252,7 +338,9 @@ function patchRegistry(slugsToRemove) {
   console.log(`  Removed ${removed} entries from registry source.`);
 }
 
-main().catch(e => {
+// Explicit exit: scraper probes leave a shared headless browser open, which would
+// otherwise keep the process alive after the report is written.
+main().then(() => process.exit(0), e => {
   console.error('Fatal:', e.message);
   process.exit(1);
 });

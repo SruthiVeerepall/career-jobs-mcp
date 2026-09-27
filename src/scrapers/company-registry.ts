@@ -8,6 +8,9 @@ import { WorkdayScraper } from './platforms/workday.js';
 import { OracleOrcScraper } from './platforms/oracle-orc.js';
 import { IcimsScraper } from './platforms/icims.js';
 import { IcimsJraScraper } from './platforms/icims-jra.js';
+import { PhenomScraper } from './platforms/phenom.js';
+import { SuccessFactorsScraper } from './platforms/successfactors.js';
+import { RadancyScraper } from './platforms/radancy.js';
 import { EightfoldScraper } from './platforms/eightfold.js';
 import { RipplingScraper } from './platforms/rippling.js';
 import { CustomPuppeteerScraper } from './platforms/custom-puppeteer.js';
@@ -44,11 +47,10 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: 'Ramp', slug: 'ramp', careerUrl: 'https://ramp.com/careers', platform: 'ashby', platformIdentifier: 'ramp' },
 { name: 'Visa', slug: 'visa', careerUrl: 'https://corporate.visa.com/en/jobs', platform: 'smartrecruiters', platformIdentifier: 'Visa' },
 { name: 'Bosch', slug: 'bosch', careerUrl: 'https://www.bosch.com/careers', platform: 'smartrecruiters', platformIdentifier: 'BoschGroup' },
-{ name: 'Salesforce', slug: 'salesforce', careerUrl: 'https://careers.salesforce.com', platform: 'workday', platformIdentifier: 'salesforce|wd1|External_Career_Site' },
+{ name: 'Salesforce', slug: 'salesforce', careerUrl: 'https://careers.salesforce.com', platform: 'workday', platformIdentifier: 'salesforce|wd12|External_Career_Site' },
 { name: 'Adobe', slug: 'adobe', careerUrl: 'https://careers.adobe.com', platform: 'workday', platformIdentifier: 'adobe|wd5|external_experienced' },
-{ name: 'JPMorgan Chase', slug: 'jpmorgan', careerUrl: 'https://careers.jpmorganchase.com', platform: 'workday', platformIdentifier: 'jpmc|wd1|jpmc' },
+{ name: 'JPMorgan Chase', slug: 'jpmorgan', careerUrl: 'https://careers.jpmorganchase.com', platform: 'oracle-orc', platformIdentifier: 'jpmc.fa.oraclecloud.com|CX_1001' },
 { name: 'Citi', slug: 'citi', careerUrl: 'https://jobs.citi.com', platform: 'workday', platformIdentifier: 'citi|wd5|2' },
-{ name: 'Goldman Sachs', slug: 'goldman-sachs', careerUrl: 'https://www.goldmansachs.com/careers', platform: 'workday', platformIdentifier: 'goldman|wd1|GS_EXT_CAREERS' },
 { name: 'NVIDIA', slug: 'nvidia', careerUrl: 'https://www.nvidia.com/en-us/about-nvidia/careers', platform: 'workday', platformIdentifier: 'nvidia|wd5|NVIDIAExternalCareerSite' },
 { name: "Pure Storage", slug: 'pure-storage', careerUrl: "https://www.purestorage.com/company/careers.html", platform: 'greenhouse', platformIdentifier: "purestorage" },
 { name: "Cloudflare", slug: 'cloudflare', careerUrl: "https://www.cloudflare.com/careers", platform: 'greenhouse', platformIdentifier: "cloudflare" },
@@ -64,19 +66,17 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "New Relic", slug: 'new-relic', careerUrl: "https://newrelic.com/about/careers", platform: 'greenhouse', platformIdentifier: "newrelic" },
 { name: "PagerDuty", slug: 'pagerduty', careerUrl: "https://www.pagerduty.com/careers", platform: 'greenhouse', platformIdentifier: "pagerduty" },
 { name: "CircleCI", slug: 'circleci', careerUrl: "https://circleci.com/careers", platform: 'greenhouse', platformIdentifier: "circleci" },
-{ name: "Postman", slug: 'postman', careerUrl: "https://www.postman.com/careers", platform: 'greenhouse', platformIdentifier: "postman" },
 { name: "Fivetran", slug: 'fivetran', careerUrl: "https://www.fivetran.com/careers", platform: 'greenhouse', platformIdentifier: "fivetran" },
 // dbt Labs removed — merged with Fivetran; getdbt.com/about-us/careers now links every
 // role to fivetran.com/careers/job?gh_jid=…, i.e. the `fivetran` Greenhouse board already
 // in this registry. Re-adding it would double-count the same postings.
 { name: "SAS Institute", slug: 'sas-institute', careerUrl: "https://www.sas.com/en_us/careers.html", platform: 'greenhouse', platformIdentifier: "sas" },
-{ name: "Sisense", slug: 'sisense', careerUrl: "https://www.sisense.com/careers", platform: 'greenhouse', platformIdentifier: "sisense" },
+{ name: "Sisense", slug: 'sisense', careerUrl: "https://www.sisense.com/careers", platform: 'ashby', platformIdentifier: 'sisense' },
 { name: "Grafana Labs", slug: 'grafana-labs', careerUrl: "https://grafana.com/about/careers", platform: 'greenhouse', platformIdentifier: "grafanalabs" },
 { name: "Amplitude", slug: 'amplitude', careerUrl: "https://amplitude.com/careers", platform: 'greenhouse', platformIdentifier: "amplitude" },
 { name: "Scale AI", slug: 'scale-ai', careerUrl: "https://scale.com/careers", platform: 'greenhouse', platformIdentifier: "scaleai" },
 { name: "C3.ai", slug: 'c3-ai', careerUrl: "https://c3.ai/careers", platform: 'greenhouse', platformIdentifier: "c3ascend" },
 { name: "AssemblyAI", slug: 'assemblyai', careerUrl: "https://www.assemblyai.com/careers", platform: 'greenhouse', platformIdentifier: "assemblyai" },
-{ name: "X Corp", slug: 'x-corp', careerUrl: "https://careers.x.com", platform: 'greenhouse', platformIdentifier: "xai" },
 { name: "Duolingo", slug: 'duolingo', careerUrl: "https://careers.duolingo.com", platform: 'greenhouse', platformIdentifier: "duolingo" },
 { name: "StockX", slug: 'stockx', careerUrl: "https://stockx.com/careers", platform: 'greenhouse', platformIdentifier: "stockx" },
 { name: "Take-Two Interactive", slug: 'take-two-interactive', careerUrl: "https://www.take2games.com/careers", platform: 'greenhouse', platformIdentifier: "taketwo" },
@@ -93,7 +93,6 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Affirm", slug: 'affirm', careerUrl: "https://www.affirm.com/careers", platform: 'greenhouse', platformIdentifier: "affirm" },
 { name: "Chime", slug: 'chime', careerUrl: "https://www.chime.com/careers", platform: 'greenhouse', platformIdentifier: "chime" },
 { name: "SoFi", slug: 'sofi', careerUrl: "https://www.sofi.com/careers", platform: 'greenhouse', platformIdentifier: "sofi" },
-{ name: "Marqeta", slug: 'marqeta', careerUrl: "https://www.marqeta.com/company/careers", platform: 'greenhouse', platformIdentifier: "marqeta" },
 { name: "Betterment", slug: 'betterment', careerUrl: "https://www.betterment.com/careers", platform: 'greenhouse', platformIdentifier: "betterment" },
 { name: "CoStar Group", slug: 'costar-group', careerUrl: "https://careers.costargroup.com", platform: 'greenhouse', platformIdentifier: "costar" },
 { name: "Flexport", slug: 'flexport', careerUrl: "https://www.flexport.com/careers", platform: 'greenhouse', platformIdentifier: "flexport" },
@@ -108,7 +107,6 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Root Insurance", slug: 'root-insurance', careerUrl: "https://www.joinroot.com/careers", platform: 'rippling', platformIdentifier: "joinroot" },
 { name: "Hippo Insurance", slug: 'hippo-insurance', careerUrl: "https://www.hippo.com/careers", platform: 'greenhouse', platformIdentifier: "hippo70" },
 { name: "Ethos Life", slug: 'ethos-life', careerUrl: "https://www.ethoslife.com/careers", platform: 'greenhouse', platformIdentifier: "ethoslife" },
-{ name: "Embroker", slug: 'embroker', careerUrl: "https://www.embroker.com/careers", platform: 'greenhouse', platformIdentifier: "embroker" },
 { name: "Coalition Inc.", slug: 'coalition-inc', careerUrl: "https://www.coalitioninc.com/careers", platform: 'greenhouse', platformIdentifier: "coalition" },
 { name: "At-Bay", slug: 'at-bay', careerUrl: "https://www.at-bay.com/careers", platform: 'greenhouse', platformIdentifier: "atbay" },
 { name: "New York Life", slug: 'new-york-life', careerUrl: "https://careers.newyorklife.com", platform: 'greenhouse', platformIdentifier: "new" },
@@ -120,7 +118,7 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Esri", slug: 'esri', careerUrl: "https://www.esri.com/en-us/about/careers", platform: 'greenhouse', platformIdentifier: "esri" },
 { name: "Lucidchart", slug: 'lucidchart', careerUrl: "https://www.lucid.co/careers", platform: 'greenhouse', platformIdentifier: "lucidsoftware" },
 { name: "Everlaw", slug: 'everlaw', careerUrl: "https://www.everlaw.com/careers", platform: 'greenhouse', platformIdentifier: "everlaw" },
-{ name: "Sage Intacct", slug: 'sage-intacct', careerUrl: "https://www.sage.com/en-us/company/careers", platform: 'greenhouse', platformIdentifier: "sage" },
+{ name: "Sage Intacct", slug: 'sage-intacct', careerUrl: "https://www.sage.com/en-us/company/careers", platform: 'smartrecruiters', platformIdentifier: 'sageintacct' },
 { name: "Bill.com", slug: 'bill-com', careerUrl: "https://www.bill.com/careers", platform: 'greenhouse', platformIdentifier: "billcom" },
 { name: "Upstart", slug: 'upstart', careerUrl: "https://www.upstart.com/careers", platform: 'greenhouse', platformIdentifier: "upstart" },
 { name: "Waymo", slug: 'waymo', careerUrl: "https://waymo.com/careers", platform: 'greenhouse', platformIdentifier: "waymo" },
@@ -131,7 +129,6 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Modern Health", slug: 'modern-health', careerUrl: "https://www.modernhealth.com/careers", platform: 'greenhouse', platformIdentifier: "modernhealth" },
 { name: "Talkspace", slug: 'talkspace', careerUrl: "https://www.talkspace.com/careers", platform: 'greenhouse', platformIdentifier: "talkspacetherapist" },
 { name: "BetterHelp", slug: 'betterhelp', careerUrl: "https://www.betterhelp.com/careers", platform: 'greenhouse', platformIdentifier: "betterhelpcom" },
-{ name: "Cerebral", slug: 'cerebral', careerUrl: "https://cerebral.com/careers", platform: 'greenhouse', platformIdentifier: "cerebral" },
 { name: "TCS", slug: 'tcs', careerUrl: "https://www.tcs.com/careers", platform: 'greenhouse', platformIdentifier: "tcs" },
 { name: "Appian", slug: 'appian', careerUrl: "https://www.appian.com/careers", platform: 'greenhouse', platformIdentifier: "appian" },
 { name: "Wasabi", slug: 'wasabi', careerUrl: "https://wasabi.com/company/careers", platform: 'greenhouse', platformIdentifier: "wasabi" },
@@ -154,14 +151,14 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Blue Origin", slug: 'blue-origin', careerUrl: "https://www.blueorigin.com/careers", platform: 'lever', platformIdentifier: "blueorigin" },
 { name: "Zoox", slug: 'zoox', careerUrl: "https://zoox.com/careers", platform: 'lever', platformIdentifier: "zoox" },
 { name: "Lyra Health", slug: 'lyra-health', careerUrl: "https://www.lyrahealth.com/careers", platform: 'lever', platformIdentifier: "lyrahealth" },
-{ name: "Wiz", slug: 'wiz', careerUrl: "https://www.wiz.io/careers", platform: 'ashby', platformIdentifier: "wiz" },
-{ name: "Applied Materials", slug: 'applied-materials', careerUrl: "https://careers.appliedmaterials.com", platform: 'ashby', platformIdentifier: "applied" },
+{ name: "Wiz", slug: 'wiz', careerUrl: "https://www.wiz.io/careers", platform: 'greenhouse', platformIdentifier: 'wizinc' },
+{ name: "Applied Materials", slug: 'applied-materials', careerUrl: "https://careers.appliedmaterials.com", platform: 'workday', platformIdentifier: 'amat|wd1|External' },
 { name: "Docker", slug: 'docker', careerUrl: "https://www.docker.com/careers", platform: 'ashby', platformIdentifier: "docker" },
 { name: "Airbyte", slug: 'airbyte', careerUrl: "https://airbyte.com/careers", platform: 'ashby', platformIdentifier: "airbyte" },
 { name: "FullStory", slug: 'fullstory', careerUrl: "https://www.fullstory.com/careers", platform: 'ashby', platformIdentifier: "fullstory" },
 { name: "Deepgram", slug: 'deepgram', careerUrl: "https://deepgram.com/company/careers", platform: 'ashby', platformIdentifier: "Deepgram" },
 { name: "Pinecone", slug: 'pinecone', careerUrl: "https://www.pinecone.io/careers", platform: 'ashby', platformIdentifier: "pinecone" },
-{ name: "Bumble", slug: 'bumble', careerUrl: "https://team.bumble.com", platform: 'ashby', platformIdentifier: "bumble" },
+{ name: "Bumble", slug: 'bumble', careerUrl: "https://team.bumble.com", platform: 'ashby', platformIdentifier: 'bumbleinc' },
 { name: "Lumen Technologies", slug: 'lumen-technologies', careerUrl: "https://jobs.lumen.com", platform: 'ashby', platformIdentifier: "lumen" },
 { name: "Acorns", slug: 'acorns', careerUrl: "https://www.acorns.com/careers", platform: 'ashby', platformIdentifier: "acorns" },
 { name: "Instructure", slug: 'instructure', careerUrl: "https://www.instructure.com/careers", platform: 'ashby', platformIdentifier: "instructure" },
@@ -198,7 +195,7 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Illumina", slug: 'illumina', careerUrl: "https://www.illumina.com/company/careers.html", platform: 'workday', platformIdentifier: "illumina|wd1|illumina-careers" },
 { name: "Bank of America", slug: 'bank-of-america', careerUrl: "https://careers.bankofamerica.com", platform: 'workday', platformIdentifier: "ghr|wd1|lateral-us" },
 { name: "U.S. Bancorp", slug: 'u-s-bancorp', careerUrl: "https://careers.usbank.com", platform: 'workday', platformIdentifier: "usbank|wd1|US_Bank_Careers" },
-{ name: "Capital One", slug: 'capital-one', careerUrl: "https://www.capitalonecareers.com", platform: 'workday', platformIdentifier: "capitalone|wd5|USA_Job_Board" },
+{ name: "Capital One", slug: 'capital-one', careerUrl: "https://www.capitalonecareers.com", platform: 'workday', platformIdentifier: 'capitalone|wd12|Capital_One' },
 { name: "TD Bank", slug: 'td-bank', careerUrl: "https://jobs.td.com", platform: 'workday', platformIdentifier: "td|wd3|TD_Bank_Careers" },
 { name: "FIS", slug: 'fis', careerUrl: "https://careers.fisglobal.com", platform: 'workday', platformIdentifier: "fis|wd5|SearchJobs" },
 { name: "Western Union", slug: 'western-union', careerUrl: "https://careers.westernunion.com", platform: 'workday', platformIdentifier: "westernunion|wd5|WesternUnionJobs" },
@@ -251,13 +248,11 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Censys", slug: 'censys', careerUrl: "https://censys.com/careers", platform: 'greenhouse', platformIdentifier: "censys" },
 { name: "Tines", slug: 'tines', careerUrl: "https://www.tines.com/careers", platform: 'greenhouse', platformIdentifier: "tines" },
 { name: "Pie Insurance", slug: 'pie-insurance', careerUrl: "https://pieinsurance.com/careers", platform: 'greenhouse', platformIdentifier: "pieinsurance" },
-{ name: "Mercury Insurance", slug: 'mercury-insurance', careerUrl: "https://www.mercuryinsurance.com/about/careers.html", platform: 'greenhouse', platformIdentifier: "mercury" },
 { name: "Carta", slug: 'carta', careerUrl: "https://carta.com/careers", platform: 'greenhouse', platformIdentifier: "carta" },
 { name: "Mercury", slug: 'mercury', careerUrl: "https://mercury.com/jobs", platform: 'greenhouse', platformIdentifier: "mercury" },
 { name: "Public.com", slug: 'public-com', careerUrl: "https://public.com/careers", platform: 'greenhouse', platformIdentifier: "public" },
 { name: "LendingTree", slug: 'lendingtree', careerUrl: "https://www.lendingtree.com/careers", platform: 'greenhouse', platformIdentifier: "lendingtree" },
 { name: "LPL Financial", slug: 'lpl-financial', careerUrl: "https://lpl.wd1.myworkdayjobs.com", platform: 'greenhouse', platformIdentifier: "lpl" },
-{ name: "Robinhood Crypto", slug: 'robinhood-crypto', careerUrl: "https://careers.robinhood.com", platform: 'greenhouse', platformIdentifier: "robinhood" },
 { name: "Gemini", slug: 'gemini', careerUrl: "https://www.gemini.com/careers", platform: 'greenhouse', platformIdentifier: "gemini" },
 { name: "Fireblocks", slug: 'fireblocks', careerUrl: "https://www.fireblocks.com/careers", platform: 'greenhouse', platformIdentifier: "fireblocks" },
 { name: "Neon", slug: 'neon', careerUrl: "https://neon.tech/careers", platform: 'lever', platformIdentifier: "neon" },
@@ -269,7 +264,6 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Confluent", slug: 'confluent', careerUrl: "https://www.confluent.io/careers", platform: 'ashby', platformIdentifier: "confluent" },
 { name: "Supabase", slug: 'supabase', careerUrl: "https://supabase.com/careers", platform: 'ashby', platformIdentifier: "supabase" },
 { name: "Sentry", slug: 'sentry', careerUrl: "https://sentry.io/careers", platform: 'ashby', platformIdentifier: "sentry" },
-{ name: "Snyk", slug: 'snyk', careerUrl: "https://snyk.io/careers", platform: 'ashby', platformIdentifier: "snyk" },
 { name: "Perplexity", slug: 'perplexity', careerUrl: "https://www.perplexity.ai/hub/careers", platform: 'ashby', platformIdentifier: "perplexity" },
 { name: "Modal Labs", slug: 'modal-labs', careerUrl: "https://modal.com/careers", platform: 'ashby', platformIdentifier: "modal" },
 { name: "Anyscale", slug: 'anyscale', careerUrl: "https://www.anyscale.com/careers", platform: 'ashby', platformIdentifier: "anyscale" },
@@ -298,9 +292,7 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Toast", slug: 'toast', careerUrl: "https://careers.toasttab.com", platform: 'greenhouse', platformIdentifier: "toast" },
 { name: "Calendly", slug: 'calendly', careerUrl: "https://calendly.com/jobs", platform: 'greenhouse', platformIdentifier: "calendly" },
 { name: "Tanium", slug: 'tanium', careerUrl: "https://www.tanium.com/careers", platform: 'greenhouse', platformIdentifier: "tanium" },
-{ name: "Carbon Black", slug: 'carbon-black', careerUrl: "https://www.carbonblack.com/company/careers", platform: 'greenhouse', platformIdentifier: "carbon" },
 { name: "LaunchDarkly", slug: 'launchdarkly', careerUrl: "https://launchdarkly.com/careers", platform: 'greenhouse', platformIdentifier: "launchdarkly" },
-{ name: "Split.io", slug: 'split-io', careerUrl: "https://www.split.io/careers", platform: 'greenhouse', platformIdentifier: "harnessinc" },
 { name: "Backblaze", slug: 'backblaze', careerUrl: "https://www.backblaze.com/company/jobs", platform: 'greenhouse', platformIdentifier: "backblaze" },
 { name: "Rubrik", slug: 'rubrik', careerUrl: "https://www.rubrik.com/company/careers", platform: 'greenhouse', platformIdentifier: "rubrik" },
 { name: "Commvault", slug: 'commvault', careerUrl: "https://www.commvault.com/careers", platform: 'greenhouse', platformIdentifier: "commvault" },
@@ -308,10 +300,10 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Adyen", slug: 'adyen', careerUrl: "https://careers.adyen.com", platform: 'greenhouse', platformIdentifier: "adyen" },
 { name: "Hudson River Trading", slug: 'hudson-river-trading', careerUrl: "https://www.hudsonrivertrading.com/careers", platform: 'greenhouse', platformIdentifier: "hrttalentcommunity" },
 { name: "IMC Trading", slug: 'imc-trading', careerUrl: "https://www.imc.com/us/careers", platform: 'greenhouse', platformIdentifier: "imc" },
-{ name: "Optiver", slug: 'optiver', careerUrl: "https://optiver.com/careers", platform: 'greenhouse', platformIdentifier: "optiver" },
+{ name: "Optiver", slug: 'optiver', careerUrl: "https://optiver.com/careers", platform: 'greenhouse', platformIdentifier: 'optiverus' },
 { name: "AQR Capital Management", slug: 'aqr-capital-management', careerUrl: "https://www.aqr.com/About-Us/Careers", platform: 'greenhouse', platformIdentifier: "aqr" },
 { name: "Point72", slug: 'point72', careerUrl: "https://careers.point72.com", platform: 'greenhouse', platformIdentifier: "point72" },
-{ name: "Freshworks", slug: 'freshworks', careerUrl: "https://www.freshworks.com/company/careers", platform: 'lever', platformIdentifier: "freshworks" },
+{ name: "Freshworks", slug: 'freshworks', careerUrl: "https://www.freshworks.com/company/careers", platform: 'smartrecruiters', platformIdentifier: 'freshworks' },
 { name: "Sysdig", slug: 'sysdig', careerUrl: "https://sysdig.com/careers", platform: 'lever', platformIdentifier: "sysdig" },
 { name: "ClickUp", slug: 'clickup', careerUrl: "https://clickup.com/careers", platform: 'ashby', platformIdentifier: "clickup" },
 { name: "Loom", slug: 'loom', careerUrl: "https://www.loom.com/careers", platform: 'ashby', platformIdentifier: "loom" },
@@ -354,8 +346,6 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Mercari", slug: 'mercari', careerUrl: "https://careers.mercari.com", platform: 'greenhouse', platformIdentifier: "mercari" },
 { name: "OfferUp", slug: 'offerup', careerUrl: "https://about.offerup.com/careers", platform: 'greenhouse', platformIdentifier: "offerup" },
 { name: "Sony Interactive", slug: 'sony-interactive', careerUrl: "https://www.playstation.com/careers", platform: 'greenhouse', platformIdentifier: "naughtydog" },
-{ name: "Niantic", slug: 'niantic', careerUrl: "https://nianticlabs.com/careers", platform: 'greenhouse', platformIdentifier: "scopely" },
-{ name: "Toast Tax", slug: 'toast-tax', careerUrl: "https://careers.toasttab.com", platform: 'greenhouse', platformIdentifier: "toast" },
 { name: "TaxBit", slug: 'taxbit', careerUrl: "https://www.taxbit.com/careers", platform: 'greenhouse', platformIdentifier: "taxbit" },
 { name: "Khan Academy", slug: 'khan-academy', careerUrl: "https://www.khanacademy.org/careers", platform: 'greenhouse', platformIdentifier: "khanacademy" },
 { name: "MasterClass", slug: 'masterclass', careerUrl: "https://www.masterclass.com/jobs", platform: 'greenhouse', platformIdentifier: "masterclass" },
@@ -379,9 +369,8 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Mistral AI", slug: 'mistral-ai', careerUrl: "https://mistral.ai/careers", platform: 'lever', platformIdentifier: "mistral" },
 { name: "Extreme Networks", slug: 'extreme-networks', careerUrl: "https://www.extremenetworks.com/about-extreme-networks/careers", platform: 'lever', platformIdentifier: "extremenetworks" },
 { name: "Houzz", slug: 'houzz', careerUrl: "https://www.houzz.com/jobs", platform: 'lever', platformIdentifier: "houzz" },
-{ name: "Cornerstone OnDemand", slug: 'cornerstone-ondemand', careerUrl: "https://www.cornerstoneondemand.com/careers", platform: 'lever', platformIdentifier: "cornerstone" },
 { name: "Shield AI", slug: 'shield-ai', careerUrl: "https://shield.ai/careers", platform: 'lever', platformIdentifier: "shieldai" },
-{ name: "Whoop", slug: 'whoop', careerUrl: "https://www.whoop.com/careers", platform: 'lever', platformIdentifier: "whoop" },
+{ name: "Whoop", slug: 'whoop', careerUrl: "https://www.whoop.com/careers", platform: 'ashby', platformIdentifier: 'whoop' },
 { name: "Ro", slug: 'ro', careerUrl: "https://ro.co/careers", platform: 'lever', platformIdentifier: "ro" },
 { name: "Menlo Security", slug: 'menlo-security', careerUrl: "https://www.menlosecurity.com/careers", platform: 'ashby', platformIdentifier: "menlosecurity" },
 { name: "Cube", slug: 'cube', careerUrl: "https://cube.dev/careers", platform: 'ashby', platformIdentifier: "cube" },
@@ -402,7 +391,7 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Target", slug: 'target', careerUrl: "https://corporate.target.com/careers", platform: 'workday', platformIdentifier: "target|wd5|targetcareers" },
 { name: "Nordstrom", slug: 'nordstrom', careerUrl: "https://careers.nordstrom.com", platform: 'workday', platformIdentifier: "nordstrom|wd501|nordstrom_careers" },
 { name: "Nike", slug: 'nike', careerUrl: "https://jobs.nike.com", platform: 'workday', platformIdentifier: "nike|wd1|nke" },
-{ name: "Comcast", slug: 'comcast', careerUrl: "https://jobs.comcast.com", platform: 'workday', platformIdentifier: "comcast|wd5|Comcast_Careers" },
+{ name: "Comcast", slug: 'comcast', careerUrl: "https://jobs.comcast.com", platform: 'radancy', platformIdentifier: 'jobs.comcast.com' },
 { name: "Samsung", slug: 'samsung', careerUrl: "https://www.samsung.com/us/careers", platform: 'workday', platformIdentifier: "sec|wd3|Samsung_Careers" },
 { name: "Centene", slug: 'centene', careerUrl: "https://jobs.centene.com", platform: 'workday', platformIdentifier: "centene|wd5|centene_external" },
 { name: "Barclays", slug: 'barclays', careerUrl: "https://search.jobs.barclays", platform: 'workday', platformIdentifier: "barclays|wd3|External_Career_Site_Barclays" },
@@ -412,14 +401,14 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Axiom Space", slug: 'axiom-space', careerUrl: "https://axiomspace.com/careers", platform: 'workday', platformIdentifier: "axiomspace|wd5|External_Career_Site" },
 { name: "CVS Health", slug: 'cvs-health', careerUrl: "https://jobs.cvshealth.com", platform: 'workday', platformIdentifier: "cvshealth|wd1|CVS_Health_Careers" },
 { name: "Etsy", slug: 'etsy', careerUrl: "https://careers.etsy.com", platform: 'workday', platformIdentifier: "etsy|wd5|Etsy_Careers" },
-{ name: "Walmart", slug: 'walmart', careerUrl: "https://careers.walmart.com", platform: 'workday', platformIdentifier: "walmart|wd1|WalmartExternalCareers" },
+{ name: "Walmart", slug: 'walmart', careerUrl: "https://careers.walmart.com", platform: 'smartrecruiters', platformIdentifier: 'walmartinc' },
 { name: "Humana", slug: 'humana', careerUrl: "https://careers.humana.com", platform: 'workday', platformIdentifier: "humana|wd5|Humana_External_Career_Site" },
 { name: "John Hancock", slug: 'john-hancock', careerUrl: "https://www.johnhancock.com/about-us/careers", platform: 'workday', platformIdentifier: "manulife|wd3|MFCJH_Jobs" },
 { name: "Oracle", slug: 'oracle', careerUrl: "https://careers.oracle.com", platform: 'oracle-orc', platformIdentifier: "eeho.fa.us2.oraclecloud.com|CX_45001" },
 { name: "State Farm", slug: 'state-farm', careerUrl: "https://jobs.statefarm.com/main/jobs", platform: 'icims-jra', platformIdentifier: "jobs.statefarm.com" },
 { name: "Liberty Mutual", slug: 'liberty-mutual', careerUrl: "https://www.libertymutualgroup.com/careers", platform: 'icims', platformIdentifier: "libertymutual" },
 { name: "Northwestern Mutual", slug: 'northwestern-mutual', careerUrl: "https://careers.northwesternmutual.com", platform: 'icims', platformIdentifier: "northwesternmutual" },
-{ name: "AXA", slug: 'axa', careerUrl: "https://www.axa.com/en/careers", platform: 'icims', platformIdentifier: "axa" },
+{ name: "AXA", slug: 'axa', careerUrl: "https://www.axa.com/en/careers", platform: 'icims-jra', platformIdentifier: 'careers.axa.com' },
 { name: "KnowBe4", slug: 'knowbe4', careerUrl: "https://www.knowbe4.com/careers", platform: 'greenhouse', platformIdentifier: "knowbe4" },
 { name: "Druva", slug: 'druva', careerUrl: "https://www.druva.com/about-us/careers", platform: 'greenhouse', platformIdentifier: "druva" },
 { name: "Dragos", slug: 'dragos', careerUrl: "https://www.dragos.com/careers", platform: 'greenhouse', platformIdentifier: "dragos" },
@@ -429,7 +418,6 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Omada Health", slug: 'omada-health', careerUrl: "https://www.omadahealth.com/careers", platform: 'greenhouse', platformIdentifier: "omadahealth" },
 { name: "Descript", slug: 'descript', careerUrl: "https://www.descript.com/careers", platform: 'greenhouse', platformIdentifier: "descript" },
 { name: "Speechify", slug: 'speechify', careerUrl: "https://speechify.com/careers", platform: 'greenhouse', platformIdentifier: "speechify" },
-{ name: "Sage", slug: 'sage', careerUrl: "https://www.sage.com/en-us/company/careers", platform: 'greenhouse', platformIdentifier: "sage" },
 { name: "Brooklinen", slug: 'brooklinen', careerUrl: "https://brooklinen.com/pages/careers", platform: 'ashby', platformIdentifier: "brooklinen" },
 { name: "Recharge", slug: 'recharge', careerUrl: "https://rechargepayments.com/careers", platform: 'ashby', platformIdentifier: "recharge" },
 { name: "Bright Health", slug: 'bright-health', careerUrl: "https://www.brighthealthgroup.com/careers", platform: 'greenhouse', platformIdentifier: "neuehealth" },
@@ -437,10 +425,9 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Riskified", slug: 'riskified', careerUrl: "https://www.riskified.com/careers", platform: 'greenhouse', platformIdentifier: "riskified" },
 { name: "Sezzle", slug: 'sezzle', careerUrl: "https://sezzle.com/careers", platform: 'greenhouse', platformIdentifier: "sezzle" },
 { name: "EquityZen", slug: 'equityzen', careerUrl: "https://equityzen.com/careers", platform: 'greenhouse', platformIdentifier: "equityzen" },
-{ name: "Forge Global", slug: 'forge-global', careerUrl: "https://forgeglobal.com/careers", platform: 'greenhouse', platformIdentifier: "forgeglobal" },
 { name: "Roofstock", slug: 'roofstock', careerUrl: "https://www.roofstock.com/careers", platform: 'greenhouse', platformIdentifier: "roofstock" },
 { name: "Pacaso", slug: 'pacaso', careerUrl: "https://www.pacaso.com/careers", platform: 'greenhouse', platformIdentifier: "pacaso" },
-{ name: "Crowdstreet", slug: 'crowdstreet', careerUrl: "https://www.crowdstreet.com/careers", platform: 'greenhouse', platformIdentifier: "crowdstreet" },
+{ name: "Crowdstreet", slug: 'crowdstreet', careerUrl: "https://www.crowdstreet.com/careers", platform: 'smartrecruiters', platformIdentifier: 'crowdstreet' },
 { name: "Knock", slug: 'knock', careerUrl: "https://knockcrm.com/careers", platform: 'greenhouse', platformIdentifier: "knock" },
 { name: "D2L", slug: 'd2l', careerUrl: "https://www.d2l.com/careers", platform: 'greenhouse', platformIdentifier: "d2l" },
 { name: "Newsela", slug: 'newsela', careerUrl: "https://newsela.com/careers", platform: 'greenhouse', platformIdentifier: "newsela" },
@@ -472,14 +459,14 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "MyFitnessPal", slug: 'myfitnesspal', careerUrl: "https://www.myfitnesspal.com/careers", platform: 'greenhouse', platformIdentifier: "myfitnesspal" },
 { name: "GOAT", slug: 'goat', careerUrl: "https://www.goat.com/jobs", platform: 'greenhouse', platformIdentifier: "goatgroup" },
 { name: "ZipRecruiter", slug: 'ziprecruiter', careerUrl: "https://www.ziprecruiter.com/careers", platform: 'greenhouse', platformIdentifier: "ziprecruiter" },
-{ name: "Sword Health", slug: 'sword-health', careerUrl: "https://swordhealth.com/careers", platform: 'lever', platformIdentifier: "swordhealth" },
+{ name: "Sword Health", slug: 'sword-health', careerUrl: "https://swordhealth.com/careers", platform: 'greenhouse', platformIdentifier: 'swordhealth' },
 { name: "AllTrails", slug: 'alltrails', careerUrl: "https://www.alltrails.com/careers", platform: 'lever', platformIdentifier: "alltrails" },
 { name: "Animoca Brands", slug: 'animoca-brands', careerUrl: "https://www.animocabrands.com/careers", platform: 'lever', platformIdentifier: "animocabrands" },
 { name: "AngelList", slug: 'angellist', careerUrl: "https://angellist.com/jobs", platform: 'lever', platformIdentifier: "angellist" },
 { name: "Fundrise", slug: 'fundrise', careerUrl: "https://fundrise.com/careers", platform: 'lever', platformIdentifier: "fundrise" },
 { name: "Entrata", slug: 'entrata', careerUrl: "https://www.entrata.com/careers", platform: 'lever', platformIdentifier: "entrata" },
 { name: "15Five", slug: '15five', careerUrl: "https://www.15five.com/careers", platform: 'lever', platformIdentifier: "15five" },
-{ name: "Docebo", slug: 'docebo', careerUrl: "https://www.docebo.com/about/careers", platform: 'lever', platformIdentifier: "docebo" },
+{ name: "Docebo", slug: 'docebo', careerUrl: "https://www.docebo.com/about/careers", platform: 'ashby', platformIdentifier: 'docebo' },
 { name: "360Learning", slug: '360learning', careerUrl: "https://360learning.com/careers", platform: 'lever', platformIdentifier: "360learning" },
 { name: "Filevine", slug: 'filevine', careerUrl: "https://www.filevine.com/careers", platform: 'lever', platformIdentifier: "filevine" },
 { name: "Beta Technologies", slug: 'beta-technologies', careerUrl: "https://www.beta.team/careers", platform: 'lever', platformIdentifier: "beta" },
@@ -491,7 +478,6 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Lightdash", slug: 'lightdash', careerUrl: "https://www.lightdash.com/careers", platform: 'ashby', platformIdentifier: "lightdash" },
 { name: "Runway", slug: 'runway', careerUrl: "https://runwayml.com/careers", platform: 'ashby', platformIdentifier: "runway" },
 { name: "Writer", slug: 'writer', careerUrl: "https://writer.com/careers", platform: 'ashby', platformIdentifier: "writer" },
-{ name: "Vellum", slug: 'vellum', careerUrl: "https://www.vellum.ai/careers", platform: 'ashby', platformIdentifier: "vellum" },
 { name: "Weaviate", slug: 'weaviate', careerUrl: "https://weaviate.io/company/careers", platform: 'ashby', platformIdentifier: "weaviate" },
 { name: "LangChain", slug: 'langchain', careerUrl: "https://www.langchain.com/careers", platform: 'ashby', platformIdentifier: "langchain" },
 { name: "Gorgias", slug: 'gorgias', careerUrl: "https://www.gorgias.com/careers", platform: 'ashby', platformIdentifier: "gorgias" },
@@ -499,9 +485,8 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Bolt", slug: 'bolt', careerUrl: "https://www.bolt.com/careers", platform: 'ashby', platformIdentifier: "bolt" },
 { name: "Pleo", slug: 'pleo', careerUrl: "https://www.pleo.io/en/careers", platform: 'ashby', platformIdentifier: "pleo" },
 { name: "Zip", slug: 'zip', careerUrl: "https://zip.co/us/careers", platform: 'ashby', platformIdentifier: "zip" },
-{ name: "Cadre", slug: 'cadre', careerUrl: "https://cadre.com/careers", platform: 'ashby', platformIdentifier: "cadre" },
+{ name: "Cadre", slug: 'cadre', careerUrl: "https://cadre.com/careers", platform: 'smartrecruiters', platformIdentifier: 'cadreinc' },
 { name: "Top Hat", slug: 'top-hat', careerUrl: "https://tophat.com/careers", platform: 'ashby', platformIdentifier: "top-hat" },
-{ name: "Sierra Space", slug: 'sierra-space', careerUrl: "https://sierraspace.com/careers", platform: 'ashby', platformIdentifier: "sierra" },
 { name: "Quantum Systems", slug: 'quantum-systems', careerUrl: "https://www.quantum-systems.com/careers", platform: 'ashby', platformIdentifier: "quantum" },
 { name: "Anima", slug: 'anima', careerUrl: "https://www.animaapp.com/careers", platform: 'ashby', platformIdentifier: "anima" },
 { name: "Juro", slug: 'juro', careerUrl: "https://juro.com/careers", platform: 'ashby', platformIdentifier: "juro" },
@@ -513,36 +498,37 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Capsule", slug: 'capsule', careerUrl: "https://www.capsule.com/careers", platform: 'ashby', platformIdentifier: "capsule" },
 { name: "JFrog", slug: 'jfrog', careerUrl: "https://jfrog.com/careers", platform: 'greenhouse', platformIdentifier: "jfrog" },
 { name: "McAfee", slug: 'mcafee', careerUrl: "https://www.mcafee.com/careers", platform: 'workday', platformIdentifier: "mcafee|wd1|External" },
-{ name: "Qorvo", slug: 'qorvo', careerUrl: "https://www.qorvo.com/careers", platform: 'workday', platformIdentifier: "qorvo|wd5|External" },
-{ name: "Microchip Technology", slug: 'microchip', careerUrl: "https://www.microchip.com/careers", platform: 'workday', platformIdentifier: "mchp|wd1|External" },
-{ name: "Texas Instruments", slug: 'ti', careerUrl: "https://www.ti.com/careers", platform: 'workday', platformIdentifier: "ti|wd1|TI" },
+{ name: "Qorvo", slug: 'qorvo', careerUrl: "https://www.qorvo.com/careers", platform: 'successfactors', platformIdentifier: 'careers.qorvo.com' },
+{ name: "Microchip Technology", slug: 'microchip', careerUrl: "https://www.microchip.com/careers", platform: 'smartrecruiters', platformIdentifier: 'microchip' },
+{ name: "Texas Instruments", slug: 'ti', careerUrl: "https://www.ti.com/careers", platform: 'oracle-orc', platformIdentifier: 'edbz.fa.us2.oraclecloud.com|CX' },
 { name: "Supercell", slug: 'supercell', careerUrl: "https://supercell.com/careers", platform: 'ashby', platformIdentifier: "supercell" },
 { name: "Bandwidth", slug: 'bandwidth', careerUrl: "https://www.bandwidth.com/careers", platform: 'greenhouse', platformIdentifier: "bandwidth" },
-{ name: "Equifax", slug: 'equifax', careerUrl: "https://careers.equifax.com", platform: 'workday', platformIdentifier: "eq|wd1|External" },
-{ name: "Experian", slug: 'experian', careerUrl: "https://www.experian.com/careers", platform: 'workday', platformIdentifier: "experian|wd1|External" },
+{ name: "Equifax", slug: 'equifax', careerUrl: "https://careers.equifax.com", platform: 'workday', platformIdentifier: "equifax|wd5|External" },
+{ name: "Experian", slug: 'experian', careerUrl: "https://www.experian.com/careers", platform: 'smartrecruiters', platformIdentifier: 'experian' },
 { name: "Hopper", slug: 'hopper', careerUrl: "https://www.hopper.com/careers", platform: 'ashby', platformIdentifier: "hopper" },
 // Interactive Brokers removed — `ibkr` is not a Greenhouse board, and both plausible
 // Workday tenants (ibkr, interactivebrokers) answer 422 even after the CSRF prefetch,
 // meaning the tenant does not exist. Its careers site is bespoke PHP with no JSON feed.
-{ name: "Maersk Line", slug: 'maersk', careerUrl: "https://careers.maersk.com", platform: 'workday', platformIdentifier: "maersk|wd1|External" },
+{ name: "Maersk Line", slug: 'maersk', careerUrl: "https://careers.maersk.com", platform: 'workday', platformIdentifier: 'maersk|wd3|maersk_careers' },
 { name: "McKinsey", slug: 'mckinsey', careerUrl: "https://www.mckinsey.com/careers/search-jobs", platform: 'mckinsey' },
-{ name: "Microsoft", slug: 'microsoft', careerUrl: "https://careers.microsoft.com", platform: 'workday', platformIdentifier: "microsoft|wd1|Microsoft" },
+{ name: "Microsoft", slug: 'microsoft', careerUrl: "https://careers.microsoft.com", platform: 'eightfold', platformIdentifier: 'apply.careers.microsoft.com|microsoft.com' },
 { name: "Apple", slug: 'apple-careers', careerUrl: "https://jobs.apple.com/en-us/search", platform: 'apple' },
-{ name: "Google", slug: 'google-careers', careerUrl: "https://careers.google.com", platform: 'workday', platformIdentifier: "google|wd1|External" },
 { name: "Amazon", slug: 'amazon-careers', careerUrl: "https://www.amazon.jobs", platform: 'amazon' },
-{ name: "Tesla", slug: 'tesla-careers', careerUrl: "https://www.tesla.com/careers/search", platform: 'tesla' },
-{ name: "Fortinet", slug: 'fortinet-careers', careerUrl: "https://career.fortinet.com", platform: 'workday', platformIdentifier: "fortinet|wd5|Fortinet" },
-{ name: "Splunk", slug: 'splunk-careers', careerUrl: "https://www.splunk.com/en_us/careers", platform: 'workday', platformIdentifier: "splunk|wd1|External" },
-{ name: "Canva", slug: 'canva-careers', careerUrl: "https://canva.com/careers", platform: 'workday', platformIdentifier: "canva|wd5|External" },
-{ name: "eBay", slug: 'ebay-careers', careerUrl: "https://www.ebay.com/careers", platform: 'workday', platformIdentifier: "ebay|wd1|ebaycareers" },
-{ name: "Disney", slug: 'disney-careers', careerUrl: "https://jobs.disneycareers.com", platform: 'workday', platformIdentifier: "disney|wd1|External" },
-{ name: "HBO Max", slug: 'hbomax-careers', careerUrl: "https://warnermedia.com/careers", platform: 'workday', platformIdentifier: "warnermedia|wd1|External" },
+// Tesla removed 2026-09-26: www.tesla.com/careers is behind Akamai, which answers the
+// headless browser with 403 Access Denied, so the 'tesla' scraper always returned 0 jobs.
+// Bot-walled, like Glassdoor. Tesla postings still arrive via the LinkedIn / BuiltIn boards.
+{ name: "Fortinet", slug: 'fortinet-careers', careerUrl: 'https://jobs.fortinet.com', platform: 'oracle-orc', platformIdentifier: 'edel.fa.us2.oraclecloud.com|CX_2001' },
+// Acquired by Cisco; the splunk Workday tenant no longer exists. Splunk roles are on Cisco's
+// board, already registered as `cisco` and again as the `splunk` phenom entry below.
+{ name: "Canva", slug: 'canva-careers', careerUrl: "https://canva.com/careers", platform: 'smartrecruiters', platformIdentifier: 'canva' },
+{ name: "eBay", slug: 'ebay-careers', careerUrl: "https://www.ebay.com/careers", platform: 'phenom', platformIdentifier: 'jobs.ebayinc.com' },
+{ name: "Disney", slug: 'disney-careers', careerUrl: "https://www.disneycareers.com", platform: 'radancy', platformIdentifier: 'www.disneycareers.com' },
+{ name: "HBO Max", slug: 'hbomax-careers', careerUrl: "https://careers.wbd.com", platform: 'workday', platformIdentifier: "warnerbros|wd5|global" },
 { name: "Medium", slug: 'medium-careers', careerUrl: "https://www.medium.com/careers", platform: 'greenhouse', platformIdentifier: "medium" },
 { name: "Substack", slug: 'substack-careers', careerUrl: "https://substack.com/careers", platform: 'ashby', platformIdentifier: "substack" },
 { name: "Kickstarter", slug: 'kickstarter-careers', careerUrl: "https://www.kickstarter.com/jobs", platform: 'greenhouse', platformIdentifier: "kickstarter" },
 { name: "Uber", slug: 'uber-careers', careerUrl: "https://www.uber.com/us/en/careers/", platform: 'smartrecruiters', platformIdentifier: 'Uber' },
-{ name: "Robinhood", slug: 'robinhood-careers', careerUrl: "https://careers.robinhood.com", platform: 'greenhouse', platformIdentifier: "robinhood" },
-{ name: "Thinkific", slug: 'thinkific-careers', careerUrl: "https://www.thinkific.com/careers", platform: 'greenhouse', platformIdentifier: "thinkific" },
+{ name: "Thinkific", slug: 'thinkific-careers', careerUrl: "https://www.thinkific.com/careers", platform: 'ashby', platformIdentifier: 'thinkific' },
 { name: "Trend Micro", slug: 'trend-micro', careerUrl: "https://www.trendmicro.com/en_us/about/careers.html", platform: 'workday', platformIdentifier: "trendmicro|wd3|External" },
 { name: "Cleveland Clinic", slug: 'cleveland-clinic', careerUrl: "https://jobs.clevelandclinic.org", platform: 'workday', platformIdentifier: "ccf|wd1|ClevelandClinicCareers" },
 { name: "AdventHealth", slug: 'adventhealth', careerUrl: "https://jobs.adventhealth.com", platform: 'workday', platformIdentifier: "adventhealth|wd12|AH_External_Career_Site" },
@@ -553,17 +539,14 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Lloyds", slug: 'lloyds', careerUrl: "https://www.lloydsbankinggroup.com/careers", platform: 'workday', platformIdentifier: "lbg|wd3|lbg_Careers" },
 { name: "AeroVironment", slug: 'aerovironment', careerUrl: "https://www.avinc.com/careers", platform: 'workday', platformIdentifier: "avav|wd1|AVAV" },
 { name: "Vertex", slug: 'vertex', careerUrl: "https://www.vertexinc.com/careers", platform: 'workday', platformIdentifier: "vertexinc|wd1|VertexInc" },
-{ name: "Citrix", slug: 'citrix', careerUrl: "https://www.citrix.com/careers", platform: 'workday', platformIdentifier: "citrix|wd1|External" },
+{ name: "Citrix", slug: 'citrix', careerUrl: "https://www.citrix.com/careers", platform: 'workday', platformIdentifier: 'tibco|wd5|Cloud_Software_Group' },
 { name: "Scaler Academy", slug: 'scaler', careerUrl: "https://www.scaler.com/careers", platform: 'ashby', platformIdentifier: "scaler" },
-{ name: "AppDynamics", slug: 'appdynamics', careerUrl: "https://www.appdynamics.com/careers", platform: 'workday', platformIdentifier: "appdynamics|wd1|External" },
 { name: "LogicMonitor", slug: 'logicmonitor', careerUrl: "https://www.logicmonitor.com/careers", platform: 'greenhouse', platformIdentifier: "logicmonitor" },
-{ name: "Box", slug: 'box', careerUrl: "https://www.box.com/careers", platform: 'workday', platformIdentifier: "box|wd1|External" },
+{ name: "Box", slug: 'box', careerUrl: "https://www.box.com/careers", platform: 'greenhouse', platformIdentifier: 'boxinc' },
 { name: "ProtonDrive", slug: 'protondrive', careerUrl: "https://proton.me/careers", platform: 'greenhouse', platformIdentifier: "proton" },
-{ name: "Juniper Networks", slug: 'juniper', careerUrl: "https://www.juniper.net/careers", platform: 'workday', platformIdentifier: "juniper|wd1|External" },
-{ name: "Arista Networks", slug: 'arista', careerUrl: "https://www.arista.com/careers", platform: 'workday', platformIdentifier: "arista|wd1|External" },
-{ name: "Mellanox", slug: 'mellanox', careerUrl: "https://www.mellanox.com/careers", platform: 'workday', platformIdentifier: "mellanox|wd1|External" },
-{ name: "AMD", slug: 'amd', careerUrl: "https://www.amd.com/careers", platform: 'workday', platformIdentifier: "amd|wd5|AMD" },
-{ name: "Qualcomm", slug: 'qualcomm', careerUrl: "https://www.qualcomm.com/careers", platform: 'workday', platformIdentifier: "qcom|wd1|External" },
+{ name: "Arista Networks", slug: 'arista', careerUrl: "https://www.arista.com/careers", platform: 'smartrecruiters', platformIdentifier: 'AristaNetworks' },
+{ name: "AMD", slug: 'amd', careerUrl: "https://www.amd.com/careers", platform: 'icims-jra', platformIdentifier: 'careers.amd.com' },
+{ name: "Qualcomm", slug: 'qualcomm', careerUrl: 'https://careers.qualcomm.com/careers', platform: 'eightfold', platformIdentifier: 'careers.qualcomm.com|qualcomm.com' },
 { name: "Kingston", slug: 'kingston', careerUrl: "https://www.kingston.com/careers", platform: 'greenhouse', platformIdentifier: "kingston" },
 { name: 'Twitch', slug: 'twitch', careerUrl: 'https://www.twitch.tv/careers', platform: 'greenhouse', platformIdentifier: 'twitch' },
 { name: 'Datadog', slug: 'datadog', careerUrl: 'https://www.datadoghq.com/careers', platform: 'greenhouse', platformIdentifier: 'datadog' },
@@ -574,14 +557,12 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: 'Airtable', slug: 'airtable', careerUrl: 'https://airtable.com/careers', platform: 'greenhouse', platformIdentifier: 'airtable' },
 { name: 'Webflow', slug: 'webflow', careerUrl: 'https://webflow.com/careers', platform: 'greenhouse', platformIdentifier: 'webflow' },
 { name: 'Typeform', slug: 'typeform', careerUrl: 'https://careers.typeform.com', platform: 'greenhouse', platformIdentifier: 'typeform' },
-{ name: 'DeepMind', slug: 'deepmind', careerUrl: 'https://www.deepmind.com/careers', platform: 'greenhouse', platformIdentifier: 'deepmind' },
 { name: 'Nextdoor', slug: 'nextdoor', careerUrl: 'https://www.nextdoor.com/careers', platform: 'greenhouse', platformIdentifier: 'nextdoor' },
 { name: 'Krafton', slug: 'krafton', careerUrl: 'https://www.krafton.com/careers', platform: 'greenhouse', platformIdentifier: 'krafton' },
 { name: 'Scopely', slug: 'scopely', careerUrl: 'https://www.scopely.com/careers', platform: 'greenhouse', platformIdentifier: 'scopely' },
 { name: 'One Medical', slug: 'one-medical', careerUrl: 'https://www.onemedical.com/careers', platform: 'greenhouse', platformIdentifier: 'onemedical' },
 { name: 'Parsley Health', slug: 'parsley-health', careerUrl: 'https://www.parsleyhealth.com/careers', platform: 'greenhouse', platformIdentifier: 'parsleyhealth' },
 { name: 'N26', slug: 'n26', careerUrl: 'https://n26.com/careers', platform: 'greenhouse', platformIdentifier: 'n26' },
-{ name: 'Public.com', slug: 'public', careerUrl: 'https://www.public.com/careers', platform: 'greenhouse', platformIdentifier: 'public' },
 { name: 'Code.org', slug: 'code-org', careerUrl: 'https://code.org/careers', platform: 'greenhouse', platformIdentifier: 'codeorg' },
 { name: 'Insurify', slug: 'insurify', careerUrl: 'https://www.insurify.com/careers', platform: 'greenhouse', platformIdentifier: 'insurify' },
 { name: 'Reinsurance Group of America', slug: 'rga', careerUrl: 'https://www.rgare.com/careers', platform: 'greenhouse', platformIdentifier: 'rga' },
@@ -593,7 +574,6 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: 'Disney', slug: 'disney', careerUrl: 'https://www.disneycareeers.com', platform: 'greenhouse', platformIdentifier: 'disney' },
   { name: 'Crash Plan', slug: 'crash-plan', careerUrl: 'https://www.crashplan.com/careers', platform: 'greenhouse', platformIdentifier: 'crashplan' },
   { name: 'Constant Contact', slug: 'constant-contact', careerUrl: 'https://www.constantcontact.com/careers', platform: 'greenhouse', platformIdentifier: 'constantcontact' },
-  { name: 'NICE Systems', slug: 'nice-systems', careerUrl: 'https://www.nice.com/careers', platform: 'greenhouse', platformIdentifier: 'nice' },
   { name: 'Elastic', slug: 'elastic', careerUrl: 'https://www.elastic.co/careers', platform: 'greenhouse', platformIdentifier: 'elastic' },
   { name: 'Apache Superset', slug: 'apache-superset', careerUrl: 'https://superset.apache.org/careers', platform: 'greenhouse', platformIdentifier: 'superset' },
   { name: 'OKX', slug: 'okx', careerUrl: 'https://www.okx.com/careers', platform: 'greenhouse', platformIdentifier: 'okx' },
@@ -601,7 +581,7 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: 'Skillsoft', slug: 'skillsoft', careerUrl: 'https://www.skillsoft.com/careers', platform: 'greenhouse', platformIdentifier: 'skillsoft' },
   { name: 'Udacity', slug: 'udacity', careerUrl: 'https://www.udacity.com/careers', platform: 'greenhouse', platformIdentifier: 'udacity' },
   { name: 'Mighty Networks', slug: 'mighty-networks', careerUrl: 'https://www.mightynetworks.com/careers', platform: 'greenhouse', platformIdentifier: 'mightynetworks' },
-  { name: 'Circle', slug: 'circle', careerUrl: 'https://www.circle.so/careers', platform: 'greenhouse', platformIdentifier: 'circleso' },
+  { name: 'Circle', slug: 'circle', careerUrl: 'https://www.circle.so/careers', platform: 'ashby', platformIdentifier: 'circle' },
   { name: 'Workato', slug: 'workato', careerUrl: 'https://www.workato.com/careers', platform: 'greenhouse', platformIdentifier: 'workato' },
   { name: 'Brandwatch', slug: 'brandwatch', careerUrl: 'https://www.brandwatch.com/careers', platform: 'greenhouse', platformIdentifier: 'brandwatch' },
   { name: 'Via', slug: 'via', careerUrl: 'https://www.viaride.com/careers', platform: 'greenhouse', platformIdentifier: 'via' },
@@ -609,147 +589,131 @@ const PRECONFIGURED: CompanyConfig[] = [
   // ── Newly Added Companies ────────────────────────────
   // aws slug removed — Amazon's Workday doesn't use amazon|wd1|aws; amazon.jobs is custom-platform only
   // azure slug removed — Microsoft Azure is not a separate Workday tenant; use microsoft slug instead
-  { name: 'Intel', slug: 'intel-corp', careerUrl: 'https://www.intel.com/careers', platform: 'workday', platformIdentifier: 'intel|wd5|external' },
-  { name: 'AMD', slug: 'amd-corp', careerUrl: 'https://www.amd.com/en/careers', platform: 'workday', platformIdentifier: 'amd|wd5|external' },
-  { name: 'Qualcomm', slug: 'qualcomm-corp', careerUrl: 'https://www.qualcomm.com/careers', platform: 'workday', platformIdentifier: 'qualcomm|wd5|external' },
 
   // ── Major Tech Companies ──────────────────────────────
   { name: 'LinkedIn', slug: 'linkedin', careerUrl: 'https://careers.linkedin.com', platform: 'greenhouse', platformIdentifier: 'linkedin' },
-  { name: 'IBM', slug: 'ibm', careerUrl: 'https://www.ibm.com/careers', platform: 'workday', platformIdentifier: 'ibm|wd12|IBM' },
   { name: 'Cisco', slug: 'cisco', careerUrl: 'https://jobs.cisco.com', platform: 'workday', platformIdentifier: 'cisco|wd5|Cisco_Careers' },
-  { name: 'ServiceNow', slug: 'servicenow', careerUrl: 'https://careers.servicenow.com', platform: 'workday', platformIdentifier: 'servicenow|wd5|External' },
-  { name: 'Palo Alto Networks', slug: 'palo-alto-networks', careerUrl: 'https://jobs.paloaltonetworks.com', platform: 'workday', platformIdentifier: 'paloaltonetworks|wd1|External' },
-  { name: 'Workday', slug: 'workday-inc', careerUrl: 'https://www.workday.com/en-us/company/careers.html', platform: 'workday', platformIdentifier: 'workday|wd5|Workday' },
-  { name: 'Intuit', slug: 'intuit', careerUrl: 'https://jobs.intuit.com', platform: 'workday', platformIdentifier: 'intuit|wd5|careers' },
-  { name: 'VMware', slug: 'vmware', careerUrl: 'https://careers.vmware.com', platform: 'workday', platformIdentifier: 'vmware|wd1|VMWare' },
-  { name: 'Splunk', slug: 'splunk', careerUrl: 'https://www.splunk.com/en_us/careers.html', platform: 'workday', platformIdentifier: 'splunk|wd5|Splunk' },
+  { name: 'ServiceNow', slug: 'servicenow', careerUrl: 'https://careers.servicenow.com', platform: 'smartrecruiters', platformIdentifier: 'servicenow' },
+  { name: 'Palo Alto Networks', slug: 'palo-alto-networks', careerUrl: 'https://jobs.paloaltonetworks.com', platform: 'workday', platformIdentifier: 'paloaltonetworks|wd5|panwexternalcareers' },
+  { name: 'Intuit', slug: 'intuit', careerUrl: 'https://jobs.intuit.com', platform: 'radancy', platformIdentifier: 'jobs.intuit.com' },
+  // Acquired by Broadcom; VMware roles now sit on broadcom|wd1|External_Career, which the
+  // Broadcom entry already covers. Pointing this here would duplicate that board.
+  // NOTE: this points at Cisco's whole Phenom portal (1200+ jobs), so every Cisco posting is
+  // returned labelled "Splunk", and `cisco` already covers that employer via Workday. Kept as
+  // found, but it is a mislabel worth resolving — it is not a Splunk-specific board.
   { name: 'Snowflake', slug: 'snowflake', careerUrl: 'https://careers.snowflake.com', platform: 'ashby', platformIdentifier: 'snowflake' },
-  { name: 'Elastic', slug: 'elastic-co', careerUrl: 'https://www.elastic.co/careers', platform: 'greenhouse', platformIdentifier: 'elastic' },
   { name: 'Snap', slug: 'snap', careerUrl: 'https://careers.snap.com', platform: 'workday', platformIdentifier: 'snapchat|wd1|snap' },
   { name: 'Brex', slug: 'brex', careerUrl: 'https://www.brex.com/careers', platform: 'greenhouse', platformIdentifier: 'brex' },
-  { name: 'Plaid', slug: 'plaid', careerUrl: 'https://plaid.com/careers', platform: 'lever', platformIdentifier: 'plaid' },
+  { name: 'Plaid', slug: 'plaid', careerUrl: 'https://plaid.com/careers', platform: 'ashby', platformIdentifier: 'plaid' },
 
   // ── IT Services & Consulting ──────────────────────────
-  { name: 'Accenture', slug: 'accenture', careerUrl: 'https://www.accenture.com/us-en/careers', platform: 'workday', platformIdentifier: 'accenture|wd3|AccentureCareers' },
-  { name: 'Deloitte', slug: 'deloitte', careerUrl: 'https://www2.deloitte.com/us/en/careers.html', platform: 'workday', platformIdentifier: 'deloitte|wd1|DTICareers' },
+  { name: 'Accenture', slug: 'accenture', careerUrl: 'https://www.accenture.com/us-en/careers', platform: 'workday', platformIdentifier: 'accenture|wd103|AccentureCareers' },
+  { name: 'Deloitte', slug: 'deloitte', careerUrl: 'https://www.deloitte.com/global/en/careers/job-search.html?icid=top_job-search', platform: 'workday', platformIdentifier: 'deloitteie|wd3|Experienced_Professionals' },
   { name: 'Capgemini', slug: 'capgemini', careerUrl: 'https://www.capgemini.com/us-en/careers', platform: 'smartrecruiters', platformIdentifier: 'Capgemini' },
-  { name: 'Cognizant', slug: 'cognizant', careerUrl: 'https://careers.cognizant.com', platform: 'workday', platformIdentifier: 'cognizant|wd1|Cognizant_Careers' },
-  { name: 'Infosys', slug: 'infosys', careerUrl: 'https://www.infosys.com/careers', platform: 'workday', platformIdentifier: 'infosys|wd3|Infosys_Careers' },
 
   // ── Finance & Banking ─────────────────────────────────
-  { name: 'Morgan Stanley', slug: 'morgan-stanley', careerUrl: 'https://www.morganstanley.com/careers', platform: 'workday', platformIdentifier: 'morganstanley|wd5|External' },
-  { name: 'Fidelity', slug: 'fidelity', careerUrl: 'https://jobs.fidelity.com', platform: 'workday', platformIdentifier: 'fidelityinvestments|wd5|careers' },
-  { name: 'American Express', slug: 'amex', careerUrl: 'https://jobs.americanexpress.com', platform: 'workday', platformIdentifier: 'aexp|wd5|AmexCareers' },
+  { name: 'Morgan Stanley', slug: 'morgan-stanley', careerUrl: 'https://www.morganstanley.com/careers', platform: 'workday', platformIdentifier: 'ms|wd5|External' },
+  { name: 'Fidelity', slug: 'fidelity', careerUrl: 'https://jobs.fidelity.com', platform: 'workday', platformIdentifier: 'fmr|wd1|fidelityCareers' },
+  { name: 'American Express', slug: 'amex', careerUrl: 'https://careers.americanexpress.com', platform: 'oracle-orc', platformIdentifier: 'egug.fa.us2.oraclecloud.com|CX_1' },
 
   // ── Healthcare & Insurance ────────────────────────────
-  { name: 'UnitedHealth Group', slug: 'unitedhealth', careerUrl: 'https://careers.unitedhealthgroup.com', platform: 'workday', platformIdentifier: 'uhg|wd5|External' },
+  { name: 'UnitedHealth Group', slug: 'unitedhealth', careerUrl: 'https://careers.unitedhealthgroup.com', platform: 'radancy', platformIdentifier: 'careers.unitedhealthgroup.com' },
 
   // ── Aerospace & Defense ───────────────────────────────
-  { name: 'Raytheon Technologies', slug: 'raytheon', careerUrl: 'https://jobs.rtx.com', platform: 'workday', platformIdentifier: 'rtx|wd1|RTX' },
-  { name: 'Lockheed Martin', slug: 'lockheed-martin', careerUrl: 'https://www.lockheedmartinjobs.com', platform: 'workday', platformIdentifier: 'lmco|wd5|LMCareers' },
+  { name: 'Raytheon Technologies', slug: 'raytheon', careerUrl: 'https://jobs.rtx.com', platform: 'workday', platformIdentifier: 'globalhr|wd5|REC_RTX_Ext_Gateway' },
+  { name: 'Lockheed Martin', slug: 'lockheed-martin', careerUrl: 'https://lockheedmartin.eightfold.ai/careers', platform: 'eightfold', platformIdentifier: 'lockheedmartin.eightfold.ai|lockheedmartin.com' },
   { name: 'Northrop Grumman', slug: 'northrop-grumman', careerUrl: 'https://www.northropgrumman.com/careers', platform: 'workday', platformIdentifier: 'ngc|wd1|Northrop_Grumman_External_Site' },
-  { name: 'L3Harris', slug: 'l3harris', careerUrl: 'https://careers.l3harris.com', platform: 'workday', platformIdentifier: 'l3harris|wd5|L3Harris' },
+  { name: 'L3Harris', slug: 'l3harris', careerUrl: 'https://careers.l3harris.com', platform: 'successfactors', platformIdentifier: 'jobs.l3harris.com' },
 
   // ── Big Tech & Cloud (additional) ────────────────────
   { name: 'Spotify', slug: 'spotify', careerUrl: 'https://www.lifeatspotify.com/jobs', platform: 'lever', platformIdentifier: 'spotify' },
   { name: 'Zoom', slug: 'zoom', careerUrl: 'https://explore.zoom.us/en/careers', platform: 'workday', platformIdentifier: 'zoom|wd5|Zoom' },
 
   // ── Cloud & SaaS (additional) ────────────────────────
-  { name: 'Monday.com', slug: 'monday-com', careerUrl: 'https://monday.com/careers', platform: 'workday', platformIdentifier: 'mondaydotcom|wd5|mondaydotcom' },
   { name: 'Notion', slug: 'notion', careerUrl: 'https://www.notion.so/careers', platform: 'ashby', platformIdentifier: 'notion' },
-  { name: 'DocuSign', slug: 'docusign', careerUrl: 'https://careers.docusign.com', platform: 'workday', platformIdentifier: 'docusign|wd1|DocuSign' },
-  { name: 'Miro', slug: 'miro', careerUrl: 'https://miro.com/careers', platform: 'workday', platformIdentifier: 'miro|wd5|Miro' },
-  { name: 'Rippling', slug: 'rippling', careerUrl: 'https://www.rippling.com/careers', platform: 'workday', platformIdentifier: 'rippling|wd5|Rippling' },
-  { name: 'Shopify', slug: 'shopify', careerUrl: 'https://www.shopify.com/careers', platform: 'workday', platformIdentifier: 'shopify|wd5|Shopify' },
-  { name: 'Retool', slug: 'retool', careerUrl: 'https://retool.com/careers', platform: 'workday', platformIdentifier: 'retool|wd5|Retool' },
+  { name: 'DocuSign', slug: 'docusign', careerUrl: 'https://careers.docusign.com', platform: 'icims-jra', platformIdentifier: 'careers.docusign.com' },
+  { name: 'Miro', slug: 'miro', careerUrl: 'https://miro.com/careers', platform: 'ashby', platformIdentifier: 'miro' },
 
   // ── Cybersecurity (additional) ────────────────────────
-  { name: 'SentinelOne', slug: 'sentinelone', careerUrl: 'https://www.sentinelone.com/jobs', platform: 'workday', platformIdentifier: 'sentinelone|wd5|SentinelOne_Careers' },
-  { name: 'CyberArk', slug: 'cyberark', careerUrl: 'https://www.cyberark.com/company/careers', platform: 'workday', platformIdentifier: 'cyberark|wd5|CyberArk' },
-  { name: 'Rapid7', slug: 'rapid7', careerUrl: 'https://www.rapid7.com/company/careers', platform: 'workday', platformIdentifier: 'rapid7|wd5|Rapid7' },
-  { name: 'Secureworks', slug: 'secureworks', careerUrl: 'https://careers.secureworks.com', platform: 'workday', platformIdentifier: 'secureworks|wd5|Secureworks_Careers' },
+  { name: 'SentinelOne', slug: 'sentinelone', careerUrl: 'https://www.sentinelone.com/jobs', platform: 'greenhouse', platformIdentifier: 'sentinellabs' },
+  // Acquired by Palo Alto Networks; roles moved to paloaltonetworks|wd5|panwexternalcareers,
+  // which the Palo Alto Networks entry already carries verbatim.
+    // Sophos acquired Secureworks (2025); careers.secureworks.com no longer resolves and the
+  // postings moved to Sophos's Lever board. Renamed so the jobs are not mislabelled.
+  { name: 'Sophos (formerly Secureworks)', slug: 'secureworks', careerUrl: 'https://jobs.lever.co/sophos', platform: 'lever', platformIdentifier: 'sophos' },
 
   // ── Hardware & Semiconductors (additional) ────────────
-  { name: 'Garmin', slug: 'garmin', careerUrl: 'https://careers.garmin.com', platform: 'workday', platformIdentifier: 'garmin|wd5|Garmin' },
+  { name: 'Garmin', slug: 'garmin', careerUrl: 'https://careers.garmin.com', platform: 'icims-jra', platformIdentifier: 'careers.garmin.com' },
   { name: 'Western Digital', slug: 'western-digital', careerUrl: 'https://jobs.westerndigital.com', platform: 'smartrecruiters', platformIdentifier: 'WesternDigital' },
-  { name: 'Seagate', slug: 'seagate', careerUrl: 'https://careers.seagate.com', platform: 'workday', platformIdentifier: 'seagatetechnology|wd3|Seagate' },
 
   // ── Analytics & BI (additional) ──────────────────────
   { name: 'TransUnion', slug: 'transunion', careerUrl: 'https://careers.transunion.com', platform: 'workday', platformIdentifier: 'transunion|wd5|TransUnion' },
-  { name: 'MSCI', slug: 'msci', careerUrl: 'https://careers.msci.com', platform: 'workday', platformIdentifier: 'msci|wd3|MSCICareers' },
-  { name: "Moody's", slug: 'moodys', careerUrl: 'https://careers.moodys.com', platform: 'workday', platformIdentifier: 'moodyscorporation|wd1|External' },
-  { name: 'FactSet', slug: 'factset', careerUrl: 'https://careers.factset.com', platform: 'workday', platformIdentifier: 'factset|wd5|FactSet_Careers' },
+  { name: "Moody's", slug: 'moodys', careerUrl: 'https://careers.moodys.com', platform: 'radancy', platformIdentifier: 'careers.moodys.com' },
+  { name: 'FactSet', slug: 'factset', careerUrl: 'https://careers.factset.com', platform: 'workday', platformIdentifier: 'factset|wd108|FactSetCareers' },
 
   // ── Fintech & Payments (additional) ──────────────────
-  { name: 'Klarna', slug: 'klarna', careerUrl: 'https://www.klarna.com/careers', platform: 'workday', platformIdentifier: 'klarna|wd5|Klarna' },
-  { name: 'NerdWallet', slug: 'nerdwallet', careerUrl: 'https://www.nerdwallet.com/l/careers', platform: 'workday', platformIdentifier: 'nerdwallet|wd5|NerdWallet' },
+  { name: 'NerdWallet', slug: 'nerdwallet', careerUrl: 'https://www.nerdwallet.com/l/careers', platform: 'ashby', platformIdentifier: 'nerdwallet' },
 
   // ── Major Banks (additional) ──────────────────────────
-  { name: 'PNC Bank', slug: 'pnc', careerUrl: 'https://careers.pnc.com', platform: 'workday', platformIdentifier: 'pnc|wd1|jobsearch' },
-  { name: 'Truist', slug: 'truist', careerUrl: 'https://careers.truist.com', platform: 'workday', platformIdentifier: 'truist|wd5|Truist' },
+  { name: 'PNC Bank', slug: 'pnc', careerUrl: 'https://careers.pnc.com', platform: 'workday', platformIdentifier: 'pnc|wd5|External' },
+  { name: 'Truist', slug: 'truist', careerUrl: 'https://careers.truist.com', platform: 'workday', platformIdentifier: 'truist|wd1|Careers' },
 
   // ── Investment & Wealth Tech (additional) ─────────────
-  { name: 'Vanguard', slug: 'vanguard', careerUrl: 'https://careers.vanguard.com', platform: 'workday', platformIdentifier: 'vanguard|wd1|VanguardCareers' },
-  { name: 'Prudential Financial', slug: 'prudential', careerUrl: 'https://jobs.prudential.com', platform: 'workday', platformIdentifier: 'prudential|wd5|Prudential_Financial' },
+  { name: 'Vanguard', slug: 'vanguard', careerUrl: 'https://careers.vanguard.com', platform: 'workday', platformIdentifier: 'vanguard|wd5|vanguard_External' },
+  { name: 'Prudential Financial', slug: 'prudential', careerUrl: 'https://jobs.prudential.com', platform: 'workday', platformIdentifier: 'pru|wd5|Careers' },
 
   // ── Real Estate Tech & Construction Tech ─────────────
-  { name: 'Compass', slug: 'compass-re', careerUrl: 'https://compass.com/careers', platform: 'workday', platformIdentifier: 'compass|wd5|Compass' },
-  { name: 'Procore', slug: 'procore', careerUrl: 'https://www.procore.com/careers', platform: 'workday', platformIdentifier: 'procore|wd5|Procore' },
-  { name: 'Trimble', slug: 'trimble', careerUrl: 'https://careers.trimble.com', platform: 'workday', platformIdentifier: 'trimble|wd5|Trimble_Careers' },
-  { name: 'Autodesk', slug: 'autodesk', careerUrl: 'https://www.autodesk.com/careers', platform: 'workday', platformIdentifier: 'autodesk|wd5|Autodesk' },
+  { name: 'Compass', slug: 'compass-re', careerUrl: 'https://www.compass.com/careers', platform: 'greenhouse', platformIdentifier: 'urbancompass' },
+  { name: 'Procore', slug: 'procore', careerUrl: 'https://www.procore.com/careers', platform: 'workday', platformIdentifier: 'procore|wd12|Procore_External_Careers' },
+  { name: 'Trimble', slug: 'trimble', careerUrl: 'https://careers.trimble.com', platform: 'workday', platformIdentifier: 'trimble|wd1|TrimbleCareers' },
+  { name: 'Autodesk', slug: 'autodesk', careerUrl: 'https://www.autodesk.com/careers', platform: 'workday', platformIdentifier: 'autodesk|wd1|Ext' },
 
   // ── Health Insurance (additional) ─────────────────────
-  { name: 'Kaiser Permanente', slug: 'kaiser-permanente', careerUrl: 'https://jobs.kaiserpermanente.org', platform: 'workday', platformIdentifier: 'kaiserpermanente|wd3|KP_EXC_SEARCH' },
 
   // ── Media & Entertainment Tech (additional) ───────────
-  { name: 'Vimeo', slug: 'vimeo', careerUrl: 'https://vimeo.com/about/jobs', platform: 'workday', platformIdentifier: 'vimeo|wd5|Vimeo' },
 
   // ── Biotech & Life Sciences (additional) ─────────────
-  { name: 'Benchling', slug: 'benchling', careerUrl: 'https://www.benchling.com/careers', platform: 'workday', platformIdentifier: 'benchling|wd5|Benchling' },
+  { name: 'Benchling', slug: 'benchling', careerUrl: 'https://www.benchling.com/careers', platform: 'ashby', platformIdentifier: 'benchling' },
   { name: 'Recursion Pharmaceuticals', slug: 'recursion', careerUrl: 'https://www.recursion.com/careers', platform: 'greenhouse', platformIdentifier: 'recursionpharmaceuticals' },
-  { name: '10x Genomics', slug: '10x-genomics', careerUrl: 'https://careers.10xgenomics.com', platform: 'greenhouse', platformIdentifier: '10xgenomics' },
 
   // ── Energy Tech & Clean Tech ──────────────────────────
-  { name: 'Enphase Energy', slug: 'enphase', careerUrl: 'https://enphase.com/careers', platform: 'workday', platformIdentifier: 'enphase|wd5|Enphase_Careers' },
-  { name: 'SolarEdge', slug: 'solaredge', careerUrl: 'https://www.solaredge.com/us/careers', platform: 'workday', platformIdentifier: 'solaredge|wd5|SolarEdge' },
-  { name: 'First Solar', slug: 'first-solar', careerUrl: 'https://careers.firstsolar.com', platform: 'workday', platformIdentifier: 'firstsolar|wd5|FirstSolar' },
-  { name: 'Sunrun', slug: 'sunrun', careerUrl: 'https://www.sunrun.com/careers', platform: 'workday', platformIdentifier: 'sunrun|wd1|Sunrun' },
-  { name: 'Bloom Energy', slug: 'bloom-energy', careerUrl: 'https://www.bloomenergy.com/about/careers', platform: 'workday', platformIdentifier: 'bloomenergy|wd5|BloomEnergy' },
+  { name: 'First Solar', slug: 'first-solar', careerUrl: 'https://www.firstsolar.com/en/Careers', platform: 'oracle-orc', platformIdentifier: 'fa-esbv-saasfaprod1.fa.ocs.oraclecloud.com|CX_1' },
+  { name: 'Sunrun', slug: 'sunrun', careerUrl: 'https://www.sunrun.com/careers', platform: 'workday', platformIdentifier: 'sunrun|wd5|Sunrun_Careers' },
+  { name: 'Bloom Energy', slug: 'bloom-energy', careerUrl: 'https://www.bloomenergy.com/about/careers', platform: 'workday', platformIdentifier: 'bloomenergy|wd1|BloomEnergyCareers' },
 
   // ── Industrial & Manufacturing Tech ───────────────────
-  { name: 'Honeywell', slug: 'honeywell', careerUrl: 'https://careers.honeywell.com', platform: 'workday', platformIdentifier: 'honeywell|wd5|Honeywell' },
-  { name: 'Rockwell Automation', slug: 'rockwell-automation', careerUrl: 'https://www.rockwellautomation.com/en-us/company/careers.html', platform: 'workday', platformIdentifier: 'rockwellautomation|wd5|External' },
-  { name: 'Emerson Electric', slug: 'emerson', careerUrl: 'https://www.emerson.com/en-us/careers', platform: 'workday', platformIdentifier: 'emerson|wd1|Emerson' },
+  { name: 'Honeywell', slug: 'honeywell', careerUrl: 'https://careers.honeywell.com', platform: 'oracle-orc', platformIdentifier: 'ibqbjb.fa.ocs.oraclecloud.com|CX_1' },
+  { name: 'Rockwell Automation', slug: 'rockwell-automation', careerUrl: 'https://www.rockwellautomation.com/en-us/company/careers.html', platform: 'workday', platformIdentifier: 'rockwellautomation|wd1|External_Rockwell_Automation' },
+  { name: 'Emerson Electric', slug: 'emerson', careerUrl: 'https://www.emerson.com/en-us/careers', platform: 'oracle-orc', platformIdentifier: 'hdjq.fa.us2.oraclecloud.com|CX_1' },
 
   // ── GovTech & Public Sector (additional) ─────────────
-  { name: 'Tyler Technologies', slug: 'tyler-technologies', careerUrl: 'https://www.tylertech.com/about-us/careers', platform: 'workday', platformIdentifier: 'tylertech|wd5|External' },
-  { name: 'SAIC', slug: 'saic', careerUrl: 'https://jobs.saic.com', platform: 'workday', platformIdentifier: 'saic|wd5|SAIC' },
-  { name: 'CACI', slug: 'caci', careerUrl: 'https://careers.caci.com', platform: 'workday', platformIdentifier: 'caci|wd3|CACI_Careers' },
-  { name: 'Maximus', slug: 'maximus', careerUrl: 'https://careers.maximus.com', platform: 'workday', platformIdentifier: 'maximusfederal|wd5|Maximus' },
-  { name: 'Granicus', slug: 'granicus', careerUrl: 'https://granicus.com/careers', platform: 'workday', platformIdentifier: 'granicus|wd5|Granicus' },
+  { name: 'CACI', slug: 'caci', careerUrl: 'https://careers.caci.com', platform: 'workday', platformIdentifier: 'caci|wd1|External' },
+  // Really on iCIMS (careers-granicus.icims.com). Verified: returns 59 jobs and NO dates at all,
+  // so every posting would be dropped by the strict window gate. Not worth re-pointing.
 
   // ── MarTech (additional) ──────────────────────────────
   { name: 'Attentive', slug: 'attentive', careerUrl: 'https://www.attentive.com/careers', platform: 'greenhouse', platformIdentifier: 'attentive' },
   { name: 'Yotpo', slug: 'yotpo', careerUrl: 'https://www.yotpo.com/company/careers', platform: 'greenhouse', platformIdentifier: 'yotpo' },
-  { name: 'Sprinklr', slug: 'sprinklr', careerUrl: 'https://careers.sprinklr.com', platform: 'workday', platformIdentifier: 'sprinklr|wd5|Sprinklr' },
+  { name: 'Sprinklr', slug: 'sprinklr', careerUrl: 'https://careers.sprinklr.com', platform: 'workday', platformIdentifier: 'sprinklr|wd1|Careers' },
   { name: 'Brevo', slug: 'brevo', careerUrl: 'https://www.brevo.com/en/careers', platform: 'lever', platformIdentifier: 'brevo' },
 
   // ── Telecom & Networking (additional) ────────────────
-  { name: 'AT&T', slug: 'att', careerUrl: 'https://www.att.jobs', platform: 'workday', platformIdentifier: 'att|wd5|ATT' },
-  { name: 'Verizon', slug: 'verizon', careerUrl: 'https://mycareer.verizon.com', platform: 'workday', platformIdentifier: 'verizon|wd5|External' },
+  { name: 'AT&T', slug: 'att', careerUrl: 'https://www.att.jobs', platform: 'workday', platformIdentifier: 'att|wd1|ATTGeneral' },
+    { name: 'Verizon', slug: 'verizon', careerUrl: 'https://mycareer.verizon.com', platform: 'workday', platformIdentifier: 'verizon|wd12|verizon-careers' },
 
   // ── Contact Center & CX Tech (additional) ─────────────
-  { name: 'Genesys', slug: 'genesys', careerUrl: 'https://www.genesys.com/en/company/careers', platform: 'workday', platformIdentifier: 'genesys|wd5|External' },
-  { name: 'Talkdesk', slug: 'talkdesk', careerUrl: 'https://www.talkdesk.com/careers', platform: 'workday', platformIdentifier: 'talkdesk|wd5|Talkdesk' },
+  { name: 'Genesys', slug: 'genesys', careerUrl: 'https://www.genesys.com/en/company/careers', platform: 'workday', platformIdentifier: 'genesys|wd1|Genesys' },
+  { name: 'Talkdesk', slug: 'talkdesk', careerUrl: 'https://www.talkdesk.com/careers', platform: 'greenhouse', platformIdentifier: 'talkdesk2' },
 
   // ── Accounting & Tax Tech (additional) ────────────────
-  { name: 'Avalara', slug: 'avalara', careerUrl: 'https://careers.avalara.com', platform: 'workday', platformIdentifier: 'avalara|wd5|Avalara' },
+  { name: 'Avalara', slug: 'avalara', careerUrl: 'https://careers.avalara.com', platform: 'icims-jra', platformIdentifier: 'careers.avalara.com' },
 
   // ── AgriTech ──────────────────────────────────────────
   { name: 'Indigo Agriculture', slug: 'indigo-agriculture', careerUrl: 'https://www.indigoag.com/careers', platform: 'greenhouse', platformIdentifier: 'indigo' },
 
   // ── Credit & Risk Analytics (additional) ─────────────
-  { name: 'Dun & Bradstreet', slug: 'dun-bradstreet', careerUrl: 'https://careers.dnb.com', platform: 'workday', platformIdentifier: 'dnb|wd5|DnBCareers' },
+  // dnb.wd1 is the live tenant but its cxs endpoint answers 403 (errorCode S22) to any client —
+  // deliberately blocked, so no identifier fixes this.
 
   // ── AI / ML ────────────────────────────────────────────
   { name: 'OpenAI', slug: 'openai', careerUrl: 'https://openai.com/careers', platform: 'ashby', platformIdentifier: 'openai' },
@@ -787,24 +751,21 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: 'Watershed', slug: 'watershed', careerUrl: 'https://watershed.com/careers', platform: 'ashby', platformIdentifier: 'watershed' },
 
   // ── User target list additions ────────────────────────
-  { name: 'Meta', slug: 'meta', careerUrl: 'https://www.metacareers.com', platform: 'workday', platformIdentifier: 'metacareers|wd1|Careers' },
-  { name: 'Wipro', slug: 'wipro', careerUrl: 'https://careers.wipro.com', platform: 'workday', platformIdentifier: 'wipro|wd3|External' },
-  { name: 'HCLTech', slug: 'hcltech', careerUrl: 'https://www.hcltech.com/careers', platform: 'workday', platformIdentifier: 'hcltech|wd3|HCLTech_Careers' },
-  { name: 'EY', slug: 'ey', careerUrl: 'https://careers.ey.com', platform: 'workday', platformIdentifier: 'ey|wd5|EY' },
-  { name: 'KPMG', slug: 'kpmg', careerUrl: 'https://home.kpmg/careers', platform: 'workday', platformIdentifier: 'kpmg|wd1|KPMG' },
-  { name: 'PwC', slug: 'pwc', careerUrl: 'https://www.pwc.com/us/en/careers.html', platform: 'workday', platformIdentifier: 'pwc|wd5|PWCUS' },
-  { name: 'BCG', slug: 'bcg', careerUrl: 'https://www.bcg.com/careers', platform: 'workday', platformIdentifier: 'bcg|wd3|BCG' },
+  { name: 'Wipro', slug: 'wipro', careerUrl: 'https://careers.wipro.com', platform: 'successfactors', platformIdentifier: 'careers.wipro.com' },
+  { name: 'HCLTech', slug: 'hcltech', careerUrl: 'https://www.hcltech.com/careers', platform: 'successfactors', platformIdentifier: 'careers.hcltech.com' },
+  { name: 'EY', slug: 'ey', careerUrl: 'https://careers.ey.com', platform: 'successfactors', platformIdentifier: 'careers.ey.com' },
+  { name: 'PwC', slug: 'pwc', careerUrl: 'https://jobs-us.pwc.com/us/en/entry-level', platform: 'phenom', platformIdentifier: 'jobs-us.pwc.com' },
+  { name: 'BCG', slug: 'bcg', careerUrl: 'https://www.bcg.com/careers', platform: 'phenom', platformIdentifier: 'careers.bcg.com' },
   { name: 'EPAM Systems', slug: 'epam', careerUrl: 'https://www.epam.com/careers', platform: 'smartrecruiters', platformIdentifier: 'EPAM' },
   { name: 'HashiCorp', slug: 'hashicorp', careerUrl: 'https://www.hashicorp.com/jobs', platform: 'smartrecruiters', platformIdentifier: 'HashiCorp' },
-  { name: 'Broadcom', slug: 'broadcom', careerUrl: 'https://careers.broadcom.com', platform: 'workday', platformIdentifier: 'broadcom|wd5|External' },
-  { name: 'Hewlett Packard Enterprise', slug: 'hpe', careerUrl: 'https://careers.hpe.com', platform: 'workday', platformIdentifier: 'hpe|wd1|ExternalCareerSite' },
-  { name: 'Expedia Group', slug: 'expedia', careerUrl: 'https://careers.expediagroup.com', platform: 'workday', platformIdentifier: 'expediagroup|wd5|External' },
+  { name: 'Broadcom', slug: 'broadcom', careerUrl: 'https://www.broadcom.com/company/careers', platform: 'workday', platformIdentifier: 'broadcom|wd1|External_Career' },
+  { name: 'Hewlett Packard Enterprise', slug: 'hpe', careerUrl: 'https://careers.hpe.com', platform: 'phenom', platformIdentifier: 'careers.hpe.com' },
+  { name: 'Expedia Group', slug: 'expedia', careerUrl: 'https://careers.expediagroup.com', platform: 'workday', platformIdentifier: 'expedia|wd108|search' },
   { name: 'Roku', slug: 'roku', careerUrl: 'https://www.roku.com/jobs', platform: 'greenhouse', platformIdentifier: 'roku' },
-  { name: 'TikTok', slug: 'tiktok', careerUrl: 'https://careers.tiktok.com', platform: 'workday', platformIdentifier: 'bytedance|wd1|TikTok' },
   { name: 'Motorola Solutions', slug: 'motorola-solutions', careerUrl: 'https://motorolasolutions.com/en_us/about/careers.html', platform: 'workday', platformIdentifier: 'motorolasolutions|wd5|Careers' },
   { name: 'IXL Learning', slug: 'ixl-learning', careerUrl: 'https://www.ixl.com/company/careers', platform: 'greenhouse', platformIdentifier: 'ixllearning' },
   { name: 'Applied Intuition', slug: 'applied-intuition', careerUrl: 'https://www.appliedintuition.com/careers', platform: 'ashby', platformIdentifier: 'applied' },
-  { name: 'Axon', slug: 'axon', careerUrl: 'https://www.axon.com/careers', platform: 'workday', platformIdentifier: 'axon|wd5|axon' },
+  { name: 'Axon', slug: 'axon', careerUrl: 'https://www.axon.com/careers', platform: 'greenhouse', platformIdentifier: 'axon' },
 
   // ── Discovered via discover-companies.mjs (June 2026) ────────────────────
   { name: 'Moderna', slug: 'moderna', careerUrl: 'https://www.modernatx.com/careers', platform: 'workday', platformIdentifier: 'modernatx|wd1|M_tx' },
@@ -821,14 +782,10 @@ const PRECONFIGURED: CompanyConfig[] = [
 
   // ── Discovered via discover-companies.mjs batch6 (June 2026) ──────────────
   { name: "Kohl's", slug: 'kohl-s', careerUrl: "https://careers.kohls.com", platform: 'workday', platformIdentifier: "kohls|wd504|kohlscareers" },
-  { name: "Anthem", slug: 'anthem', careerUrl: "https://careers.elevancehealth.com/", platform: 'workday', platformIdentifier: "elevancehealth|wd1|ANT" },
   { name: "Becton Dickinson", slug: 'becton-dickinson', careerUrl: "https://jobs.bd.com/en", platform: 'workday', platformIdentifier: "bdx|wd1|EXTERNAL_CAREER_SITE_USA" },
   { name: "Bristol Myers Squibb", slug: 'bristol-myers-squibb', careerUrl: "https://careers.bms.com", platform: 'workday', platformIdentifier: "bristolmyerssquibb|wd5|BMS" },
   { name: "Johnson Controls", slug: 'johnson-controls', careerUrl: "https://jobs.johnsoncontrols.com/", platform: 'workday', platformIdentifier: "jci|wd5|JCI" },
-  { name: "U.S. Bank", slug: 'u-s-bank', careerUrl: "https://careers.usbank.com/global/en", platform: 'workday', platformIdentifier: "usbank|wd1|US_Bank_Careers" },
   { name: "Northern Trust", slug: 'northern-trust', careerUrl: "https://ntrs.wd1.myworkdayjobs.com/northerntrust", platform: 'workday', platformIdentifier: "ntrs|wd1|northerntrust" },
-  { name: "Cigna Group", slug: 'cigna-group', careerUrl: "https://jobs.thecignagroup.com/us/en", platform: 'workday', platformIdentifier: "cigna|wd5|cignacareers" },
-  { name: "Juniper Networks", slug: 'juniper-networks', careerUrl: "https://careers.hpe.com/juniper", platform: 'workday', platformIdentifier: "hpe|wd5|Jobsathpe" },
   { name: "Redis", slug: 'redis', careerUrl: "https://redis.io/company/careers/", platform: 'ashby', platformIdentifier: "redis" },
   { name: "Dataiku", slug: 'dataiku', careerUrl: "https://www.dataiku.com/company/careers", platform: 'greenhouse', platformIdentifier: "dataiku" },
   { name: "Starburst", slug: 'starburst', careerUrl: "https://www.starburst.io/careers/", platform: 'greenhouse', platformIdentifier: "starburst" },
@@ -847,9 +804,9 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: "Guild Education", slug: 'guild-education', careerUrl: "https://guild.com/careers", platform: 'greenhouse', platformIdentifier: "guild" },
   { name: "LivePerson", slug: 'liveperson', careerUrl: "https://www.liveperson.com/company/careers/", platform: 'greenhouse', platformIdentifier: "liveperson" },
   { name: "Qualtrics", slug: 'qualtrics', careerUrl: "https://www.qualtrics.com/careers/us/en", platform: 'greenhouse', platformIdentifier: "qualtrics" },
-  { name: "SurveyMonkey", slug: 'surveymonkey', careerUrl: "https://www.surveymonkey.com/careers/", platform: 'greenhouse', platformIdentifier: "surveymonkey" },
+  { name: "SurveyMonkey", slug: 'surveymonkey', careerUrl: "https://www.surveymonkey.com/careers/", platform: 'ashby', platformIdentifier: 'surveymonkey' },
   { name: "Mixpanel", slug: 'mixpanel', careerUrl: "https://mixpanel.com/jobs/", platform: 'greenhouse', platformIdentifier: "mixpanel" },
-  { name: "Split", slug: 'split', careerUrl: "https://www.harness.io/company/careers", platform: 'greenhouse', platformIdentifier: "harnessinc" },
+{ name: "Harness", slug: 'harness', careerUrl: "https://www.harness.io/company/careers", platform: 'greenhouse', platformIdentifier: "harnessinc" },
   { name: "Contentful", slug: 'contentful', careerUrl: "https://www.contentful.com/careers/", platform: 'greenhouse', platformIdentifier: "contentful" },
   { name: "Sanity", slug: 'sanity', careerUrl: "https://www.sanity.io/careers", platform: 'ashby', platformIdentifier: "sanity" },
   { name: "Vultr", slug: 'vultr', careerUrl: "https://www.vultr.com/company/careers/", platform: 'ashby', platformIdentifier: "Vultr" },
@@ -862,10 +819,9 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: "Gong", slug: 'gong', careerUrl: "https://www.gong.io/careers", platform: 'greenhouse', platformIdentifier: "gongio" },
   { name: "Glean", slug: 'glean', careerUrl: "https://www.glean.com/careers", platform: 'greenhouse', platformIdentifier: "gleanwork" },
   { name: "GreyNoise", slug: 'greynoise', careerUrl: "https://www.greynoise.io/careers", platform: 'greenhouse', platformIdentifier: "greynoiseintelligence" },
-  { name: "AON", slug: 'aon', careerUrl: "https://aon.wd1.myworkdayjobs.com", platform: 'workday', platformIdentifier: "aon|wd1|AON_Careers" },
-  { name: "Westfield Insurance", slug: 'westfield-insurance', careerUrl: "https://westfieldinsurance.wd1.myworkdayjobs.com", platform: 'workday', platformIdentifier: "westfieldinsurance|wd1|Westfield_Careers" },
-  { name: "WTW", slug: 'wtw', careerUrl: "https://careers.wtwco.com", platform: 'workday', platformIdentifier: "willistowerswatson|wd1|External" },
-  { name: "Charles Schwab", slug: 'charles-schwab', careerUrl: "https://www.schwabjobs.com", platform: 'workday', platformIdentifier: "charlesschwab|wd1|External" },
+  { name: "AON", slug: 'aon', careerUrl: "https://aon.wd1.myworkdayjobs.com", platform: 'icims-jra', platformIdentifier: 'jobs.aon.com' },
+  { name: "WTW", slug: 'wtw', careerUrl: "https://careers.wtwco.com", platform: 'smartrecruiters', platformIdentifier: 'wtw' },
+  { name: "Charles Schwab", slug: 'charles-schwab', careerUrl: "https://www.schwabjobs.com", platform: 'radancy', platformIdentifier: 'www.schwabjobs.com' },
   // batch7 additions (2026-07-16) — every entry probed AND verified to return jobs at runtime (no CSRF-blocked tenants)
   // Enterprise / Fortune 500 IT
   { name: 'Fiserv', slug: 'fiserv', careerUrl: 'https://careers.fiserv.com', platform: 'workday', platformIdentifier: 'fiserv|wd5|EXT' },
@@ -894,7 +850,7 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: 'Yext', slug: 'yext', careerUrl: 'https://www.yext.com/careers', platform: 'greenhouse', platformIdentifier: 'yext' },
   // Well-funded startups
   { name: 'Addepar', slug: 'addepar', careerUrl: 'https://addepar.com/careers', platform: 'greenhouse', platformIdentifier: 'addepar1' },
-  { name: 'Temporal', slug: 'temporal', careerUrl: 'https://temporal.io/careers', platform: 'greenhouse', platformIdentifier: 'temporaltechnologies' },
+  { name: 'Temporal', slug: 'temporal', careerUrl: 'https://temporal.io/careers', platform: 'ashby', platformIdentifier: 'temporal' },
   { name: 'Sierra', slug: 'sierra', careerUrl: 'https://sierra.ai/careers', platform: 'ashby', platformIdentifier: 'sierra' },
   { name: 'Cursor', slug: 'cursor', careerUrl: 'https://cursor.com/careers', platform: 'ashby', platformIdentifier: 'cursor' },
   { name: 'Decagon', slug: 'decagon', careerUrl: 'https://decagon.ai/careers', platform: 'ashby', platformIdentifier: 'decagon' },
@@ -905,13 +861,15 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: 'HP Inc', slug: 'hp-inc', careerUrl: 'https://jobs.hp.com', platform: 'workday', platformIdentifier: 'hp|wd5|ExternalCareerSite' },
   { name: 'Equinix', slug: 'equinix', careerUrl: 'https://careers.equinix.com', platform: 'workday', platformIdentifier: 'equinix|wd1|External' },
   { name: 'Cloudera', slug: 'cloudera', careerUrl: 'https://www.cloudera.com/careers.html', platform: 'workday', platformIdentifier: 'cloudera|wd5|External_Career' },
+  // Identifier is correct (confirmed against the live careers site); the tenant itself has been
+  // answering HTTP 502 on every attempt. Upstream outage, not a bad entry.
   { name: 'Ciena', slug: 'ciena', careerUrl: 'https://www.ciena.com/careers', platform: 'workday', platformIdentifier: 'ciena|wd5|Careers' },
   { name: 'RingCentral', slug: 'ringcentral', careerUrl: 'https://www.ringcentral.com/company/careers.html', platform: 'workday', platformIdentifier: 'ringcentral|wd1|RingCentral_Careers' },
   { name: 'athenahealth', slug: 'athenahealth', careerUrl: 'https://www.athenahealth.com/careers', platform: 'workday', platformIdentifier: 'athenahealth|wd1|External' },
   // Mid-size product companies (Greenhouse)
   { name: 'Navan', slug: 'navan', careerUrl: 'https://navan.com/careers', platform: 'greenhouse', platformIdentifier: 'tripactions' },
   { name: 'Ripple', slug: 'ripple', careerUrl: 'https://ripple.com/careers', platform: 'greenhouse', platformIdentifier: 'ripple' },
-  { name: 'ClickHouse', slug: 'clickhouse', careerUrl: 'https://clickhouse.com/company/careers', platform: 'greenhouse', platformIdentifier: 'clickhouse' },
+  { name: 'ClickHouse', slug: 'clickhouse', careerUrl: 'https://clickhouse.com/company/careers', platform: 'ashby', platformIdentifier: 'clickhouse' },
   { name: 'FanDuel', slug: 'fanduel', careerUrl: 'https://www.fanduel.careers', platform: 'greenhouse', platformIdentifier: 'fanduel' },
   { name: 'Checkr', slug: 'checkr', careerUrl: 'https://checkr.com/company/careers', platform: 'greenhouse', platformIdentifier: 'checkr' },
   { name: 'Chainguard', slug: 'chainguard', careerUrl: 'https://www.chainguard.dev/careers', platform: 'greenhouse', platformIdentifier: 'chainguard' },
@@ -927,7 +885,6 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: 'Alloy', slug: 'alloy', careerUrl: 'https://www.alloy.com/careers', platform: 'greenhouse', platformIdentifier: 'alloy' },
   { name: 'Melio', slug: 'melio', careerUrl: 'https://meliopayments.com/careers', platform: 'greenhouse', platformIdentifier: 'melio' },
   { name: 'Lithic', slug: 'lithic', careerUrl: 'https://lithic.com/careers', platform: 'greenhouse', platformIdentifier: 'lithic' },
-  { name: 'Instabase', slug: 'instabase', careerUrl: 'https://instabase.com/careers', platform: 'greenhouse', platformIdentifier: 'instabase' },
   { name: 'Consensys', slug: 'consensys', careerUrl: 'https://consensys.io/careers', platform: 'greenhouse', platformIdentifier: 'consensys' },
   { name: 'Pulumi', slug: 'pulumi', careerUrl: 'https://www.pulumi.com/careers', platform: 'greenhouse', platformIdentifier: 'pulumicorporation' },
   // Mid-size product companies (Lever)
@@ -977,7 +934,6 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: 'Waystar', slug: 'waystar', careerUrl: 'https://www.waystar.com/careers', platform: 'workday', platformIdentifier: 'waystar|wd1|waystar' },
   { name: 'R1 RCM', slug: 'r1-rcm', careerUrl: 'https://www.r1rcm.com/careers', platform: 'workday', platformIdentifier: 'r1rcm|wd1|r1rcm' },
   { name: 'Availity', slug: 'availity', careerUrl: 'https://www.availity.com/about-us/careers', platform: 'workday', platformIdentifier: 'availity|wd1|Availity_Careers_US' },
-  { name: 'Zelis', slug: 'zelis', careerUrl: 'https://www.zelis.com/careers', platform: 'workday', platformIdentifier: 'zelis|wd1|zeliscareers' },
   { name: 'Sidecar Health', slug: 'sidecar-health', careerUrl: 'https://sidecarhealth.com/careers', platform: 'greenhouse', platformIdentifier: 'sidecarhealth' },
   { name: 'Cohere Health', slug: 'cohere-health', careerUrl: 'https://coherehealth.com/careers', platform: 'greenhouse', platformIdentifier: 'coherehealth' },
   { name: 'Garner Health', slug: 'garner-health', careerUrl: 'https://www.getgarner.com/careers', platform: 'greenhouse', platformIdentifier: 'garnerhealth' },
@@ -1064,7 +1020,7 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: "Regions Bank", slug: 'regions-bank', careerUrl: "https://www.regions.com/about-regions/careers", platform: 'workday', platformIdentifier: "regions|wd5|Regions_Careers" },
   { name: "Huntington Bank", slug: 'huntington-bank', careerUrl: "https://www.huntington.com/careers", platform: 'workday', platformIdentifier: "huntington|wd12|HNBcareers" },
   { name: "GEICO", slug: 'geico', careerUrl: "https://careers.geico.com", platform: 'workday', platformIdentifier: "geico|wd1|External" },
-  { name: "nCino", slug: 'ncino', careerUrl: "https://www.ncino.com/careers", platform: 'workday', platformIdentifier: "ncino|wd5|nCinoCareers" },
+  { name: "nCino", slug: 'ncino', careerUrl: "https://www.ncino.com/careers", platform: 'greenhouse', platformIdentifier: 'ncinoinc' },
   { name: "Labcorp", slug: 'labcorp', careerUrl: "https://careers.labcorp.com", platform: 'workday', platformIdentifier: "labcorp|wd1|External" },
   { name: "Tempus AI", slug: 'tempus-ai', careerUrl: "https://www.tempus.com/careers", platform: 'workday', platformIdentifier: "tempus|wd5|Tempus_Careers" },
   { name: "Procter and Gamble", slug: 'procter-and-gamble', careerUrl: "https://www.pgcareers.com", platform: 'workday', platformIdentifier: "pg|wd5|1000" },
@@ -1199,7 +1155,7 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: "Wildlife Studios", slug: 'wildlife-studios', careerUrl: "https://wildlifestudios.com/careers", platform: 'greenhouse', platformIdentifier: "wildlifestudios" },
   { name: "AppLovin", slug: 'applovin', careerUrl: "https://www.applovin.com/careers", platform: 'greenhouse', platformIdentifier: "applovin" },
   { name: "PrizePicks", slug: 'prizepicks', careerUrl: "https://www.prizepicks.com/careers", platform: 'greenhouse', platformIdentifier: "prizepicks" },
-  { name: "Underdog", slug: 'underdog', careerUrl: "https://underdogfantasy.com/careers", platform: 'greenhouse', platformIdentifier: "underdogfantasy" },
+  { name: "Underdog", slug: 'underdog', careerUrl: "https://underdogfantasy.com/careers", platform: 'greenhouse', platformIdentifier: 'underdog' },
   { name: "Grailed", slug: 'grailed', careerUrl: "https://www.grailed.com/careers", platform: 'greenhouse', platformIdentifier: "grailed" },
   { name: "7shifts", slug: '7shifts', careerUrl: "https://www.7shifts.com/careers", platform: 'greenhouse', platformIdentifier: "7shifts" },
   { name: "Legion Technologies", slug: 'legion-technologies', careerUrl: "https://legion.co/careers", platform: 'greenhouse', platformIdentifier: "legion" },
@@ -1250,6 +1206,83 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: "Conde Nast", slug: 'conde-nast', careerUrl: "https://www.condenast.com/careers", platform: 'workday', platformIdentifier: "condenast|wd115|CondeCareers" },
   { name: "Litera", slug: 'litera', careerUrl: "https://www.litera.com/careers", platform: 'workday', platformIdentifier: "litera|wd12|Litera_Careers" },
   { name: "Shipt", slug: 'shipt', careerUrl: "https://www.shipt.com/careers", platform: 'workday', platformIdentifier: "shipt|wd1|Shipt_External" },
+
+  // Removed 2026-09-26 — no reachable public board, so each failed on every run.
+  // Workday entries answered 422 (tenant does not resolve); Greenhouse/Lever/Ashby
+  // entries answered 404 (board gone). A name-variant sweep across Greenhouse, Lever,
+  // Ashby and SmartRecruiters and a careers-URL discovery pass found no replacement
+  // (see the 2026-08-29 repair sweep in CLAUDE.md for the per-company findings).
+  // Re-add only through the discovery pipeline once a board is verified.
+  //   10x Genomics (greenhouse:10xgenomics)
+  //   Cerebral (greenhouse:cerebral)
+  //   Cognizant (workday:cognizant|wd1|Cognizant_Careers)
+  //   Cornerstone OnDemand (lever:cornerstone)
+  //   CyberArk (workday:cyberark|wd5|CyberArk)
+  //   DeepMind (greenhouse:deepmind)
+  //   Dun & Bradstreet (workday:dnb|wd5|DnBCareers)
+  //   Embroker (greenhouse:embroker)
+  //   Enphase Energy (workday:enphase|wd5|Enphase_Careers)
+  //   Forge Global (greenhouse:forgeglobal)
+  //   Goldman Sachs (workday:goldman|wd1|GS_EXT_CAREERS)
+  //   Google (workday:google|wd1|External)
+  //   Granicus (workday:granicus|wd5|Granicus)
+  //   IBM (workday:ibm|wd12|IBM)
+  //   Infosys (workday:infosys|wd3|Infosys_Careers)
+  //   Instabase (greenhouse:instabase)
+  //   Kaiser Permanente (workday:kaiserpermanente|wd3|KP_EXC_SEARCH)
+  //   Klarna (workday:klarna|wd5|Klarna)
+  //   KPMG (workday:kpmg|wd1|KPMG)
+  //   Marqeta (greenhouse:marqeta)
+  //   Maximus (workday:maximusfederal|wd5|Maximus)
+  //   Meta (workday:metacareers|wd1|Careers)
+  //   Monday.com (workday:mondaydotcom|wd5|mondaydotcom)
+  //   MSCI (workday:msci|wd3|MSCICareers)
+  //   Postman (greenhouse:postman)
+  //   Rapid7 (workday:rapid7|wd5|Rapid7)
+  //   Retool (workday:retool|wd5|Retool)
+  //   Rippling (workday:rippling|wd5|Rippling)
+  //   Sage (greenhouse:sage)
+  //   SAIC (workday:saic|wd5|SAIC)
+  //   Seagate (workday:seagatetechnology|wd3|Seagate)
+  //   Shopify (workday:shopify|wd5|Shopify)
+  //   Snyk (ashby:snyk)
+  //   SolarEdge (workday:solaredge|wd5|SolarEdge)
+  //   Splunk (workday:splunk|wd1|External)
+  //   TikTok (workday:bytedance|wd1|TikTok)
+  //   Tyler Technologies (workday:tylertech|wd5|External)
+  //   Vellum (ashby:vellum)
+  //   Vimeo (workday:vimeo|wd5|Vimeo)
+  //   VMware (workday:vmware|wd1|VMWare)
+  //   Westfield Insurance (workday:westfieldinsurance|wd1|Westfield_Careers)
+  //   Zelis (workday:zelis|wd1|zeliscareers)
+
+  // Removed 2026-09-26 — duplicate entries. Each re-scraped a board already registered,
+  // so its jobs appeared twice, or labelled an acquirer's / another employer's jobs with
+  // this name. Check `platform|platformIdentifier` is not already present before adding.
+  //   AMD (amd-corp) — duplicate of amd
+  //   Qualcomm (qualcomm-corp) — duplicate of qualcomm
+  //   Intel (intel-corp) — duplicate of intel
+  //   Elastic (elastic-co) — duplicate of elastic
+  //   NICE Systems (nice-systems) — duplicate of nice
+  //   Public.com (public) — duplicate of public-com
+  //   Robinhood (robinhood-careers) — duplicate of robinhood
+  //   Robinhood Crypto (robinhood-crypto) — same board as robinhood
+  //   U.S. Bank (u-s-bank) — duplicate of u-s-bancorp
+  //   Workday (workday-inc) — duplicate of workday
+  //   Cigna Group (cigna-group) — duplicate of cigna
+  //   Anthem (anthem) — Anthem is Elevance Health; same board as elevance-health
+  //   Mellanox (mellanox) — acquired; NVIDIA board, registered as nvidia
+  //   Juniper Networks (juniper) — acquired; HPE board, HPE registered as hpe
+  //   Juniper Networks (juniper-networks) — acquired; HPE board, HPE registered as hpe
+  //   AppDynamics (appdynamics) — acquired; Cisco board, registered as cisco
+  //   Splunk (splunk) — acquired; Cisco board, registered as cisco
+  //   Split.io (split-io) — acquired; Harness board, registered as harness
+  //   Niantic (niantic) — games unit sold to Scopely; Scopely board, registered as scopely
+  //   X Corp (x-corp) — merged into xAI; xAI board, registered as xai
+  //   Carbon Black (carbon-black) — wrong board: greenhouse:carbon is Carbon (3D printing); Carbon Black is Broadcom
+  //   Mercury Insurance (mercury-insurance) — wrong board: greenhouse:mercury is Mercury (banking)
+  //   Sierra Space (sierra-space) — wrong board: ashby:sierra is Sierra (AI)
+  //   Toast Tax (toast-tax) — same board as toast
 
   // Job-board sources (2026-07-17) — cross-company boards; each returns direct apply
   // links with the real hiring company as companyName. Batch scripts show these as
@@ -1307,6 +1340,12 @@ class CompanyRegistry {
         return new IcimsScraper(config);
       case 'icims-jra':
         return new IcimsJraScraper(config);
+      case 'phenom':
+        return new PhenomScraper(config);
+      case 'successfactors':
+        return new SuccessFactorsScraper(config);
+      case 'radancy':
+        return new RadancyScraper(config);
       case 'eightfold':
         return new EightfoldScraper(config);
       case 'rippling':

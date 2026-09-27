@@ -43,6 +43,10 @@ export function withinPostedWindow(
   if (!postedSince) return true;
   const posted = parsePostedDate(postedDate);
   if (posted === null) return false;
+  // A future date is not a fresh one: its age is negative, which passed every window.
+  // McKinsey's `postedToLinkedInDate` carries scheduled dates a year out. One day of
+  // slack absorbs timezone skew on date-only strings ("2026-09-27" parses as UTC).
+  if (posted - now > DAY_MS) return false;
   return now - posted <= POSTED_SINCE_MS[postedSince];
 }
 

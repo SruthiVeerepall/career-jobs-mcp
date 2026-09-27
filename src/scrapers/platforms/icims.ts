@@ -1,3 +1,4 @@
+import axios from 'axios';
 import puppeteer, { type Browser, type Frame } from 'puppeteer';
 import type { JobListing, SearchFilters } from '../../types.js';
 import { BaseScraper } from '../base-scraper.js';
@@ -70,7 +71,43 @@ export class IcimsScraper extends BaseScraper {
       if (added === 0) break;
     }
 
+    await this.backfillDates(all);
     return all.filter((j) => this.matchesFilters(j, filters));
+  }
+
+  /**
+   * Many tenants (Liberty Mutual, Northwestern Mutual) show no date in the search list,
+   * so every job would be dropped by the strict window gate. Each detail page embeds the
+   * schema.org JobPosting published to Google for Jobs, whose `datePosted` is absolute.
+   * Plain HTTP is enough for the detail page — no browser needed.
+   */
+  private async backfillDates(jobs: JobListing[]): Promise<void> {
+    const undated = jobs.filter((j) => !j.postedDate || Number.isNaN(Date.parse(j.postedDate)));
+    if (undated.length === 0) return;
+    this.logProgress(`Backfilling ${undated.length} undated postings from detail pages`);
+    const timeout = Number(process.env.SCRAPE_TIMEOUT_MS ?? 30000);
+    let next = 0;
+    const worker = async (): Promise<void> => {
+      while (next < undated.length) {
+        const job = undated[next++];
+        const url = `${job.applyUrl}${job.applyUrl.includes('?') ? '&' : '?'}in_iframe=1`;
+        try {
+          const res = await this.rateLimitedFetch(hostFromUrl(url), () =>
+            axios.get<string>(url, {
+              timeout,
+              responseType: 'text',
+              headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+            }),
+          );
+          const m = String(res.data).match(/"datePosted"\s*:\s*"([^"]+)"/);
+          job.postedDate = m && !Number.isNaN(Date.parse(m[1])) ? m[1] : undefined;
+        } catch {
+          // Leave it undated; the orchestrator's strict gate excludes it.
+          job.postedDate = undefined;
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(6, undated.length) }, worker));
   }
 
   private async fetchPage(url: string): Promise<IcimsRawJob[]> {

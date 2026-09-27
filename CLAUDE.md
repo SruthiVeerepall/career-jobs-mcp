@@ -100,6 +100,18 @@ by terms: they fetch their whole board regardless, so keying them would fragment
 - The Apply URL must be a direct link to the job application page, not the company homepage.
 - Group results by platform (Workday, Greenhouse, Lever, Ashby) when there are many results.
 - If zero results are found, say so clearly and suggest broadening the date window.
+- **Company career sites first, job boards after** (`src/utils/source-priority.ts`). Every
+  output — the résumé tool/CLI, `export-jobs-xlsx.mjs` (its `Source` column), and
+  `find-java-24h.mjs` — sorts direct employer postings above LinkedIn/BuiltIn/SimplyHired
+  and friends, then by score within each group. Sorting by score alone buried them: board
+  titles are keyword-stuffed ("Java Full Stack (Spring Boot, Kafka, AWS)") and out-score
+  the plain "Software Engineer II" a company site publishes. A board copy of an opening
+  already found on the employer's own site is dropped (`crossSourceKey`: employer + title,
+  normalised so LinkedIn's "JPMorganChase" meets the registry's "JPMorgan Chase").
+- **Why `--today` is mostly board results:** a 24h window catches few company postings —
+  almost none on weekends, and Workday dates are day-granular so "Posted Yesterday" is
+  outside it. Measured on a Sunday: 24h → 7 company / 121 board; 3 days → 152 / 179;
+  7 days → 462 / 213. The company sites are being searched; widen the window to see them.
 
 ### 6. Resume-Match Filter — ≥60% profile alignment
 

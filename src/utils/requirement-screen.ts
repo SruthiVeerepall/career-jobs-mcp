@@ -57,12 +57,35 @@ const NEGATED =
  *  is unaffected. */
 const HEDGED_GENERAL = /\b(?:some|certain|roles\s+that|positions\s+that)\b[^.;]{0,80}\bmay\b/i;
 
+const MAX_SEGMENT = 400;
+
+/**
+ * A run with no sentence punctuation — HTML bullets flattened to plain text — can merge a
+ * whole list with the requirement after it (SpaceX: "...Gradle) ... weekends as needed ITAR
+ * REQUIREMENTS: ... must be a U.S. citizen", 884 chars). Such runs used to be skipped as
+ * too coarse, which let the requirement through. Split them at ALL-CAPS headings, then
+ * into overlapping windows, so nothing goes unexamined.
+ */
+function splitLong(s: string): string[] {
+  if (s.length <= MAX_SEGMENT * 2) return [s];
+  const out: string[] = [];
+  for (const part of s.split(/\s(?=[A-Z][A-Z &/-]{3,}:)/)) {
+    if (part.length <= MAX_SEGMENT * 2) {
+      out.push(part);
+      continue;
+    }
+    for (let i = 0; i < part.length; i += MAX_SEGMENT) out.push(part.slice(Math.max(0, i - 100), i + MAX_SEGMENT));
+  }
+  return out;
+}
+
 function sentences(text: string): string[] {
   return text
     .replace(/\s+/g, ' ')
     // "U.S." holds two periods that would split "Must be a U.S. citizen" mid-requirement.
     .replace(/\bU\.\s?S\.(?:\s?A\.)?/g, 'US')
     .split(/(?<=[.!?;•])\s+|\s[-–•*]\s/)
+    .flatMap(splitLong)
     .map((s) => s.trim())
     .filter(Boolean);
 }
@@ -71,7 +94,6 @@ function sentences(text: string): string[] {
 export function screenRequirementText(text: string | undefined): RequirementVerdict {
   if (!text) return { blocked: false };
   for (const s of sentences(text)) {
-    if (s.length > 800) continue; // an unsplit blob, not a sentence — too coarse to judge
     if (BOILERPLATE.test(s) || NEGATED.test(s) || HEDGED_GENERAL.test(s)) continue;
 
     if (CLEARANCE_PATTERNS.some((p) => p.test(s)) && !NON_SECURITY_CLEARANCE.test(s)) {

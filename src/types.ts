@@ -127,6 +127,8 @@ export interface ResumeJobMatch {
   company: string;
   /** Board the listing came from when the employer was found via an aggregator. */
   via?: string;
+  /** Where the posting was found. Company-site results rank above job-board results. */
+  source: 'company-site' | 'job-board';
   locations: string;
   postedDate: string;
   applyUrl: string;

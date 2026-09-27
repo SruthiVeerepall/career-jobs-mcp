@@ -20,6 +20,8 @@ import { scrapeMany } from './dist/scrapers/orchestrator.js';
 import { OVER_5YR, CLEARANCE, isUSJob, matchesProfile, resumeScore } from './dist/utils/job-filters.js';
 import { parsePostedDate } from './dist/utils/posted-date.js';
 import { searchJobsForResume } from './dist/resume/search.js';
+import { screenRequirements } from './dist/utils/requirement-screen.js';
+import { JOB_BOARDS, bySourceThenScore, companySitesFirst, crossSourceKey, sourceOf } from './dist/utils/source-priority.js';
 
 const ALL_SLUGS = [...companyRegistry.companies.values()]
   .filter(c => c.platform !== 'custom' && c.platform !== 'oracle-orc')
@@ -41,8 +43,6 @@ function flagValue(name) {
 const OUT = flagValue('out') ?? 'job-results.xlsx';
 const RESUME = flagValue('resume');
 
-// Cross-company job boards — results show the real employer as "{Employer} (via {Board})".
-const JOB_BOARDS = new Set(['LinkedIn', 'SimplyHired', 'BuiltIn.com', 'RemoteOK', 'Remotive', 'We Work Remotely']);
 
 function platformOf(u) {
   if (/greenhouse/.test(u)) return 'Greenhouse';
@@ -102,6 +102,7 @@ async function collectFromResume() {
       locations: m.locations,
       posted: m.postedDate,
       score: m.score,
+      source: m.source,
       platform: platformOf(m.applyUrl),
       url: m.applyUrl,
     })),
@@ -134,9 +135,12 @@ async function collectFromRegistryProfile() {
   const cutoff = Date.now() - WINDOW_DAYS * DAY_MS;
   const jobs = [];
   const seen = new Set();
+  const seenOpening = new Set();
   // The orchestrator drops undated postings before we see them, so take its count.
   let undatedDropped = results.reduce((n, r) => n + (r.undatedExcluded ?? 0), 0);
-  for (const company of results) {
+  // Company sites first, so a board repost of an opening already found on the employer's
+  // own site is the copy dropped by the cross-source dedupe below.
+  for (const company of companySitesFirst(results)) {
     if (company.error || !company.jobs.length) continue;
     for (const job of company.jobs) {
       const title = job.title || '';
@@ -158,12 +162,17 @@ async function collectFromRegistryProfile() {
       const key = url || `${company.company}::${title}`;
       if (seen.has(key)) continue;
       seen.add(key);
+      // Job-board results carry the real hiring company in companyName
+      const employer = JOB_BOARDS.has(company.company) && job.companyName && job.companyName !== company.company
+        ? job.companyName
+        : company.company;
+      const opening = crossSourceKey(employer, title);
+      if (seenOpening.has(opening)) continue;
+      seenOpening.add(opening);
       jobs.push({
         title,
-        // Job-board results carry the real hiring company in companyName
-        company: JOB_BOARDS.has(company.company) && job.companyName && job.companyName !== company.company
-          ? `${job.companyName} (via ${company.company})`
-          : company.company,
+        company: employer === company.company ? employer : `${employer} (via ${company.company})`,
+        source: sourceOf(company.company),
         locations: (job.locations || []).join(' | ') || 'N/A',
         // "(repost)" marks a republished listing — date is the repost time, opening may
         // be older. See JobListing.isRepost.
@@ -178,12 +187,24 @@ async function collectFromRegistryProfile() {
                 timeZone: 'UTC',
               })) + (job.isRepost ? ' (repost)' : ''),
         score: resumeScore(title),
+        listing: job,
         platform: platformOf(url),
         url,
       });
     }
   }
-  jobs.sort((a, b) => b.score - a.score);
+  // Company career sites first (direct employer postings are the priority), boards after.
+  jobs.sort(bySourceThenScore);
+  // CLAUDE.md rule #4 on the DESCRIPTION: the title check above only catches titles like
+  // "Engineer (TS/SCI)"; "Must be a U.S. citizen" / "Secret clearance required" live in the body.
+  const screened = await screenRequirements(jobs, (j) => j.listing);
+  jobs.splice(0, jobs.length, ...screened.kept);
+  if (screened.blocked.length > 0) {
+    console.log(`Excluded ${screened.blocked.length} postings whose description requires a security clearance or US citizenship.`);
+  }
+  if (screened.unverified > 0) {
+    console.log(`${screened.unverified} kept postings had no readable description — clearance/citizenship unchecked.`);
+  }
 
   const elapsed = ((Date.now() - start) / 1000).toFixed(1);
   if (undatedDropped > 0) {
@@ -210,6 +231,7 @@ async function run() {
     { header: '#', key: 'num', width: 5 },
     { header: 'Title', key: 'title', width: 52 },
     { header: 'Company', key: 'company', width: 20 },
+    { header: 'Source', key: 'source', width: 13 },
     { header: 'Location', key: 'location', width: 34 },
     { header: 'Posted', key: 'posted', width: 9 },
     { header: 'Score', key: 'score', width: 7 },
@@ -237,6 +259,7 @@ async function run() {
       num: i + 1,
       title: j.title,
       company: j.company,
+      source: j.source === 'job-board' ? 'Job board' : 'Company site',
       location: j.locations,
       posted: j.posted,
       score: j.score,
@@ -259,11 +282,11 @@ async function run() {
   });
 
   const lastRow = jobs.length + 1;
-  ws.autoFilter = `A1:J1`;
+  ws.autoFilter = `A1:K1`;
 
   // When Applied? = ☑, grey + strikethrough the whole row so done ones fade back
   ws.addConditionalFormatting({
-    ref: `A2:J${lastRow}`,
+    ref: `A2:K${lastRow}`,
     rules: [{
       type: 'expression',
       formulae: ['$A2="☑"'],
@@ -275,7 +298,9 @@ async function run() {
   await wb.xlsx.writeFile(OUT);
   const strong = jobs.filter(j => j.score >= 5).length;
   console.log(`\nDone. ${OUT}`);
+  const fromCompanies = jobs.filter(j => j.source !== 'job-board').length;
   console.log(`  ${jobs.length} jobs  (${strong} strong, score ≥5)`);
+  console.log(`  ${fromCompanies} from company career sites (listed first), ${jobs.length - fromCompanies} from job boards`);
   console.log(`  Toggle the "Applied?" cell (☐ → ☑) to mark a job done; the row greys out + strikes through.`);
 }
 
@@ -283,4 +308,4 @@ run()
   .catch(err => { console.error('Fatal:', err.message); process.exitCode = 1; })
   // Close the shared headless Chrome, or an open browser keeps the process alive after
   // the results are printed.
-  .finally(() => import('./dist/utils/browser.js').then((m) => m.closeSharedBrowser()));;
+  .finally(() => import('./dist/utils/browser.js').then((m) => m.closeSharedBrowser()));

@@ -30,14 +30,29 @@ export function renderSearchResult(result: ResumeSearchResult): string {
     out.push(`**No matching jobs in the ${windowLabel}.** Try a wider window (\`postedWithinDays: 7\`).`);
   } else {
     out.push(`### ${matches.length} matching job${matches.length === 1 ? '' : 's'}`);
-    out.push('');
-    out.push('| # | Title | Company | Location | Posted | Match | Apply URL |');
-    out.push('|---|-------|---------|----------|--------|-------|-----------|');
-    matches.forEach((m, i) => {
-      const company = m.via ? `${cell(m.company)} (via ${m.via})` : cell(m.company);
-      const url = m.applyUrl ? `[Apply](${m.applyUrl})` : 'N/A';
-      out.push(`| ${i + 1} | ${cell(m.title)} | ${company} | ${cell(m.locations)} | ${m.postedDate} | ${m.matchPercent}% | ${url} |`);
-    });
+    // Company career sites first — direct employer postings are the priority; job boards
+    // follow. Numbering runs continuously across both sections.
+    let n = 0;
+    const sections: Array<[string, typeof matches]> = [
+      ['From company career sites', matches.filter((m) => m.source === 'company-site')],
+      ['From job boards', matches.filter((m) => m.source === 'job-board')],
+    ];
+    for (const [heading, rows] of sections) {
+      out.push('');
+      out.push(`#### ${heading} (${rows.length})`);
+      if (rows.length === 0) {
+        out.push('_None in this window._');
+        continue;
+      }
+      out.push('');
+      out.push('| # | Title | Company | Location | Posted | Match | Apply URL |');
+      out.push('|---|-------|---------|----------|--------|-------|-----------|');
+      for (const m of rows) {
+        const company = m.via ? `${cell(m.company)} (via ${m.via})` : cell(m.company);
+        const url = m.applyUrl ? `[Apply](${m.applyUrl})` : 'N/A';
+        out.push(`| ${++n} | ${cell(m.title)} | ${company} | ${cell(m.locations)} | ${m.postedDate} | ${m.matchPercent}% | ${url} |`);
+      }
+    }
   }
 
   out.push('');

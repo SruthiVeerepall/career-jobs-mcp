@@ -74,3 +74,15 @@ test('title-level requirements are caught when the description is empty', () => 
   blocks('Java Developer (TS/SCI). ', 'clearance');
   blocks('Software Engineer - Secret Clearance. ', 'clearance');
 });
+
+test('a requirement buried in a long unpunctuated run is still found', () => {
+  // SpaceX: HTML bullets flattened to text merged the skills list with the ITAR paragraph
+  // into one 884-char run, which the screen used to skip as "too coarse".
+  const bullets = Array.from({ length: 12 }, (_, i) => `Experience with build system ${i} and package management`).join(' ');
+  blocks(
+    `${bullets} Must be willing to work extended hours and weekends as needed ITAR REQUIREMENTS: ` +
+      'To conform to U.S. Government export regulations, applicant must be a (i) U.S. citizen or national, ' +
+      '(ii) U.S. lawful, permanent resident (aka green card holder)',
+    'citizenship',
+  );
+});

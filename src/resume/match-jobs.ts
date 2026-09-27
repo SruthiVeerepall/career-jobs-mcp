@@ -1,5 +1,5 @@
 import type { CandidateProfile, JobListing, ResumeJobMatch, ScrapeResult } from '../types.js';
-import { CLEARANCE, isUSJob } from '../utils/job-filters.js';
+import { CLEARANCE, isUSJob, stripSeasonalTerms } from '../utils/job-filters.js';
 import { parsePostedDate } from '../utils/posted-date.js';
 import {
   NON_ENGINEERING_TITLE,
@@ -11,8 +11,10 @@ import {
 
 const DAY_MS = 86_400_000;
 
-/** Boards that aggregate many employers — their `companyName` is the real hiring company. */
-export const JOB_BOARDS = new Set(['LinkedIn', 'SimplyHired', 'BuiltIn.com', 'RemoteOK', 'Remotive', 'We Work Remotely']);
+import { JOB_BOARDS, bySourceThenScore, companySitesFirst, crossSourceKey, sourceOf } from '../utils/source-priority.js';
+
+/** Re-exported for existing importers; defined in utils/source-priority.ts. */
+export { JOB_BOARDS };
 
 export interface TitleScore {
   score: number;
@@ -20,7 +22,8 @@ export interface TitleScore {
 }
 
 /** Sum of the profile's skill weights whose terms appear in the job title. */
-export function scoreTitle(title: string, profile: CandidateProfile): TitleScore {
+export function scoreTitle(rawTitle: string, profile: CandidateProfile): TitleScore {
+  const title = stripSeasonalTerms(rawTitle);
   let score = 0;
   const matchedSkills: string[] = [];
   for (const skill of profile.skills) {
@@ -144,7 +147,10 @@ export function matchJobs(
   const sources = new Map<ResumeJobMatch, JobListing>();
   const seen = new Set<string>();
 
-  for (const result of results) {
+  // Company sites first, so an opening found on the employer's own site wins the
+  // cross-source dedupe below and its board repost is the one dropped.
+  const seenOpening = new Set<string>();
+  for (const result of companySitesFirst(results)) {
     if (result.error) continue;
     for (const job of result.jobs) {
       stats.rawJobs++;
@@ -184,10 +190,19 @@ export function matchJobs(
       seen.add(key);
 
       const viaBoard = JOB_BOARDS.has(result.company);
+      const employer = viaBoard && job.companyName && job.companyName !== result.company ? job.companyName : result.company;
+      const opening = crossSourceKey(employer, title);
+      if (seenOpening.has(opening)) {
+        stats.duplicates++;
+        continue;
+      }
+      seenOpening.add(opening);
+
       const match: ResumeJobMatch = {
         title,
-        company: viaBoard && job.companyName && job.companyName !== result.company ? job.companyName : result.company,
+        company: employer,
         via: viaBoard ? result.company : undefined,
+        source: sourceOf(result.company),
         locations: (job.locations ?? []).join(' | ') || 'N/A',
         postedDate: formatPosted(posted, job),
         applyUrl: job.applyUrl ?? '',
@@ -202,7 +217,8 @@ export function matchJobs(
     }
   }
 
-  matches.sort((a, b) => b.score - a.score || a.company.localeCompare(b.company));
+  // Company career sites first (the user's priority), boards after; score within each.
+  matches.sort((a, b) => bySourceThenScore(a, b) || a.company.localeCompare(b.company));
   stats.matched = matches.length;
 
   return {

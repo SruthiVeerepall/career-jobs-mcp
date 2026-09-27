@@ -21,6 +21,8 @@ import { companyRegistry } from './dist/scrapers/company-registry.js';
 import { scrapeMany } from './dist/scrapers/orchestrator.js';
 import { OVER_5YR, CLEARANCE, isUSJob, matchesProfile, resumeScore } from './dist/utils/job-filters.js';
 import { parsePostedDate } from './dist/utils/posted-date.js';
+import { screenRequirements } from './dist/utils/requirement-screen.js';
+import { JOB_BOARDS, bySourceThenScore, companySitesFirst, crossSourceKey, sourceOf } from './dist/utils/source-priority.js';
 
 // Load all companies, excluding custom/oracle-orc (Puppeteer-based) platforms.
 // Custom companies are mostly non-US (Tencent, Baidu, etc.) or have unreliable scrapers
@@ -40,9 +42,6 @@ const API_SINCE = WINDOW_DAYS <= 1 ? 'today' : 'week';
 
 // Concurrency ceiling (constant regardless of company count). Override with SCRAPE_CONCURRENCY.
 const CONCURRENCY = Number(process.env.SCRAPE_CONCURRENCY ?? 24);
-
-// Cross-company job boards — results show the real employer as "{Employer} (via {Board})".
-const JOB_BOARDS = new Set(['LinkedIn', 'SimplyHired', 'BuiltIn.com', 'RemoteOK', 'Remotive', 'We Work Remotely']);
 
 async function run() {
   console.log(`\nCLAUDE.md rules: Resume-match ≥60% | last ${WINDOW_LABEL} | Junior–Senior | US | No clearance`);
@@ -84,13 +83,16 @@ async function run() {
   const cutoff = Date.now() - WINDOW_DAYS * DAY_MS;
   const jobs = [];
   const seen = new Set();
+  const seenOpening = new Set();
   // Postings the window dropped only because the source published no usable date.
   // The orchestrator applies that exclusion before we see the jobs, so take its count
   // (`undatedExcluded`) rather than counting locally — reported below so the exclusion
   // is visible rather than silent.
   let undatedDropped = results.reduce((n, r) => n + (r.undatedExcluded ?? 0), 0);
 
-  for (const company of results) {
+  // Company sites first, so a board repost of an opening already found on the employer's
+  // own site is the copy dropped by the cross-source dedupe below.
+  for (const company of companySitesFirst(results)) {
     if (company.error || !company.jobs.length) continue;
     for (const job of company.jobs) {
       const title = job.title || '';
@@ -114,12 +116,17 @@ async function run() {
       const key = job.applyUrl || `${company.company}::${title}`;
       if (seen.has(key)) continue;
       seen.add(key);
+      // Job-board results carry the real hiring company in companyName
+      const employer = JOB_BOARDS.has(company.company) && job.companyName && job.companyName !== company.company
+        ? job.companyName
+        : company.company;
+      const opening = crossSourceKey(employer, title);
+      if (seenOpening.has(opening)) continue;
+      seenOpening.add(opening);
       jobs.push({
         title,
-        // Job-board results carry the real hiring company in companyName
-        company: JOB_BOARDS.has(company.company) && job.companyName && job.companyName !== company.company
-          ? `${job.companyName} (via ${company.company})`
-          : company.company,
+        company: employer === company.company ? employer : `${employer} (via ${company.company})`,
+        source: sourceOf(company.company),
         locations: (job.locations || []).join(' | ') || 'N/A',
         // Rendered in UTC on purpose. Date-only sources (LinkedIn) parse to UTC midnight,
         // so formatting in local time shifted them a day earlier — a job posted 21:00Z
@@ -137,6 +144,7 @@ async function run() {
               })) + (job.isRepost ? ' (repost)' : ''),
         applyUrl: job.applyUrl || '',
         score: resumeScore(title),
+        listing: job,
       });
     }
   }
@@ -145,24 +153,46 @@ async function run() {
     console.log(`Excluded ${undatedDropped} postings whose source published no usable date (age unverifiable).`);
   }
 
+
+  // CLAUDE.md rule #4 on the DESCRIPTION: the title check above only catches titles like
+  // "Engineer (TS/SCI)"; "Must be a U.S. citizen" / "Secret clearance required" live in the body.
+  const screened = await screenRequirements(jobs, (j) => j.listing);
+  jobs.splice(0, jobs.length, ...screened.kept);
+  if (screened.blocked.length > 0) {
+    console.log(`Excluded ${screened.blocked.length} postings whose description requires a security clearance or US citizenship.`);
+  }
+  if (screened.unverified > 0) {
+    console.log(`${screened.unverified} kept postings had no readable description — clearance/citizenship unchecked.`);
+  }
+
   if (jobs.length === 0) {
     console.log(`\nNo matching jobs found in the last ${WINDOW_LABEL} across all ${ALL_SLUGS.length} companies.`);
     console.log('Try: node find-java-24h.mjs --week\n');
     return;
   }
 
-  jobs.sort((a, b) => b.score - a.score);
+  // Company career sites first (direct employer postings are the priority), boards after.
+  jobs.sort(bySourceThenScore);
 
-  console.log(`\nFound ${jobs.length} jobs (last ${WINDOW_LABEL} | Junior–Senior | US | No clearance | ≥60% resume match):\n`);
-  console.log('| # | Title | Company | Location | Posted | Score | Apply |');
-  console.log('|---|-------|---------|----------|--------|-------|-------|');
-  jobs.forEach((job, i) => {
-    const t = job.title.replace(/\|/g, '-');
-    const c = job.company.replace(/\|/g, '-');
-    const l = job.locations.replace(/\|/g, '/');
-    const url = job.applyUrl ? `[Apply](${job.applyUrl})` : 'N/A';
-    console.log(`| ${i + 1} | ${t} | ${c} | ${l} | ${job.postedDate} | ${job.score} | ${url} |`);
-  });
+  console.log(`\nFound ${jobs.length} jobs (last ${WINDOW_LABEL} | Junior–Senior | US | No clearance | ≥60% resume match):`);
+  let n = 0;
+  for (const [heading, source] of [['From company career sites', 'company-site'], ['From job boards', 'job-board']]) {
+    const rows = jobs.filter(j => j.source === source);
+    console.log(`\n### ${heading} (${rows.length})\n`);
+    if (rows.length === 0) {
+      console.log('_None in this window._');
+      continue;
+    }
+    console.log('| # | Title | Company | Location | Posted | Score | Apply |');
+    console.log('|---|-------|---------|----------|--------|-------|-------|');
+    for (const job of rows) {
+      const t = job.title.replace(/\|/g, '-');
+      const c = job.company.replace(/\|/g, '-');
+      const l = job.locations.replace(/\|/g, '/');
+      const url = job.applyUrl ? `[Apply](${job.applyUrl})` : 'N/A';
+      console.log(`| ${++n} | ${t} | ${c} | ${l} | ${job.postedDate} | ${job.score} | ${url} |`);
+    }
+  }
 
   console.log(`\nTotal: ${jobs.length} jobs from ${ALL_SLUGS.length} companies in ${elapsed}s`);
   console.log(`Score key: Java=10, Spring Boot=10, Full Stack/Spring/Microservices=7, Angular/React/AWS/Kafka=5`);
@@ -175,4 +205,4 @@ run()
   })
   // Close the shared headless Chrome, or an open browser keeps the process alive after
   // the results are printed.
-  .finally(() => import('./dist/utils/browser.js').then((m) => m.closeSharedBrowser()));;
+  .finally(() => import('./dist/utils/browser.js').then((m) => m.closeSharedBrowser()));

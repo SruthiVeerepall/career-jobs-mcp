@@ -85,3 +85,19 @@ test('matchesProfile applies the >=5 threshold and target-role fallback', () => 
 test('RESUME_MATCH_THRESHOLD is 5 (60% match per CLAUDE.md)', () => {
   assert.equal(RESUME_MATCH_THRESHOLD, 5);
 });
+
+test('"Vice President" and "SVP" are above the 5-year ceiling like "VP"', async () => {
+  const { OVER_5YR } = await import('../dist/utils/job-filters.js');
+  assert.equal(OVER_5YR.test('Process Engineering (Java, Multithreading) - Vice President'), true);
+  assert.equal(OVER_5YR.test('SVP, Software Engineering'), true);
+  assert.equal(OVER_5YR.test('Senior Java Developer'), false);
+});
+
+test('"Spring" the season does not score as the Java framework', async () => {
+  const { matchesProfile, resumeScore } = await import('../dist/utils/job-filters.js');
+  assert.equal(matchesProfile('2027 Spring Logistics / Packaging Engineering Co-op'), false);
+  assert.equal(resumeScore('Spring 2027 Internship - Mechanical'), 0);
+  // The framework still counts.
+  assert.ok(resumeScore('Java Developer (Spring Boot)') >= 17);
+  assert.ok(resumeScore('Spring Developer') > 0);
+});

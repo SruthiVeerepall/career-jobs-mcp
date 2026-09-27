@@ -2,7 +2,9 @@
 // Rules per CLAUDE.md rules #2 (experience level), #3 (location), #4 (clearance), #6 (resume match).
 
 // Senior / >5yr title patterns — EXCLUDE
-export const OVER_5YR = /\bprincipal\b|\bstaff\b|\blead\b|\barchitect\b|\bdirector\b|\bvp\b|\bhead of\b|\bmanager\b|\bexecutive\b|\bdistinguished\b|\bfellow\b/i;
+// "Vice President" / "SVP" spelled out: only "VP" was caught, so bank titles like
+// "Process Engineering (Java) - Vice President" slipped through rule #2.
+export const OVER_5YR = /\bvice president\b|\bsvp\b|\bprincipal\b|\bstaff\b|\blead\b|\barchitect\b|\bdirector\b|\bvp\b|\bhead of\b|\bmanager\b|\bexecutive\b|\bdistinguished\b|\bfellow\b/i;
 
 // Security clearance — EXCLUDE
 export const CLEARANCE = /security clearance|secret clearance|top secret|ts\/sci|dod clearance|clearance required|us citizen|u\.s\. citizen|citizenship required|must be a citizen|active clearance|public trust/i;
@@ -64,10 +66,19 @@ export const TARGET_ROLES = /\b(java|full.?stack|fullstack|software engineer|sof
 export const EXCLUDE_ROLES = /\b(data scientist|machine learning|ml engineer|devops engineer|qa engineer|test engineer|security engineer|network engineer|database administrator|dba|data engineer|ui developer|ux designer|product manager|scrum master|business analyst|data analyst)\b/i;
 export const RESUME_MATCH_THRESHOLD = 5;
 
+/**
+ * "Spring" the season, not the framework: "2027 Spring Logistics Co-op" scored as a Java
+ * Spring role. Removed before any skill scoring.
+ */
+export function stripSeasonalTerms(title: string): string {
+  return title.replace(/\b(?:20\d\d\s+spring|spring\s+(?:20\d\d|co-?op|intern\w*|semester|term|season(?:al)?))\b/gi, ' ');
+}
+
 export function resumeScore(title: string): number {
   let score = 0;
+  const t = stripSeasonalTerms(title);
   for (const { pattern, weight } of RESUME_WEIGHTS) {
-    if (pattern.test(title)) score += weight;
+    if (pattern.test(t)) score += weight;
   }
   return score;
 }

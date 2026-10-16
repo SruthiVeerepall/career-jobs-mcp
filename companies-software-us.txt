@@ -1,0 +1,62 @@
+Aisera|https://aisera.com/careers
+Alation|https://www.alation.com/careers
+Anduril Industries|https://www.anduril.com/careers
+Armis|https://www.armis.com/careers
+Axonius|https://www.axonius.com/company/careers
+Blend|https://blend.com/company/careers
+Branch Metrics|https://www.branch.io/careers
+Canary Technologies|https://www.canarytechnologies.com/careers
+Census|https://www.getcensus.com/careers
+Crusoe|https://crusoe.ai/careers
+Dataminr|https://www.dataminr.com/careers
+Dremio|https://www.dremio.com/careers
+Earnin|https://www.earnin.com/careers
+EliseAI|https://www.eliseai.com/careers
+Intellistack|https://www.intellistack.ai/careers
+GoodRx|https://www.goodrx.com/jobs
+Heap|https://www.heap.io/careers
+Imprivata|https://www.imprivata.com/company/careers
+Jasper|https://www.jasper.ai/careers
+Kong|https://konghq.com/careers
+Lucid Software|https://lucid.co/careers
+Observe Inc|https://www.observeinc.com/company/careers
+Octopus Deploy|https://octopus.com/company/careers
+OneSignal|https://onesignal.com/careers
+Productboard|https://www.productboard.com/careers
+Retool|https://retool.com/careers
+Semgrep|https://semgrep.dev/careers
+Snyk|https://snyk.io/careers
+Statsig|https://www.statsig.com/careers
+Truework|https://www.truework.com/careers
+Unit21|https://www.unit21.ai/careers
+Ambience Healthcare|https://www.ambiencehealthcare.com/careers
+Arcadia|https://arcadia.io/careers
+Augment Code|https://www.augmentcode.com/careers
+Bluecore|https://www.bluecore.com/careers
+ButterflyMX|https://butterflymx.com/careers
+Clay|https://www.clay.com/careers
+Clipboard Health|https://clipboardhealth.com/careers
+Cloudsmith|https://cloudsmith.com/company/careers
+Codeium|https://codeium.com/careers
+Common Room|https://www.commonroom.io/careers
+Cortex|https://www.cortex.io/careers
+Dagster Labs|https://dagster.io/careers
+Endor Labs|https://www.endorlabs.com/careers
+Factory|https://www.factory.ai/careers
+Gem|https://www.gem.com/careers
+Gecko Robotics|https://www.geckorobotics.com/careers
+Hebbia|https://www.hebbia.ai/careers
+Mux|https://www.mux.com/jobs
+n8n|https://n8n.io/careers
+Nooks|https://www.nooks.ai/careers
+Pave|https://www.pave.com/careers
+Pylon|https://usepylon.com/careers
+Rain|https://www.rain.xyz/careers
+Rilla|https://www.rilla.com/careers
+Scribe|https://scribehow.com/careers
+Tecton|https://www.tecton.ai/careers
+Turing|https://www.turing.com/careers
+Twelve Labs|https://www.twelvelabs.io/careers
+Unify|https://www.unifygtm.com/careers
+Atlan|https://atlan.com/careers
+Bonusly|https://bonusly.com/careers

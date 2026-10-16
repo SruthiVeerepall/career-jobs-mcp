@@ -138,6 +138,14 @@ export interface ResumeJobMatch {
   family: string;
   /** Profile skills whose names appear in the job title. */
   matchedSkills: string[];
+  /** Weighted share (0–100) of the job description's skills the résumé also has; null when unscorable. */
+  jdMatchPercent?: number | null;
+  /** Why `jdMatchPercent` is what it is: scored, or no readable description / no known skills in it. */
+  jdMatchStatus?: 'scored' | 'no-description' | 'no-known-skills';
+  /** Skills the job description asks for that the résumé has. */
+  jdMatchedSkills?: string[];
+  /** Skills the job description asks for that the résumé lacks. */
+  jdMissingSkills?: string[];
 }
 
 export interface ScrapeResult {

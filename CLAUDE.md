@@ -51,6 +51,30 @@ Sanity check: the sample Java/Full-Stack résumé must reproduce this exact prof
 families `fullstack, generic-swe, backend, frontend` (no `devops`), band `Entry → Senior`,
 `Senior Java Full Stack Developer` scoring 17. `test/resume-profile.test.mjs` asserts this.
 
+### JD match — scoring the job description against the résumé (`src/resume/jd-match.ts`)
+Title matching (above) decides **which** jobs qualify; `matchDescription()` then scores each
+kept job's **description** against the résumé's skills. Both sides go through the same
+`extractSkills()` taxonomy. `JD Match % = weight of JD skills the résumé has ÷ weight of all
+JD skills`, so the JD's asks are the denominator and missing its core language costs more than
+missing a build tool. No readable description, or no known skill in it → `null` ("N/A"), never 0.
+- The description is the one the clearance screen already fetched (`ScreenOutcome.descriptions`) — no second fetch.
+- `export-jobs-xlsx.mjs --resume` adds a `JD Match %` column (the matched/missing skill lists
+  stay on `ResumeJobMatch` for the MCP tool's JSON, but are not written to the sheet — user preference).
+  Order is still **company sites first, job portals after** (rule #5); JD match sorts
+  *within* each group (ties: more matched skills, then title score). The `Source` column
+  names the portal (LinkedIn, SimplyHired…) for board jobs and the employer for career-site
+  jobs; `Company` is always the employer, with no "(via …)" suffix.
+  `--min-jd-match <n>` drops scored jobs below n%; N/A jobs are kept at the bottom.
+- **LinkedIn descriptions are fetched one at a time, 250ms apart, with 429 backoff**
+  (`SERIAL_HOSTS` in `requirement-screen.ts`). At the screen's 16-way concurrency LinkedIn
+  refused ~90% (140/155 unread); serialized, 131/135 were read and the clearance screen
+  caught 44 jobs instead of 24. A host that exhausts its retries is skipped for 10 min so a
+  hard block cannot stall the run.
+- **Fetched descriptions persist** in the `job_descriptions` table of `data/cache.db`, keyed
+  by apply URL, 14-day TTL — not window-scaled like scrape rows, because a posting's text
+  does not age. Timings for a `--today` résumé export: cold ~2 min (was ~4 min at a 1s gap),
+  re-run ~7s. Only fetched descriptions are stored; scraped ones are already free.
+
 ### Board keywords are per-résumé
 `SearchFilters.searchTerms` carries the résumé's terms to the four keyword-driven boards
 (LinkedIn, SimplyHired, BuiltIn, Remotive) via `BaseScraper.resolveSearchTerms()`; each board's

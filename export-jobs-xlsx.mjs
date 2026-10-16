@@ -13,6 +13,12 @@
  *
  * With --resume, every filter is derived from that resume instead of the profile baked
  * into job-filters.js, so the workbook can be produced for any candidate.
+ *
+ * With --resume, each job's DESCRIPTION is also scored against the resume's skills
+ * ("JD Match %"). Company career sites still come first and job portals after; within
+ * each group jobs are sorted best fit first, and those whose description could not be
+ * read sit at the bottom of their group as "N/A".
+ * Drop weak fits:                   --min-jd-match <percent>   (unscorable jobs are kept)
  */
 import ExcelJS from 'exceljs';
 import { companyRegistry } from './dist/scrapers/company-registry.js';
@@ -20,6 +26,7 @@ import { scrapeMany } from './dist/scrapers/orchestrator.js';
 import { OVER_5YR, CLEARANCE, isUSJob, matchesProfile, resumeScore } from './dist/utils/job-filters.js';
 import { parsePostedDate } from './dist/utils/posted-date.js';
 import { searchJobsForResume } from './dist/resume/search.js';
+import { byJdMatch } from './dist/resume/jd-match.js';
 import { screenRequirements } from './dist/utils/requirement-screen.js';
 import { JOB_BOARDS, bySourceThenScore, companySitesFirst, crossSourceKey, sourceOf } from './dist/utils/source-priority.js';
 
@@ -42,6 +49,11 @@ function flagValue(name) {
 
 const OUT = flagValue('out') ?? 'job-results.xlsx';
 const RESUME = flagValue('resume');
+const MIN_JD_MATCH = flagValue('min-jd-match') !== undefined ? Number(flagValue('min-jd-match')) : undefined;
+if (MIN_JD_MATCH !== undefined && !Number.isFinite(MIN_JD_MATCH)) {
+  console.error('--min-jd-match needs a number, e.g. --min-jd-match 50');
+  process.exit(1);
+}
 
 
 function platformOf(u) {
@@ -75,6 +87,10 @@ async function collectFromResume() {
     concurrency: CONCURRENCY,
     onProgress: (done, total) => {
       if (done % 100 === 0 || done === total) process.stderr.write(`  ${done}/${total} sources done\n`);
+      if (done === total) process.stderr.write(`  Reading job descriptions for JD match — new LinkedIn postings are paced, up to ~2 min; already-seen ones come from the cache...\n`);
+    },
+    onDescriptionProgress: (done, total) => {
+      if (done % 48 === 0 || done === total) process.stderr.write(`  ${done}/${total} job descriptions read\n`);
     },
   });
 
@@ -95,19 +111,36 @@ async function collectFromResume() {
     console.log(`${result.stats.requirementUnverified} kept postings had no readable description — clearance/citizenship unchecked.`);
   }
 
-  return {
-    jobs: result.matches.map((m) => ({
-      title: m.title,
-      company: m.via ? `${m.company} (via ${m.via})` : m.company,
-      locations: m.locations,
-      posted: m.postedDate,
-      score: m.score,
-      source: m.source,
-      platform: platformOf(m.applyUrl),
-      url: m.applyUrl,
-    })),
-    elapsed: ((Date.now() - start) / 1000).toFixed(1),
-  };
+  let jobs = result.matches.map((m) => ({
+    title: m.title,
+    company: m.company,
+    // The portal for a board listing, the employer for a direct career-site listing.
+    sourceName: m.via ?? m.company,
+    locations: m.locations,
+    posted: m.postedDate,
+    score: m.score,
+    jdMatchPercent: m.jdMatchPercent ?? null,
+    jdMatchStatus: m.jdMatchStatus,
+    jdMatchedSkills: m.jdMatchedSkills ?? [],
+    source: m.source,
+    platform: platformOf(m.applyUrl),
+    url: m.applyUrl,
+  }));
+
+  if (MIN_JD_MATCH !== undefined) {
+    const before = jobs.length;
+    jobs = jobs.filter((j) => j.jdMatchPercent === null || j.jdMatchPercent >= MIN_JD_MATCH);
+    console.log(`Dropped ${before - jobs.length} jobs whose description matched the resume below ${MIN_JD_MATCH}%.`);
+  }
+  const unscored = jobs.filter((j) => j.jdMatchPercent === null).length;
+  if (unscored > 0) {
+    console.log(`${unscored} jobs had no readable description (or named no known skill) — kept at the bottom of their group as "N/A".`);
+  }
+  // Company career sites first, job portals after; best description fit first within each.
+  jobs.sort((a, b) =>
+    Number(a.source === 'job-board') - Number(b.source === 'job-board') || byJdMatch(a, b) || b.score - a.score);
+
+  return { jobs, elapsed: ((Date.now() - start) / 1000).toFixed(1) };
 }
 
 async function collectFromRegistryProfile() {
@@ -171,7 +204,8 @@ async function collectFromRegistryProfile() {
       seenOpening.add(opening);
       jobs.push({
         title,
-        company: employer === company.company ? employer : `${employer} (via ${company.company})`,
+        company: employer,
+        sourceName: JOB_BOARDS.has(company.company) ? company.company : employer,
         source: sourceOf(company.company),
         locations: (job.locations || []).join(' | ') || 'N/A',
         // "(repost)" marks a republished listing — date is the repost time, opening may
@@ -231,10 +265,11 @@ async function run() {
     { header: '#', key: 'num', width: 5 },
     { header: 'Title', key: 'title', width: 52 },
     { header: 'Company', key: 'company', width: 20 },
-    { header: 'Source', key: 'source', width: 13 },
+    { header: 'Source', key: 'source', width: 20 },
     { header: 'Location', key: 'location', width: 34 },
     { header: 'Posted', key: 'posted', width: 9 },
     { header: 'Score', key: 'score', width: 7 },
+    { header: 'JD Match %', key: 'jdMatch', width: 11 },
     { header: 'Platform', key: 'platform', width: 15 },
     { header: 'Apply', key: 'apply', width: 12 },
     { header: 'Apply URL', key: 'url', width: 60 },
@@ -253,16 +288,23 @@ async function run() {
   const scoreFill = s => s >= 20 ? 'FFD1FAE5' : s >= 10 ? 'FFCFF5FB' : s >= 7 ? 'FFE8E7FD' : s >= 5 ? 'FFFCEBCF' : 'FFEEF1F6';
   const scoreFont = s => s >= 20 ? 'FF059669' : s >= 10 ? 'FF0891B2' : s >= 7 ? 'FF4F46E5' : s >= 5 ? 'FFB45309' : 'FF64748B';
 
+  // Green = strong description fit, amber = partial, red = weak, grey = could not score.
+  const jdFill = p => p === null || p === undefined ? 'FFEEF1F6' : p >= 70 ? 'FFD1FAE5' : p >= 40 ? 'FFFCEBCF' : 'FFFDE2E2';
+  const jdFont = p => p === null || p === undefined ? 'FF64748B' : p >= 70 ? 'FF059669' : p >= 40 ? 'FFB45309' : 'FFDC2626';
+
   jobs.forEach((j, i) => {
+    const hasJd = typeof j.jdMatchPercent === 'number';
     const row = ws.addRow({
       applied: '☐',
       num: i + 1,
       title: j.title,
       company: j.company,
-      source: j.source === 'job-board' ? 'Job board' : 'Company site',
+      source: j.sourceName,
       location: j.locations,
       posted: j.posted,
       score: j.score,
+      // A real number so the column sorts/filters numerically in Excel.
+      jdMatch: hasJd ? j.jdMatchPercent / 100 : (RESUME ? 'N/A' : ''),
       platform: j.platform,
       apply: j.url ? { text: 'Apply ↗', hyperlink: j.url } : '',
       url: j.url,
@@ -278,15 +320,23 @@ async function run() {
     sc.alignment = { horizontal: 'center' };
     sc.font = { bold: true, color: { argb: scoreFont(j.score) } };
     sc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: scoreFill(j.score) } };
+    if (RESUME) {
+      const jc = row.getCell('jdMatch');
+      jc.numFmt = '0%';
+      jc.alignment = { horizontal: 'center' };
+      jc.font = { bold: true, color: { argb: jdFont(j.jdMatchPercent) } };
+      jc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: jdFill(j.jdMatchPercent) } };
+    }
     if (j.url) row.getCell('apply').font = { color: { argb: 'FF4F46E5' }, underline: true };
   });
 
   const lastRow = jobs.length + 1;
-  ws.autoFilter = `A1:K1`;
+  const lastCol = ws.getColumn(ws.columns.length).letter;
+  ws.autoFilter = `A1:${lastCol}1`;
 
   // When Applied? = ☑, grey + strikethrough the whole row so done ones fade back
   ws.addConditionalFormatting({
-    ref: `A2:K${lastRow}`,
+    ref: `A2:${lastCol}${lastRow}`,
     rules: [{
       type: 'expression',
       formulae: ['$A2="☑"'],
@@ -300,6 +350,11 @@ async function run() {
   console.log(`\nDone. ${OUT}`);
   const fromCompanies = jobs.filter(j => j.source !== 'job-board').length;
   console.log(`  ${jobs.length} jobs  (${strong} strong, score ≥5)`);
+  if (RESUME) {
+    const jd70 = jobs.filter(j => (j.jdMatchPercent ?? -1) >= 70).length;
+    const jd40 = jobs.filter(j => (j.jdMatchPercent ?? -1) >= 40 && j.jdMatchPercent < 70).length;
+    console.log(`  JD match: ${jd70} strong (≥70%), ${jd40} partial (40–69%) — best fit first within each group`);
+  }
   console.log(`  ${fromCompanies} from company career sites (listed first), ${jobs.length - fromCompanies} from job boards`);
   console.log(`  Toggle the "Applied?" cell (☐ → ☑) to mark a job done; the row greys out + strikes through.`);
 }

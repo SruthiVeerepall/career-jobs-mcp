@@ -4,6 +4,7 @@ import { scrapeMany } from '../scrapers/orchestrator.js';
 import { buildProfile, type BuildProfileOptions } from './build-profile.js';
 import { extractResumeText, type ResumeInput } from './extract-text.js';
 import { JOB_BOARDS, matchJobs, type MatchStats } from './match-jobs.js';
+import { matchDescription } from './jd-match.js';
 import { screenRequirements } from '../utils/requirement-screen.js';
 
 /** Default freshness window, per CLAUDE.md rule #1. */
@@ -21,6 +22,8 @@ export interface ResumeSearchOptions extends ResumeInput, BuildProfileOptions {
   /** Skip the cache and re-scrape everything. */
   forceRefresh?: boolean;
   onProgress?: (done: number, total: number) => void;
+  /** Progress of the job-description fetch that follows the scrape — slow on LinkedIn. */
+  onDescriptionProgress?: (done: number, total: number) => void;
 }
 
 export interface ResumeSearchResult {
@@ -94,8 +97,16 @@ export async function searchJobsForResume(options: ResumeSearchOptions): Promise
   // "Engineer (TS/SCI)"; the requirement is almost always stated in the description.
   const screened = await screenRequirements(candidates, (m) => sources.get(m)!, {
     stopAfter: options.limit,
+    onProgress: options.onDescriptionProgress,
   });
   const matches = screened.kept;
+  for (const m of matches) {
+    const jd = matchDescription(screened.descriptions.get(m), profile);
+    m.jdMatchPercent = jd.percent;
+    m.jdMatchStatus = jd.status;
+    m.jdMatchedSkills = jd.matchedSkills;
+    m.jdMissingSkills = jd.missingSkills;
+  }
   stats.droppedByRequirement = screened.blocked.length;
   stats.requirementUnverified = screened.unverified;
   stats.matched = matches.length;

@@ -58,6 +58,22 @@ test('isUSJob accepts US states, USA, and remote (non-international)', () => {
   assert.equal(isUSJob(undefined), true);
 });
 
+// Real location strings from registry boards that were rejected as non-US before.
+test('isUSJob accepts bare US cities, state names, and Workday state prefixes', () => {
+  for (const loc of ['San Francisco', 'New York City', 'NYC', 'San Francisco Office', 'Pittsburgh',
+    'US', 'U.S. (Remote)', 'Eden Prairie, Minnesota', 'Dallas, Texas', 'Albuquerque, New Mexico',
+    'TX-Dallas', 'NY-New York', 'IL-Chicago', 'Sunnyvale', 'Washington, DC', 'Melbourne, FL, US, 32919']) {
+    assert.equal(isUSJob([loc]), true, loc);
+  }
+});
+
+test('isUSJob still rejects non-US cities and site codes', () => {
+  for (const loc of ['Toronto', 'CA-Toronto', 'London', 'Bengaluru, KA', 'IN-KA-BENGALURU-NORTHGATE',
+    'Hyderabad, TS', 'Gurugram, HR', 'Seoul, South Korea', 'Mexico, Guadalajara', 'Dublin', 'Hong Kong']) {
+    assert.equal(isUSJob([loc]), false, loc);
+  }
+});
+
 test('isUSJob rejects non-US locations', () => {
   assert.equal(isUSJob(['Toronto, ON']), false);
   assert.equal(isUSJob(['London, United Kingdom']), false);

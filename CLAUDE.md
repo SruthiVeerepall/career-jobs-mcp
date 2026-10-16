@@ -78,6 +78,11 @@ by terms: they fetch their whole board regardless, so keying them would fragment
 ### 3. Location — US only by default
 - Only return US-based or Remote (no explicit non-US country) jobs unless the user specifies a different country.
 - Exclude postings that mention: Canada, UK, India, Germany, France, Australia, Singapore, Ireland, Poland, Netherlands, etc.
+- `isUSJob()` must accept every US format the boards emit, not just `City, ST`: bare cities
+  (`San Francisco`, `NYC` — Ashby's default), full state names (`Dallas, Texas`), Workday
+  prefixes (`TX-Dallas`), and a bare `US`. Before 2026-10-16 it accepted only `USA`/`United
+  States`/`, ST`/Remote and silently dropped ~18k of 155k cached jobs as non-US, zeroing out
+  whole Ashby companies. `test/job-filters.test.mjs` pins the real strings.
 
 ### 4. No Security Clearance
 - Exclude any job requiring security clearance, government clearance, Top Secret / TS-SCI, public trust, or US citizenship as a job requirement.

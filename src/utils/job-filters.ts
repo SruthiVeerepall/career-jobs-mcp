@@ -16,20 +16,35 @@ const US_STATES = new Set([
   'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA',
   'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'DC',
 ]);
-export const NON_US = /\b(Canada|Ontario|Quebec|British Columbia|Alberta|UK|United Kingdom|Ireland|India|Germany|France|Australia|Singapore|Poland|Netherlands|Mexico|Israel|Japan|Korea|China|Brazil|Spain|Italy|Denmark|Norway|Sweden|Switzerland)\b/i;
+// "(?<!New )Mexico": "Albuquerque, New Mexico" is a US state, not the country.
+// The non-US cities are the ones that would otherwise pass through a "CA-"/"IN-" Workday
+// prefix or a bare-city match below.
+export const NON_US = /\b(Canada|Ontario|Quebec|British Columbia|Alberta|UK|United Kingdom|Ireland|India|Germany|France|Australia|Singapore|Poland|Netherlands|(?<!New )Mexico|Israel|Japan|Korea|China|Brazil|Spain|Italy|Denmark|Norway|Sweden|Switzerland|Toronto|Vancouver|Montreal|Bangalore|Bengaluru|Hyderabad|Pune|Chennai|Mumbai|Gurugram|Gurgaon|Noida|Dublin|Paris|Berlin|Munich|Amsterdam|Tokyo|Seoul|Tel Aviv|Shanghai|Beijing|Taipei|Hong Kong|Manila|Penang|Warsaw|Krakow|Budapest|Prague|Lisbon|Barcelona|Madrid|Zurich|Stockholm|São Paulo|Sao Paulo|Buenos Aires)\b/i;
+
+// Georgia is left out on purpose: it is also a country.
+const US_STATE_NAMES = /\b(Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|New Jersey|New Mexico|New York|North Carolina|North Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West Virginia|Wisconsin|Wyoming|District of Columbia)\b/i;
+
+// Bare city names, as Ashby and many Greenhouse boards write them ("San Francisco",
+// "New York City", "NYC"). Only cities that are unambiguously American.
+const US_CITIES = /\b(San Francisco|SF Bay Area|Bay Area|NYC|Brooklyn|Manhattan|Los Angeles|San Diego|San Jose|Sunnyvale|Mountain View|Palo Alto|Menlo Park|Redwood City|Santa Clara|Cupertino|Oakland|Irvine|Seattle|Bellevue|Redmond|Chicago|Boston|Austin|Dallas|Houston|San Antonio|Denver|Boulder|Atlanta|Miami|Pittsburgh|Philadelphia|Phoenix|Salt Lake City|Minneapolis|Detroit|Nashville|Raleigh|Charlotte|Columbus|Cleveland|Baltimore|Arlington|St\.? Louis|Kansas City|Indianapolis|Washington,? D\.?C\.?)\b/i;
 
 export function isUSJob(locations: string[] | undefined): boolean {
   if (!locations || locations.length === 0) return true;
   return locations.some((loc) => {
     if (!loc) return true;
     if (NON_US.test(loc)) return false;
-    if (/\bUSA\b|\bUnited States\b/i.test(loc)) return true;
+    if (/\bUSA?\b|\bU\.S\.(A\.)?|\bUnited States\b/i.test(loc)) return true;
     const m = loc.match(/,\s*([A-Z]{2})(?:\s*,|\s*$)/);
     if (m) {
       if (CA_PROVINCES.has(m[1])) return false;
       if (US_STATES.has(m[1])) return true;
     }
-    if (/\bRemote\b/i.test(loc) && !NON_US.test(loc)) return true;
+    // Workday "TX-Dallas" / "NY-New York": state code, hyphen, then a capitalised city.
+    // The lowercase second letter keeps "IN-KA-BENGALURU" (an India site code) out.
+    const w = loc.match(/^([A-Z]{2})\s*-\s*[A-Z][a-z]/);
+    if (w && US_STATES.has(w[1])) return true;
+    if (US_STATE_NAMES.test(loc) || US_CITIES.test(loc)) return true;
+    if (/\bRemote\b/i.test(loc)) return true;
     return false;
   });
 }

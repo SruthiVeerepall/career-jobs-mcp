@@ -18,6 +18,7 @@
 import axios from 'axios';
 import type { JobListing } from '../types.js';
 import { hostFromUrl, rateLimiter } from './rate-limiter.js';
+import { cacheManager } from '../cache/cache-manager.js';
 
 export type RequirementKind = 'clearance' | 'citizenship';
 
@@ -133,13 +134,60 @@ function htmlToText(html: string): string {
     .trim();
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Hosts that 429 on bursts, with the gap between their requests. The screen fetches 16
+ * descriptions at once and `rateLimiter` does not serialize concurrent callers, so
+ * LinkedIn got 16 simultaneous requests and refused ~90% of them (140 of 155 unread on a
+ * `--today` run). One at a time with 429 backoff reads 25 of 25 at any gap; the gap only
+ * trades retries for idle time (measured per 25: 1000ms → 41s, 400ms → 23s, 0ms → 16s).
+ * 250ms halved a cold `--today` export (238s → 122s) with no extra unread descriptions.
+ */
+const SERIAL_HOSTS: Record<string, number> = { 'www.linkedin.com': 250 };
+const MAX_429_RETRIES = 3;
+/** After a host exhausts its 429 retries, skip it for this long rather than stall every remaining job. */
+const THROTTLE_COOLDOWN_MS = 10 * 60_000;
+
+const hostQueue = new Map<string, Promise<unknown>>();
+const throttledUntil = new Map<string, number>();
+
+function serialized<T>(host: string, fn: () => Promise<T>): Promise<T> {
+  const gap = SERIAL_HOSTS[host];
+  if (gap === undefined) return fn();
+  const run = (hostQueue.get(host) ?? Promise.resolve()).then(fn);
+  hostQueue.set(host, run.catch(() => undefined).then(() => sleep(gap)));
+  return run;
+}
+
+function retryAfterMs(err: unknown): number | undefined {
+  const header = axios.isAxiosError(err) ? err.response?.headers?.['retry-after'] : undefined;
+  const seconds = Number(header);
+  return Number.isFinite(seconds) && seconds > 0 ? Math.min(seconds * 1000, 30_000) : undefined;
+}
+
 async function get<T = unknown>(url: string, accept = 'application/json'): Promise<T> {
-  await rateLimiter.wait(hostFromUrl(url));
-  const res = await axios.get<T>(url, {
-    timeout: FETCH_TIMEOUT_MS,
-    headers: { 'User-Agent': UA, Accept: accept },
+  const host = hostFromUrl(url);
+  return serialized(host, async () => {
+    for (let attempt = 0; ; attempt++) {
+      if ((throttledUntil.get(host) ?? 0) > Date.now()) throw new Error(`${host} is throttling; skipped`);
+      await rateLimiter.wait(host);
+      try {
+        const res = await axios.get<T>(url, {
+          timeout: FETCH_TIMEOUT_MS,
+          headers: { 'User-Agent': UA, Accept: accept },
+        });
+        return res.data;
+      } catch (err) {
+        if (!axios.isAxiosError(err) || err.response?.status !== 429) throw err;
+        if (attempt >= MAX_429_RETRIES) {
+          throttledUntil.set(host, Date.now() + THROTTLE_COOLDOWN_MS);
+          throw err;
+        }
+        await sleep(retryAfterMs(err) ?? 2000 * 2 ** attempt);
+      }
+    }
   });
-  return res.data;
 }
 
 /** The JobPosting description embedded as schema.org JSON-LD, which most career pages carry for Google Jobs. */
@@ -215,26 +263,35 @@ export interface ScreenOutcome<T> {
   blocked: Array<{ item: T; verdict: RequirementVerdict }>;
   /** Kept without a description to check — the source gave none and it could not be fetched. */
   unverified: number;
+  /** The description each kept item was screened on, for callers that score it further. */
+  descriptions: Map<T, string>;
 }
+
+type ScreenResult = RequirementVerdict & { verified: boolean; description?: string };
 
 // Descriptions do not change within a posting's life, so a verdict is reused for the
 // lifetime of the process (the MCP server is long-lived) instead of re-fetched per search.
-const verdictCache = new Map<string, RequirementVerdict & { verified: boolean }>();
+const verdictCache = new Map<string, ScreenResult>();
 
-async function screenOne(job: JobListing): Promise<RequirementVerdict & { verified: boolean }> {
+async function screenOne(job: JobListing): Promise<ScreenResult> {
   const key = job.applyUrl || job.sourceUrl || `${job.companyName}::${job.id}`;
   const hit = verdictCache.get(key);
   if (hit) return hit;
-  let description: string | undefined;
-  try {
-    description = await fetchJobDescription(job);
-  } catch {
-    description = undefined;
+  const scraped = job.description && job.description.length > 50 ? job.description : undefined;
+  const url = job.applyUrl || job.sourceUrl;
+  let description = scraped ?? (url ? cacheManager.getDescription(url) ?? undefined : undefined);
+  if (description === undefined) {
+    try {
+      description = await fetchJobDescription(job);
+    } catch {
+      description = undefined;
+    }
+    if (description && url) cacheManager.setDescription(url, description);
   }
   // The title is screened too, so a description fetch failure never un-blocks a title
   // like "Software Engineer (TS/SCI)".
   const verdict = screenRequirementText(`${job.title}. ${description ?? ''}`);
-  const result = { ...verdict, verified: description !== undefined };
+  const result = { ...verdict, verified: description !== undefined, description };
   // Only cache what was actually verified; a failed fetch deserves another try next search.
   if (result.verified || result.blocked) verdictCache.set(key, result);
   return result;
@@ -248,10 +305,10 @@ async function screenOne(job: JobListing): Promise<RequirementVerdict & { verifi
 export async function screenRequirements<T>(
   items: T[],
   jobOf: (item: T) => JobListing,
-  options: { concurrency?: number; stopAfter?: number } = {},
+  options: { concurrency?: number; stopAfter?: number; onProgress?: (done: number, total: number) => void } = {},
 ): Promise<ScreenOutcome<T>> {
   const concurrency = Math.max(1, options.concurrency ?? 16);
-  const outcome: ScreenOutcome<T> = { kept: [], blocked: [], unverified: 0 };
+  const outcome: ScreenOutcome<T> = { kept: [], blocked: [], unverified: 0, descriptions: new Map() };
 
   // Fixed-size batches in rank order, so `stopAfter` keeps the best-ranked survivors.
   for (let i = 0; i < items.length; i += concurrency) {
@@ -263,9 +320,11 @@ export async function screenRequirements<T>(
         outcome.blocked.push({ item, verdict: { blocked: true, kind: v.kind, evidence: v.evidence } });
       } else {
         outcome.kept.push(item);
+        if (v.description) outcome.descriptions.set(item, v.description);
         if (!v.verified) outcome.unverified++;
       }
     });
+    options.onProgress?.(Math.min(i + concurrency, items.length), items.length);
     if (options.stopAfter !== undefined && outcome.kept.length >= options.stopAfter) break;
   }
   if (options.stopAfter !== undefined) outcome.kept = outcome.kept.slice(0, options.stopAfter);

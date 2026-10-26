@@ -25,6 +25,9 @@ const WINDOW_HOURS: Record<string, number> = { today: 24, week: 24 * 7, month: 2
  */
 const MAX_WINDOW_FRACTION = 0.05;
 
+/** Fetched job descriptions are kept this long; longer than any search window. */
+const DESCRIPTION_TTL_DAYS = 14;
+
 class CacheManager {
   private db: Database.Database;
 
@@ -54,7 +57,34 @@ class CacheManager {
       );
       CREATE INDEX IF NOT EXISTS idx_jobs_company ON jobs(company_slug);
       CREATE INDEX IF NOT EXISTS idx_jobs_title ON jobs(title);
+      CREATE TABLE IF NOT EXISTS job_descriptions (
+        url TEXT PRIMARY KEY,
+        fetched_at INTEGER NOT NULL,
+        text TEXT NOT NULL
+      );
     `);
+    this.db
+      .prepare('DELETE FROM job_descriptions WHERE fetched_at < ?')
+      .run(Date.now() - DESCRIPTION_TTL_DAYS * 86_400_000);
+  }
+
+  /**
+   * A posting's description, as fetched from its detail page on an earlier run. Unlike a
+   * scrape row this is not tied to a freshness window — a posting's text does not age, and
+   * re-fetching it is what made the JD-match pass slow (LinkedIn must be read one job at a
+   * time, ~1.6s each).
+   */
+  getDescription(url: string): string | null {
+    const row = this.db.prepare('SELECT text FROM job_descriptions WHERE url = ?').get(url) as
+      | { text: string }
+      | undefined;
+    return row?.text ?? null;
+  }
+
+  setDescription(url: string, text: string): void {
+    this.db
+      .prepare('INSERT OR REPLACE INTO job_descriptions (url, fetched_at, text) VALUES (?, ?, ?)')
+      .run(url, Date.now(), text);
   }
 
   /**

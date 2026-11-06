@@ -42,6 +42,12 @@ export interface SkillDef {
    * Go must be detected as "Go"/"Golang" rather than by a case-insensitive word match.
    */
   strictCase?: boolean;
+  /**
+   * Skills that count as evidence of this one when scoring a JD. A resume listing
+   * PostgreSQL has SQL even if it never writes the word, so a JD asking for "SQL" must not
+   * count that as a gap.
+   */
+  impliedBy?: string[];
 }
 
 /**
@@ -90,7 +96,7 @@ export const SKILLS: SkillDef[] = [
   { name: 'Kafka', tier: 'mid', families: ['backend', 'data-engineering'], aliases: ['apache kafka'] },
   { name: 'Hibernate', tier: 'mid', families: ['backend'] },
   { name: 'JPA', tier: 'mid', families: ['backend'] },
-  { name: 'REST', tier: 'mid', families: ['backend'], aliases: ['restful', 'rest api'] },
+  { name: 'REST', tier: 'mid', families: ['backend'], aliases: ['restful', 'rest api', 'rest apis'], strictCase: true },
   { name: 'RabbitMQ', tier: 'mid', families: ['backend'] },
 
   // ---- tooling / platform (low) ----
@@ -119,6 +125,55 @@ export const SKILLS: SkillDef[] = [
   { name: 'Selenium', tier: 'low', families: ['qa'] },
   { name: 'Playwright', tier: 'low', families: ['qa', 'frontend'] },
   { name: 'Cypress', tier: 'low', families: ['qa'] },
+  { name: 'SOAP', tier: 'mid', families: ['backend'], strictCase: true },
+  { name: 'gRPC', tier: 'mid', families: ['backend'] },
+  { name: 'ActiveMQ', tier: 'mid', families: ['backend'], aliases: ['active mq', 'amazon mq'] },
+  { name: 'SQS', tier: 'mid', families: ['backend'], aliases: ['amazon sqs', 'aws sqs'] },
+  { name: 'Kinesis', tier: 'mid', families: ['backend', 'data-engineering'] },
+  { name: 'Elasticsearch', tier: 'low', families: ['backend'], aliases: ['elastic search', 'opensearch', 'elk'] },
+  { name: 'Cassandra', tier: 'low', families: ['backend'], aliases: ['apache cassandra'] },
+  { name: 'Couchbase', tier: 'low', families: ['backend'] },
+  { name: 'Neo4j', tier: 'low', families: ['backend'] },
+  { name: 'SQL Server', tier: 'low', families: ['backend'], aliases: ['mssql', 'ms sql', 't-sql', 'tsql'] },
+  { name: 'DB2', tier: 'low', families: ['backend'], aliases: ['ibm db2'] },
+  { name: 'MariaDB', tier: 'low', families: ['backend'] },
+  { name: 'SQL', tier: 'low', families: ['backend'], strictCase: true, impliedBy: ['PostgreSQL', 'MySQL', 'Oracle', 'SQL Server', 'DB2', 'MariaDB'] },
+  { name: 'Maven', tier: 'low', families: ['backend'] },
+  { name: 'Gradle', tier: 'low', families: ['backend'] },
+  { name: 'Mockito', tier: 'low', families: ['backend', 'qa'] },
+  { name: 'TestNG', tier: 'low', families: ['qa'] },
+  { name: 'Cucumber', tier: 'low', families: ['qa'], aliases: ['bdd', 'gherkin'] },
+  { name: 'JMeter', tier: 'low', families: ['qa'] },
+  { name: 'Postman', tier: 'low', families: ['qa', 'backend'] },
+  { name: 'Jest', tier: 'low', families: ['qa'] },
+  { name: 'Jasmine', tier: 'low', families: ['qa'], aliases: ['karma'] },
+  { name: 'Redux', tier: 'low', families: ['frontend'], aliases: ['redux toolkit'] },
+  { name: 'RxJS', tier: 'low', families: ['frontend'], aliases: ['ngrx'] },
+  { name: 'jQuery', tier: 'low', families: ['frontend'] },
+  { name: 'Webpack', tier: 'low', families: ['frontend'], aliases: ['vite'] },
+  { name: 'Tailwind', tier: 'low', families: ['frontend'], aliases: ['tailwindcss', 'tailwind css'] },
+  { name: 'OAuth', tier: 'low', families: [], aliases: ['oauth2', 'oauth 2.0', 'openid connect', 'oidc', 'saml'] },
+  { name: 'JWT', tier: 'low', families: [], aliases: ['json web token', 'json web tokens'] },
+  { name: 'WebSockets', tier: 'low', families: [], aliases: ['websocket', 'web sockets'] },
+  { name: 'Helm', tier: 'low', families: ['devops'], aliases: ['helm charts'] },
+  { name: 'OpenShift', tier: 'low', families: ['devops'] },
+  { name: 'ArgoCD', tier: 'low', families: ['devops'], aliases: ['argo cd'] },
+  { name: 'CloudFormation', tier: 'low', families: ['devops'], aliases: ['cloud formation', 'aws cdk'] },
+  { name: 'GitLab CI', tier: 'low', families: ['devops'], aliases: ['gitlab ci/cd', 'gitlab pipelines'] },
+  { name: 'Git', tier: 'low', families: [], aliases: ['github', 'gitlab', 'bitbucket'], impliedBy: ['GitHub Actions', 'GitLab CI'] },
+  { name: 'Linux', tier: 'low', families: ['devops'], aliases: ['unix'] },
+  { name: 'Shell Scripting', tier: 'low', families: ['devops'], aliases: ['bash', 'shell script', 'shell scripts', 'powershell'] },
+  { name: 'Datadog', tier: 'low', families: ['devops'] },
+  { name: 'Grafana', tier: 'low', families: ['devops'] },
+  { name: 'New Relic', tier: 'low', families: ['devops'], aliases: ['newrelic'] },
+  { name: 'Dynatrace', tier: 'low', families: ['devops'] },
+  { name: 'AppDynamics', tier: 'low', families: ['devops'] },
+  { name: 'Honeycomb', tier: 'low', families: ['devops'] },
+  { name: 'Kibana', tier: 'low', families: ['devops'] },
+  { name: 'Groovy', tier: 'low', families: ['backend'] },
+  { name: 'Hadoop', tier: 'mid', families: ['data-engineering'], aliases: ['hive', 'hdfs'] },
+  { name: 'Agile', tier: 'low', families: [], aliases: ['scrum', 'kanban'] },
+  { name: 'TDD', tier: 'low', families: [], aliases: ['test-driven development', 'test driven development'] },
 
   // ---- specialist families (kept so a specialist resume claims them) ----
   { name: 'Machine Learning', tier: 'core', families: ['data-science'], aliases: ['deep learning'] },

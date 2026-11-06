@@ -43,3 +43,30 @@ test('byJdMatch sorts best fit first and unscored last', () => {
   const rows = [{ jdMatchPercent: null }, { jdMatchPercent: 20 }, { jdMatchPercent: 0 }, { jdMatchPercent: 90 }];
   assert.deepEqual(rows.sort(byJdMatch).map((r) => r.jdMatchPercent), [90, 20, 0, null]);
 });
+
+test('every skill the JD asks for that the resume lacks lowers the score', () => {
+  // Each of these was outside the taxonomy once, so the JD scored 100% on Java alone.
+  const jd = matchDescription(
+    'Required: Java, Spring Boot, Cassandra, Elasticsearch. Experience with Datadog, Grafana, Helm, OpenShift, gRPC, Redux, Jest and Gradle.',
+    profile,
+  );
+  assert.ok(jd.percent < 60, `expected < 60, got ${jd.percent}`);
+  for (const s of ['Cassandra', 'Elasticsearch', 'Datadog', 'Grafana', 'Helm', 'OpenShift', 'gRPC', 'Redux', 'Jest', 'Gradle']) {
+    assert.ok(jd.missingSkills.includes(s), `${s} should be missing`);
+  }
+  const fewer = matchDescription('Java, Spring Boot, Cassandra.', profile).percent;
+  const more = matchDescription('Java, Spring Boot, Cassandra, Gradle.', profile).percent;
+  assert.ok(more < fewer, 'adding a missing skill must lower the percentage');
+});
+
+test('a skill implied by the resume is not a gap', () => {
+  // PostgreSQL is SQL; a JD asking for "SQL" should not penalise it.
+  const jd = matchDescription('Java and strong SQL.', profile);
+  assert.equal(jd.percent, 100);
+  assert.ok(jd.matchedSkills.includes('SQL'));
+});
+
+test('English words are not read as skills', () => {
+  const jd = matchDescription('The rest of the team will go live with soap. Java required.', profile);
+  assert.deepEqual(jd.missingSkills, []);
+});

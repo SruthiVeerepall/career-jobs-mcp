@@ -1,5 +1,6 @@
 import type { CandidateProfile } from '../types.js';
 import { extractSkills } from './build-profile.js';
+import { SKILLS } from './skill-taxonomy.js';
 
 export type JdMatchStatus = 'scored' | 'no-description' | 'no-known-skills';
 
@@ -35,6 +36,9 @@ export function matchDescription(description: string | undefined, profile: Candi
   }
 
   const have = new Set(profile.skills.map((s) => s.name));
+  for (const def of SKILLS) {
+    if (def.impliedBy?.some((name) => have.has(name))) have.add(def.name);
+  }
   let total = 0;
   let matched = 0;
   const matchedSkills: string[] = [];

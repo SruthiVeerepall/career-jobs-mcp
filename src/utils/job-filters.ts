@@ -43,8 +43,13 @@ export function isUSJob(locations: string[] | undefined): boolean {
     // The lowercase second letter keeps "IN-KA-BENGALURU" (an India site code) out.
     const w = loc.match(/^([A-Z]{2})\s*-\s*[A-Z][a-z]/);
     if (w && US_STATES.has(w[1])) return true;
+    // The whole location is just a code: Chalk's Ashby board writes "NY" / "SF". CA, IN and
+    // GA are left out — alone they are as likely Canada, India or the country Georgia.
+    const bare = loc.trim();
+    if (bare === 'SF' || (US_STATES.has(bare) && !['CA', 'IN', 'GA'].includes(bare))) return true;
     if (US_STATE_NAMES.test(loc) || US_CITIES.test(loc)) return true;
-    if (/\bRemote\b/i.test(loc)) return true;
+    // "Work at Home" is Evolent's Workday wording for remote.
+    if (/\bRemote\b|\bWork (at|from) Home\b|\bWFH\b/i.test(loc)) return true;
     return false;
   });
 }

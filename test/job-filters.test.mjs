@@ -62,14 +62,16 @@ test('isUSJob accepts US states, USA, and remote (non-international)', () => {
 test('isUSJob accepts bare US cities, state names, and Workday state prefixes', () => {
   for (const loc of ['San Francisco', 'New York City', 'NYC', 'San Francisco Office', 'Pittsburgh',
     'US', 'U.S. (Remote)', 'Eden Prairie, Minnesota', 'Dallas, Texas', 'Albuquerque, New Mexico',
-    'TX-Dallas', 'NY-New York', 'IL-Chicago', 'Sunnyvale', 'Washington, DC', 'Melbourne, FL, US, 32919']) {
+    'TX-Dallas', 'NY-New York', 'IL-Chicago', 'Sunnyvale', 'Washington, DC', 'Melbourne, FL, US, 32919',
+    'NY', 'SF', 'Work at Home']) {
     assert.equal(isUSJob([loc]), true, loc);
   }
 });
 
 test('isUSJob still rejects non-US cities and site codes', () => {
   for (const loc of ['Toronto', 'CA-Toronto', 'London', 'Bengaluru, KA', 'IN-KA-BENGALURU-NORTHGATE',
-    'Hyderabad, TS', 'Gurugram, HR', 'Seoul, South Korea', 'Mexico, Guadalajara', 'Dublin', 'Hong Kong']) {
+    'Hyderabad, TS', 'Gurugram, HR', 'Seoul, South Korea', 'Mexico, Guadalajara', 'Dublin', 'Hong Kong',
+    'CA', 'IN']) {
     assert.equal(isUSJob([loc]), false, loc);
   }
 });

@@ -33,7 +33,7 @@ const LIMIT = argVal('--limit', null) ? parseInt(argVal('--limit'), 10) : null;
 const OUT_FILE = argVal('--out', 'health-results.json');
 
 /** Boards that index every employer are keyword-driven; skipped like the probe does. */
-const JOB_BOARD_PLATFORMS = new Set(['linkedin', 'simplyhired', 'builtin', 'remoteok', 'remotive', 'weworkremotely']);
+const JOB_BOARD_PLATFORMS = new Set(['linkedin', 'simplyhired', 'builtin', 'remoteok', 'remotive', 'weworkremotely', 'workable-jobs', 'himalayas', 'jobicy']);
 
 async function main() {
   const { companyRegistry } = await import('./dist/scrapers/company-registry.js');

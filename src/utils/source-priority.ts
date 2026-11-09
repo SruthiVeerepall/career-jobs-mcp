@@ -8,7 +8,7 @@
 // already found on the employer's own site is dropped as a duplicate.
 
 /** Cross-company boards. Their `companyName` on each job is the real hiring employer. */
-export const JOB_BOARDS = new Set(['LinkedIn', 'SimplyHired', 'BuiltIn.com', 'RemoteOK', 'Remotive', 'We Work Remotely']);
+export const JOB_BOARDS = new Set(['LinkedIn', 'SimplyHired', 'BuiltIn.com', 'RemoteOK', 'Remotive', 'We Work Remotely', 'Workable Jobs', 'Himalayas', 'Jobicy']);
 
 export type JobSource = 'company-site' | 'job-board';
 

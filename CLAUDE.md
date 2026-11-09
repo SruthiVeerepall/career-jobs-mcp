@@ -77,7 +77,7 @@ missing a build tool. No readable description, or no known skill in it → `null
 
 ### Board keywords are per-résumé
 `SearchFilters.searchTerms` carries the résumé's terms to the four keyword-driven boards
-(LinkedIn, SimplyHired, BuiltIn, Remotive) via `BaseScraper.resolveSearchTerms()`; each board's
+(LinkedIn, SimplyHired, BuiltIn, Remotive, Workable Jobs, Himalayas, Jobicy) via `BaseScraper.resolveSearchTerms()`; each board's
 `DEFAULT_TERMS` is now only a fallback. **Their cache rows are keyed by those terms** — one
 résumé's results must not be served to another. Company scrapers are deliberately *not* keyed
 by terms: they fetch their whole board regardless, so keying them would fragment the cache.
@@ -400,7 +400,7 @@ These companies use ATS platforms that cannot be queried via the standard regist
 
 ### Job-Board Sources (cross-company — IN the registry)
 
-Six job boards are registered alongside the company scrapers and included automatically in
+Nine job boards are registered alongside the company scrapers and included automatically in
 `find-java-24h.mjs` / `export-jobs-xlsx.mjs` runs. Each returns the **real hiring employer**
 in `companyName` (batch scripts display `"{Employer} (via {Board})"`) and a **direct apply
 link** in `applyUrl`. All are cached 24h and skipped by `probe-registry.mjs` (no probeable
@@ -416,6 +416,9 @@ The 3-day cutoff is always applied client-side like all other sources.
 | RemoteOK | `remoteok` | Public JSON API `https://remoteok.com/api` | none (client-side only) | Latest ~100 remote jobs; `tags` param unreliable so full feed is fetched |
 | Remotive | `remotive` | Public JSON API `/api/remote-jobs?search=…&limit=100` | none (client-side only) | Remote-only; non-commercial use API |
 | We Work Remotely | `weworkremotely` | RSS feeds (programming, full-stack, back-end categories) | none (client-side only) | Item titles are `"Company: Title"`; region in `<region>` |
+| Workable Jobs | `workable-jobs` | Public JSON `jobs.workable.com/api/v1/jobs?query=…&location=United States&day_range=…`, paged by `pageToken` (≤10 pages/term) | `day_range=1/7/30` on `created` (verified tight) | Every employer hiring through Workable; descriptions in payload |
+| Himalayas | `himalayas` | Public JSON `himalayas.app/jobs/api/search?q=…&country=US&sort=recent&page=n` (≤5 pages/term) | none — client-side on `pubDate` (epoch **seconds**) | Remote-only. Featured posts come first, then newest-first; paging stops once a page is entirely outside the window. Throttles bursts — 1s per-host gap |
+| Jobicy | `jobicy` | Public JSON `jobicy.com/api/v2/remote-jobs?count=100&geo=usa&tag=…` | none (client-side only) | Remote-only; `tag` is a loose match. API terms ask that listings credit Jobicy and link to the original job URL |
 
 - **Remote-board location handling:** remote-only boards normalize US-friendly regions
   (`Worldwide`, `Anywhere`, `USA`, `Americas`) to `"Remote — …"` so `isUSJob()` keeps them;
@@ -423,6 +426,10 @@ The 3-day cutoff is always applied client-side like all other sources.
 - **NOT addable:** Indeed, ZipRecruiter, Glassdoor, Monster, CareerBuilder — all return
   HTTP 403 bot-walls (Cloudflare/PerimeterX) on every known endpoint. Dice has a working
   API but was excluded by user preference.
+  Hiring Cafe (Cloudflare challenge on every endpoint) and Welcome to the Jungle (CloudFront
+  blocks headless Chrome; job search is only reachable through its private Algolia key) were
+  evaluated on 2026-11-09 and are likewise not addable. The Muse's public API now answers 403;
+  Arbeitnow is almost entirely German roles; Working Nomads exposes only its latest ~35 jobs.
 
 ---
 

@@ -26,7 +26,7 @@ const inFlight = new Map<string, Promise<JobListing[]>>();
  * by it; company scrapers fetch their whole board regardless, so keying them by terms would
  * fragment the cache and force needless re-scrapes.
  */
-const KEYWORD_DRIVEN_PLATFORMS = new Set(['linkedin', 'simplyhired', 'builtin', 'remotive']);
+const KEYWORD_DRIVEN_PLATFORMS = new Set(['linkedin', 'simplyhired', 'builtin', 'remotive', 'workable-jobs', 'himalayas', 'jobicy']);
 
 /** Cache/in-flight discriminator for the search terms a keyword-driven board was fetched with. */
 function termVariant(config: CompanyConfig, filters: SearchFilters): string | undefined {

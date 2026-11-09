@@ -60,7 +60,7 @@ export interface SearchFilters {
   searchTerms?: string[];
 }
 
-export type CareerPlatform = 'greenhouse' | 'lever' | 'workday' | 'smartrecruiters' | 'ashby' | 'oracle-orc' | 'icims' | 'icims-jra' | 'phenom' | 'successfactors' | 'radancy' | 'eightfold' | 'rippling' | 'custom' | 'amazon' | 'apple' | 'tesla' | 'mckinsey' | 'aurora' | 'linkedin' | 'simplyhired' | 'builtin' | 'remoteok' | 'remotive' | 'weworkremotely';
+export type CareerPlatform = 'greenhouse' | 'lever' | 'workday' | 'smartrecruiters' | 'ashby' | 'oracle-orc' | 'icims' | 'icims-jra' | 'phenom' | 'successfactors' | 'radancy' | 'eightfold' | 'rippling' | 'custom' | 'amazon' | 'apple' | 'tesla' | 'mckinsey' | 'aurora' | 'linkedin' | 'simplyhired' | 'builtin' | 'remoteok' | 'remotive' | 'weworkremotely' | 'workable-jobs' | 'himalayas' | 'jobicy';
 
 export interface CompanyConfig {
   name: string;

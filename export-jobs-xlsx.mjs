@@ -71,6 +71,9 @@ function platformOf(u) {
   if (/remoteok\.com/i.test(u)) return 'RemoteOK';
   if (/remotive\.com/.test(u)) return 'Remotive';
   if (/weworkremotely\.com/.test(u)) return 'WeWorkRemotely';
+  if (/jobs\.workable\.com/.test(u)) return 'Workable Jobs';
+  if (/himalayas\.app/.test(u)) return 'Himalayas';
+  if (/jobicy\.com/.test(u)) return 'Jobicy';
   return 'Other';
 }
 

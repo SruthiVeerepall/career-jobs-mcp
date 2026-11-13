@@ -205,6 +205,7 @@ export function matchJobs(
         source: sourceOf(result.company),
         locations: (job.locations ?? []).join(' | ') || 'N/A',
         postedDate: formatPosted(posted, job),
+        postedAt: posted === null ? undefined : new Date(posted).toISOString(),
         applyUrl: job.applyUrl ?? '',
         score: verdict.score,
         matchPercent: matchPercent(verdict.score, profile, verdict.family !== 'unclassified'),

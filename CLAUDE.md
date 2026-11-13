@@ -3,6 +3,17 @@
 ## Purpose
 This MCP searches company career sites and returns job listings. Every job search request must respect the rules below without needing to be reminded each time.
 
+## Keep the docs in step with the commands
+
+Whenever you add or change a command, script, CLI flag or MCP tool, update the docs in the
+same change, without waiting to be asked:
+- **README.md:** add it to the matching *Usage* section with a runnable example, add any new
+  flag to that section's flag table, and list any new file in *Project Structure*.
+- **CLAUDE.md:** add it to the *Scripts* table (or the section it belongs to) with the
+  non-obvious behaviour a future session needs.
+- If a command is removed or renamed, delete or fix every mention in both files, so no
+  example points at something that no longer exists.
+
 ---
 
 ## Résumé-Driven Search (preferred entry point)
@@ -17,7 +28,7 @@ document itself, so it works for any candidate without a code change.
 | `searchJobsForResume` (MCP tool) | Résumé in → ranked markdown table of direct apply links. `resumeText` or `resumePath`; `postedWithinDays` (default 3), `limit`, `companies`, `remoteOnly`, `format: 'markdown'\|'json'`. |
 | `parseResume` (MCP tool) | Show the derived profile without scraping. Run this first on an unfamiliar résumé. |
 | `node find-jobs-for-resume.mjs --resume <path>` | Same search from the CLI. `--today`/`--week`/`--days n`, `--limit`, `--years`, `--country`, `--remote-only`, `--profile-only`, `--json`. |
-| `node export-jobs-xlsx.mjs --resume <path>` | Same search, written to the tracked spreadsheet. |
+| `node export-jobs-xlsx.mjs --resume <path>` | Same search, written to the tracked spreadsheet. Add `--page <path>` to also write the Job Quest web page in the same run (see *Publishing the Job Quest Board*). |
 
 Formats: `.pdf`, `.docx`, `.txt`, `.md`, `.html`. Scanned PDFs have no text layer and are
 rejected with a message asking for pasted text.
@@ -56,7 +67,10 @@ Title matching (above) decides **which** jobs qualify; `matchDescription()` then
 kept job's **description** against the résumé's skills. Both sides go through the same
 `extractSkills()` taxonomy. `JD Match % = weight of JD skills the résumé has ÷ weight of all
 JD skills`, so the JD's asks are the denominator and missing its core language costs more than
-missing a build tool. No readable description, or no known skill in it → `null` ("N/A"), never 0.
+missing a build tool. Each skill's weight is `tier weight × emphasis`, where emphasis is how
+often the JD names it (1×, +0.5× per extra mention, capped at 3×): a JD that repeats Java
+eight times and mentions Terraform once cares more about Java. If every JD skill is on the
+résumé the score is still 100%, however often each is repeated. No readable description, or no known skill in it → `null` ("N/A"), never 0.
 - The description is the one the clearance screen already fetched (`ScreenOutcome.descriptions`) — no second fetch.
 - `export-jobs-xlsx.mjs --resume` adds a `JD Match %` column (the matched/missing skill lists
   stay on `ResumeJobMatch` for the MCP tool's JSON, but are not written to the sheet — user preference).
@@ -299,7 +313,9 @@ from the table above is actually populated, not just that the endpoint answers.
 | `node find-java-24h.mjs` | Full batch search — Java/Full Stack/SE across all registry companies, 3-day window |
 | `node find-java-24h.mjs --today` | Same, 24-hour window |
 | `node find-java-24h.mjs --week` | Same, 7-day window |
-| `node export-jobs-xlsx.mjs` | Same search as `find-java-24h.mjs`, exported to `job-results.xlsx` with a clickable Apply link and an "Applied?" checkbox column (accepts `--today`/`--week`/`--out <path>`) |
+| `node export-jobs-xlsx.mjs` | Same search as `find-java-24h.mjs`, exported to `job-results.xlsx` with a clickable Apply link, a first column of real Excel "Applied?" checkboxes (patched in by `xlsx-checkboxes.mjs`, since ExcelJS cannot write them) and a live "Total jobs applied" count under the last row (accepts `--today`/`--week`/`--out <path>`) |
+| `node export-jobs-xlsx.mjs --page <path>` | Writes the spreadsheet **and** the "Job Quest Board" page in one run, then publishes the page automatically (`--no-publish` to skip) (combine with `--resume`, `--today`/`--week`, `--out`). Page = `templates/job-quest.html` filled by `jobs-html.mjs`: mission banner, daily goal ring, streak, milestone badges, top picks by JD match, JD meter per job, Applied checkbox per job, running total. |
+| `node export-jobs-xlsx.mjs --html` / `--artifact` | Writes **only** the page: `--html` as a standalone file to open in a browser (ticks saved in that browser), `--artifact` publish-ready like `--page`. `--out` names the page file in these modes. |
 | `node get-5-companies.mjs` | Targeted fetch for Deloitte, SAP, Lyft, Visa, Infosys with special scrapers |
 | `node deloitte-scrape.mjs` | Puppeteer DOM scraper for Deloitte (Avature ATS, server-rendered) |
 | `node probe-registry.mjs` | Health-check all companies, removes broken registry entries |
@@ -311,6 +327,43 @@ from the table above is actually populated, not just that the endpoint answers.
 None of the three ever deletes a registry entry — they only report a verified replacement
 identifier. A `--platform X` probe now writes `probe-results-X.json`; only a full sweep
 owns `probe-results.json`.
+
+### Publishing the Job Quest Board
+
+The user's daily command (spreadsheet + page in one run):
+
+```
+node export-jobs-xlsx.mjs --resume "C:\Users\sruth\Documents\FullTime\Sruthi Veerepall.docx" --today --out "C:\Users\sruth\Desktop\jobs.xlsx" --page "C:\Users\sruth\Desktop\job-quest.html"
+```
+
+**Publishing is automatic.** After a `--page` run, `publish-job-page.mjs` starts unattended
+Claude Code (`claude -p "...", --allowedTools Artifact,Read`) to publish the page to the
+existing URL `https://claude.ai/artifact/KZy9NZwzNZSgLWaHUaq4TE` (override:
+`--publish-url` / `$JOB_QUEST_URL`). `--no-publish` skips it, and a failed publish only prints a
+retry command (`node publish-job-page.mjs <page>`), never failing the export.
+- The binary matters: the npm-global `claude` 2.1.132 has **no Artifact tool** in `-p` mode,
+  while the VS Code extension's bundled 2.1.322 does. `findClaudeBinary()` prefers
+  `$CLAUDE_BIN`, then the newest `~/.vscode/extensions/anthropic.claude-code-*/resources/native-binary/claude.exe`,
+  then PATH. Verified 2026-11-12: a full `--today --page` run published in ~27s.
+- The entrypoint matters too: Claude Code only offers the Artifact tool when
+  `CLAUDE_CODE_ENTRYPOINT=claude-vscode`. Run from a plain terminal the variable is unset, and
+  the headless session replied "no Artifact tool is available" (`cli` doesn't enable it
+  either). It worked when tested from inside a VS Code Claude session only because the child
+  inherited that variable. `publishJobPage()` now always sets it on the child. If
+  publishing breaks after a Claude Code update, re-test with
+  `claude -p "Is a tool named Artifact available? YES or NO"` under a clean environment.
+
+If the user asks you to publish manually instead, publish the `--page` file with the Artifact
+tool **to that same URL** (pass it as `url`, reading it first if this session has not), never
+as a new artifact, so the user keeps one link. Omit `capabilities` so the stored
+`{db: {}, user: {}}` declaration carries forward.
+
+- Applied ticks, the streak and the daily goal live in the viewer's private
+  `data/users/<id>/` db collection (`kind: "applied"` docs keyed by a hash of the apply URL,
+  plus one `kind: "settings"` doc for the goal), **not** in the page. Republishing never resets
+  them, and an opening that reappears on the next day's page stays ticked. Changing the key
+  hash in the template would orphan every saved tick.
+- The `--page` file has no document skeleton on purpose; the Artifact tool adds one at publish.
 
 ### Adding companies to the registry
 

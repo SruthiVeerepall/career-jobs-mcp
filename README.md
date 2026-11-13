@@ -83,7 +83,11 @@ career-jobs-mcp/
 │       └── retry.ts                # Exponential backoff with configurable retries
 ├── tools/                          # One file per MCP tool (search, list, add, etc.)
 ├── find-java-24h.mjs               # Standalone: search all 600+ companies for Java roles
-├── export-jobs-xlsx.mjs            # Standalone: same search, exported to an Excel sheet with an "Applied?" checkbox
+├── export-jobs-xlsx.mjs            # Standalone: same search, exported to an Excel sheet and/or the Job Quest web page
+├── xlsx-checkboxes.mjs             # Adds Excel's native in-cell checkboxes to the exported sheet
+├── jobs-html.mjs                   # Fills templates/job-quest.html with a run's jobs
+├── publish-job-page.mjs            # Publishes the page to the Job Quest Board via unattended Claude Code
+├── templates/job-quest.html        # The Job Quest Board page (goal ring, streak, JD match, Applied ticks)
 ├── probe-registry.mjs              # Standalone: health-check all companies, remove broken ones
 ├── run-search.mjs                  # Standalone: broader search with month window
 ├── data/cache.db                   # SQLite cache (auto-created on first run)
@@ -199,33 +203,77 @@ node probe-registry.mjs
 node probe-registry.mjs --dry-run
 ```
 
-### Export Results to Excel (with an "Applied?" checkbox)
+### Export Results to Excel and the Job Quest web page
 
-`export-jobs-xlsx.mjs` runs the exact same search + resume-match filters as `find-java-24h.mjs`,
-but writes the results to `job-results.xlsx` instead of printing a table. Each row has a clickable
-**Apply** hyperlink and an **Applied?** column (☐ / ☑) so you can track which jobs you've applied to —
-ticking a row (☑) greys it out and strikes it through via conditional formatting.
+`export-jobs-xlsx.mjs` runs the same search and filters as `find-java-24h.mjs` (or, with
+`--resume`, the résumé pipeline) and writes the results to a spreadsheet, a web page, or both.
+
+**The spreadsheet** (`job-results.xlsx` by default):
+- Column A is a real **Applied?** checkbox. Click it to tick a job; the row greys out and is struck through.
+- One row below the last job, a live total reads **"Total jobs applied: X of N"**.
+- Each row has a clickable **Apply** link. With `--resume` there is also a **JD Match %** column.
+- The checkboxes are clickable in Excel 365. Older Excel, LibreOffice and Google Sheets show
+  `TRUE`/`FALSE` instead; type `TRUE` to mark a job, and the total still counts it.
+
+**The Job Quest Board page** (`templates/job-quest.html`) shows the same jobs as a web page:
+- Today's mission banner, a daily goal ring, an application streak, and milestone badges.
+- "Top picks for you": your best JD matches you haven't applied to yet.
+- A JD match meter on every job (for example "82%, 9 of 11 skills"), plus search and filters.
+- 20 jobs per page, with page numbers for Company career sites and Job boards separately.
+- An Applied checkbox on every job, and a running total.
+
+On claude.ai your ticks, streak and goal save privately to your account and carry over to the
+next day's page. Opened from disk, they are saved in that browser.
 
 ```bash
-# Export the last 3 days to job-results.xlsx (default)
+# Daily: résumé-matched, last 24 hours, spreadsheet AND web page in one run.
+# The page is then published to the Job Quest Board automatically.
+node export-jobs-xlsx.mjs --resume "C:\path\to\resume.docx" --today --out "C:\Users\me\Desktop\jobs.xlsx" --page "C:\Users\me\Desktop\job-quest.html"
+
+# Same, but don't publish (publish later with: node publish-job-page.mjs <page>)
+node export-jobs-xlsx.mjs --resume ./resume.pdf --today --page job-quest.html --no-publish
+
+# Spreadsheet only: last 3 days to job-results.xlsx (default)
 node export-jobs-xlsx.mjs
 
-# 24-hour window
-node export-jobs-xlsx.mjs --today
-
-# 7-day window
+# Window: --today (24 hours) | --week (7 days) | default 3 days
 node export-jobs-xlsx.mjs --week
 
-# Write to a custom path
+# Write the spreadsheet to a custom path
 node export-jobs-xlsx.mjs --out "C:\Users\me\Desktop\jobs.xlsx"
 
-# Match against a résumé instead of the CLAUDE.md profile
+# Match against a résumé instead of the CLAUDE.md profile (adds JD Match %)
 node export-jobs-xlsx.mjs --resume ./resume.pdf --week
+
+# Drop weak fits (jobs whose description could not be scored are kept)
+node export-jobs-xlsx.mjs --resume ./resume.pdf --min-jd-match 50
+
+# Web page only, to open in a browser
+node export-jobs-xlsx.mjs --resume ./resume.pdf --html --out job-results.html
 ```
 
-The `Applied?` cell is a data-validation dropdown (☐ ↔ ☑) that works in every Excel version and
-Google Sheets. For a one-click native checkbox in Excel 365 or Google Sheets, select the column and
-use **Insert ▸ Checkbox** after opening the file.
+| Flag | What it does |
+|---|---|
+| `--resume <path>` | Match against this résumé (`.pdf`, `.docx`, `.txt`, `.md`, `.html`) and add JD Match % |
+| `--today` / `--week` | 24-hour or 7-day window (default: 3 days) |
+| `--out <path>` | Where to write the spreadsheet (or the page, with `--html` / `--artifact`) |
+| `--page <path>` | **Also** write the Job Quest page in the same run, then publish it to the Job Quest Board |
+| `--no-publish` | With `--page`: write the page but don't publish it |
+| `--publish-url <url>` | With `--page`: publish to a different artifact (default: `$JOB_QUEST_URL`, else the Job Quest Board) |
+| `--html` | Write **only** the page, as a standalone file to open in a browser |
+| `--artifact` | Write **only** the page, publish-ready (what `--page` writes) |
+| `--min-jd-match <n>` | Drop scored jobs below n% JD match |
+
+**How the automatic publish works.** A script can't publish to claude.ai by itself; only Claude
+Code's Artifact tool can. So after a `--page` run, `publish-job-page.mjs` starts a short
+unattended Claude Code session (`claude -p`, limited to the Artifact and Read tools) that
+publishes the page to the same link. It takes about 20 seconds and uses your Claude plan.
+- It needs a recent Claude Code. It uses `$CLAUDE_BIN` if set, then the newest copy bundled
+  with the VS Code extension, then `claude` on your PATH. The npm-installed 2.1.132 did not
+  have the Artifact tool; the extension's 2.1.322 does. To use the PATH copy, update it with
+  `npm install -g @anthropic-ai/claude-code`.
+- A failed publish never fails the export. The spreadsheet and page are still written, and the
+  output prints the retry command: `node publish-job-page.mjs <page.html>`.
 
 **Example output:**
 

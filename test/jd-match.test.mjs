@@ -70,3 +70,23 @@ test('English words are not read as skills', () => {
   const jd = matchDescription('The rest of the team will go live with soap. Java required.', profile);
   assert.deepEqual(jd.missingSkills, []);
 });
+
+test('a skill the JD repeats weighs more than one it names once', () => {
+  // Same skills, same tiers (Java core, Python core); only the repetition differs.
+  const javaHeavy = matchDescription('Java. Java services. Java APIs. Python a plus.', profile).percent;
+  const pythonHeavy = matchDescription('Python. Python services. Python APIs. Java a plus.', profile).percent;
+  const even = matchDescription('Java and Python.', profile).percent;
+  assert.equal(even, 50);
+  assert.ok(javaHeavy > even, `repeating a skill the resume has should raise the score (${javaHeavy})`);
+  assert.ok(pythonHeavy < even, `repeating a skill the resume lacks should lower it (${pythonHeavy})`);
+});
+
+test('emphasis is capped so keyword stuffing cannot dominate', () => {
+  const stuffed = matchDescription(`${'Java '.repeat(40)} Python.`, profile).percent;
+  // 10*3 / (10*3 + 10*1) = 75 — the cap, not 40x.
+  assert.equal(stuffed, 75);
+});
+
+test('every JD skill found in the resume is still 100%, however often repeated', () => {
+  assert.equal(matchDescription('Java, Java, Java, Spring Boot, Kafka, Kafka.', profile).percent, 100);
+});

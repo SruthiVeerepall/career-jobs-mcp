@@ -131,6 +131,8 @@ export interface ResumeJobMatch {
   source: 'company-site' | 'job-board';
   locations: string;
   postedDate: string;
+  /** ISO timestamp of the posting, when the source dated it; for sorting by recency. */
+  postedAt?: string;
   applyUrl: string;
   score: number;
   matchPercent: number;

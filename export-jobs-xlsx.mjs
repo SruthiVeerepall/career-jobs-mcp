@@ -3,7 +3,8 @@
  * Runs the same resume-match search as find-java-24h.mjs, then writes the results
  * to an Excel workbook (job-results.xlsx) with:
  *   - a clickable "Apply" hyperlink per row
- *   - an "Applied?" checkbox column (☐ / ☑) you can toggle to track applications
+ *   - an "Applied?" column of real Excel checkboxes (click to tick) as the first column,
+ *     with a live "total applied" count under the last job
  *   - applied rows auto-strikethrough + greyed via conditional formatting
  *   - frozen header, autofilter, and sensible column widths
  *
@@ -19,8 +20,18 @@
  * each group jobs are sorted best fit first, and those whose description could not be
  * read sit at the bottom of their group as "N/A".
  * Drop weak fits:                   --min-jd-match <percent>   (unscorable jobs are kept)
+ *
+ * Web page ("Job Quest Board", templates/job-quest.html):
+ *   --page <path>   ALSO write the publish-ready page in the same run (workbook + page), then
+ *                   publish it to the Job Quest Board via publish-job-page.mjs
+ *                   (--no-publish to skip; --publish-url <url> for a different artifact)
+ *   --html          write ONLY the page, as a standalone file to open in a browser
+ *   --artifact      write ONLY the page, publish-ready (no document skeleton)
  */
 import ExcelJS from 'exceljs';
+import { addCheckboxes } from './xlsx-checkboxes.mjs';
+import { writeJobsHtml } from './jobs-html.mjs';
+import { publishJobPage, DEFAULT_URL } from './publish-job-page.mjs';
 import { companyRegistry } from './dist/scrapers/company-registry.js';
 import { scrapeMany } from './dist/scrapers/orchestrator.js';
 import { OVER_5YR, CLEARANCE, isUSJob, matchesProfile, resumeScore } from './dist/utils/job-filters.js';
@@ -47,7 +58,16 @@ function flagValue(name) {
   return i !== -1 && process.argv[i + 1] && !process.argv[i + 1].startsWith('--') ? process.argv[i + 1] : undefined;
 }
 
-const OUT = flagValue('out') ?? 'job-results.xlsx';
+// --html writes the Job Quest web page instead of the workbook; --artifact writes the same
+// page without the document skeleton, ready to publish as a claude.ai artifact.
+const HTML = process.argv.includes('--html') || process.argv.includes('--artifact');
+const OUT = flagValue('out') ?? (HTML ? 'job-results.html' : 'job-results.xlsx');
+// --page <path> writes the workbook AND the publish-ready Job Quest page in one run.
+const PAGE = flagValue('page');
+if (process.argv.includes('--page') && !PAGE) {
+  console.error('--page needs a file path, e.g. --page job-quest.html');
+  process.exit(1);
+}
 const RESUME = flagValue('resume');
 const MIN_JD_MATCH = flagValue('min-jd-match') !== undefined ? Number(flagValue('min-jd-match')) : undefined;
 if (MIN_JD_MATCH !== undefined && !Number.isFinite(MIN_JD_MATCH)) {
@@ -121,10 +141,12 @@ async function collectFromResume() {
     sourceName: m.via ?? m.company,
     locations: m.locations,
     posted: m.postedDate,
+    postedAt: m.postedAt ?? null,
     score: m.score,
     jdMatchPercent: m.jdMatchPercent ?? null,
     jdMatchStatus: m.jdMatchStatus,
     jdMatchedSkills: m.jdMatchedSkills ?? [],
+    jdMissingSkills: m.jdMissingSkills ?? [],
     source: m.source,
     platform: platformOf(m.applyUrl),
     url: m.applyUrl,
@@ -143,7 +165,7 @@ async function collectFromResume() {
   jobs.sort((a, b) =>
     Number(a.source === 'job-board') - Number(b.source === 'job-board') || byJdMatch(a, b) || b.score - a.score);
 
-  return { jobs, elapsed: ((Date.now() - start) / 1000).toFixed(1) };
+  return { jobs, elapsed: ((Date.now() - start) / 1000).toFixed(1), candidate: p.name?.trim().split(/\s+/)[0] };
 }
 
 async function collectFromRegistryProfile() {
@@ -223,6 +245,7 @@ async function collectFromRegistryProfile() {
                 day: 'numeric',
                 timeZone: 'UTC',
               })) + (job.isRepost ? ' (repost)' : ''),
+        postedAt: posted === null ? null : new Date(posted).toISOString(),
         score: resumeScore(title),
         listing: job,
         platform: platformOf(url),
@@ -251,9 +274,23 @@ async function collectFromRegistryProfile() {
 }
 
 async function run() {
-  const { jobs, elapsed } = RESUME ? await collectFromResume() : await collectFromRegistryProfile();
+  const { jobs, elapsed, candidate } = RESUME ? await collectFromResume() : await collectFromRegistryProfile();
 
   console.log(`\nFound ${jobs.length} jobs in ${elapsed}s. Writing ${OUT}...`);
+
+  const pageMeta = {
+    window: WINDOW_LABEL,
+    matchedTo: RESUME ? 'Matched to your résumé' : 'Java / Full Stack profile',
+    candidate,
+  };
+  if (HTML) {
+    await writeJobsHtml(OUT, jobs, { ...pageMeta, standalone: !process.argv.includes('--artifact') });
+    const fromCompanies = jobs.filter(j => j.source !== 'job-board').length;
+    console.log(`\nDone. ${OUT}`);
+    console.log(`  ${jobs.length} jobs: ${fromCompanies} from company career sites (listed first), ${jobs.length - fromCompanies} from job boards`);
+    console.log('  Open it in a browser and tick "Applied" on each job; the bottom bar keeps the total.');
+    return;
+  }
 
   // ---- Build the workbook -------------------------------------------------
   const wb = new ExcelJS.Workbook();
@@ -298,7 +335,7 @@ async function run() {
   jobs.forEach((j, i) => {
     const hasJd = typeof j.jdMatchPercent === 'number';
     const row = ws.addRow({
-      applied: '☐',
+      applied: false, // a boolean cell; addCheckboxes() turns it into a clickable checkbox
       num: i + 1,
       title: j.title,
       company: j.company,
@@ -313,12 +350,6 @@ async function run() {
       url: j.url,
     });
     row.getCell('applied').alignment = { horizontal: 'center' };
-    row.getCell('applied').font = { size: 13 };
-    // checkbox-style dropdown: pick ☐ (not applied) or ☑ (applied)
-    row.getCell('applied').dataValidation = {
-      type: 'list', allowBlank: false, formulae: ['"☐,☑"'],
-      showErrorMessage: true, errorTitle: 'Pick one', error: 'Choose ☐ or ☑',
-    };
     const sc = row.getCell('score');
     sc.alignment = { horizontal: 'center' };
     sc.font = { bold: true, color: { argb: scoreFont(j.score) } };
@@ -335,20 +366,36 @@ async function run() {
 
   const lastRow = jobs.length + 1;
   const lastCol = ws.getColumn(ws.columns.length).letter;
-  ws.autoFilter = `A1:${lastCol}1`;
+  // Filter/sort range stops at the last job so the total row below never sorts into the list.
+  ws.autoFilter = `A1:${lastCol}${lastRow}`;
 
-  // When Applied? = ☑, grey + strikethrough the whole row so done ones fade back
+  // Total applied: one blank row under the last job, then a live COUNTIF of the ticked boxes.
+  const totalRowNum = lastRow + 2;
+  if (jobs.length > 0) {
+    const totalRow = ws.getRow(totalRowNum);
+    const count = totalRow.getCell('applied');
+    count.value = { formula: `COUNTIF(A2:A${lastRow},TRUE)`, result: 0 };
+    count.alignment = { horizontal: 'center' };
+    count.font = { bold: true, size: 12, color: { argb: 'FF059669' } };
+    count.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD1FAE5' } };
+    const label = totalRow.getCell('title');
+    label.value = { formula: `"← Total jobs applied: "&A${totalRowNum}&" of ${jobs.length}"`, result: `← Total jobs applied: 0 of ${jobs.length}` };
+    label.font = { bold: true, color: { argb: 'FF059669' } };
+  }
+
+  // When Applied? is ticked, grey + strikethrough the whole row so done ones fade back
   ws.addConditionalFormatting({
     ref: `A2:${lastCol}${lastRow}`,
     rules: [{
       type: 'expression',
-      formulae: ['$A2="☑"'],
+      formulae: ['$A2=TRUE'],
       style: { font: { strike: true, color: { argb: 'FF9AA0A6' } } },
       priority: 1,
     }],
   });
 
   await wb.xlsx.writeFile(OUT);
+  if (jobs.length > 0) await addCheckboxes(OUT, 2, lastRow);
   const strong = jobs.filter(j => j.score >= 5).length;
   console.log(`\nDone. ${OUT}`);
   const fromCompanies = jobs.filter(j => j.source !== 'job-board').length;
@@ -359,7 +406,18 @@ async function run() {
     console.log(`  JD match: ${jd70} strong (≥70%), ${jd40} partial (40–69%) — best fit first within each group`);
   }
   console.log(`  ${fromCompanies} from company career sites (listed first), ${jobs.length - fromCompanies} from job boards`);
-  console.log(`  Toggle the "Applied?" cell (☐ → ☑) to mark a job done; the row greys out + strikes through.`);
+  console.log(`  Tick the "Applied?" checkbox to mark a job done; the row greys out and row ${totalRowNum} counts your applications.`);
+
+  if (PAGE) {
+    // Publish-ready form (no document skeleton): what Claude publishes to the Job Quest Board.
+    await writeJobsHtml(PAGE, jobs, { ...pageMeta, standalone: false });
+    console.log(`\nJob Quest page: ${PAGE}`);
+    if (process.argv.includes('--no-publish')) {
+      console.log(`  Not published (--no-publish). Publish later with: node publish-job-page.mjs "${PAGE}"`);
+    } else {
+      await publishJobPage(PAGE, flagValue('publish-url') ?? DEFAULT_URL);
+    }
+  }
 }
 
 run()

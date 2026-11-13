@@ -25,12 +25,19 @@ export interface JdMatch {
  * asks for, not what the résumé has: a JD that only wants Java is a 100% fit for a Java
  * developer, however many other skills the résumé lists. Tier weights apply, so missing
  * the JD's core language costs more than missing one of its build tools.
+ *
+ * Repetition is emphasis: a JD that names Java eight times and Terraform once in a
+ * "nice to have" line cares more about Java. Each skill's tier weight is multiplied by
+ * `emphasis(mentions)` — 1× for one mention, +0.5× per extra mention, capped at 3× so a
+ * keyword-stuffed JD cannot let one skill drown out the rest.
  */
 export function matchDescription(description: string | undefined, profile: CandidateProfile): JdMatch {
   if (!description || !description.trim()) {
     return { percent: null, status: 'no-description', matchedSkills: [], missingSkills: [] };
   }
-  const wanted = extractSkills(description);
+  const wanted = extractSkills(description).sort(
+    (a, b) => b.weight * emphasis(b.mentions) - a.weight * emphasis(a.mentions),
+  );
   if (wanted.length === 0) {
     return { percent: null, status: 'no-known-skills', matchedSkills: [], missingSkills: [] };
   }
@@ -44,9 +51,10 @@ export function matchDescription(description: string | undefined, profile: Candi
   const matchedSkills: string[] = [];
   const missingSkills: string[] = [];
   for (const skill of wanted) {
-    total += skill.weight;
+    const weight = skill.weight * emphasis(skill.mentions);
+    total += weight;
     if (have.has(skill.name)) {
-      matched += skill.weight;
+      matched += weight;
       matchedSkills.push(skill.name);
     } else {
       missingSkills.push(skill.name);
@@ -54,6 +62,13 @@ export function matchDescription(description: string | undefined, profile: Candi
   }
   return { percent: Math.round((matched / total) * 100), status: 'scored', matchedSkills, missingSkills };
 }
+
+/** Multiplier for how often the JD names a skill: 1 → 1×, 2 → 1.5×, 3 → 2×, ≥5 → 3×. */
+export function emphasis(mentions: number | undefined): number {
+  const m = Math.max(1, mentions ?? 1);
+  return Math.min(MAX_EMPHASIS, 1 + 0.5 * (m - 1));
+}
+const MAX_EMPHASIS = 3;
 
 type JdRanked = { jdMatchPercent?: number | null; jdMatchedSkills?: string[] };
 

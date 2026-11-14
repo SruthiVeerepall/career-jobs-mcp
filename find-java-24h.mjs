@@ -1,6 +1,6 @@
 /**
  * find-java-24h.mjs
- * Fast parallel search across ALL registry companies for roles matching Sruthi Veerepalli's resume.
+ * Fast parallel search across ALL registry companies for roles matching the default candidate profile (CLAUDE.md rule #6).
  * Rules per CLAUDE.md:
  *   - Default window: 3 days (--today = 24hr, --week = 7 days)
  *   - Level: Junior to Senior only (≤5 yrs)

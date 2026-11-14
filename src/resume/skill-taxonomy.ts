@@ -2,7 +2,7 @@
  * Skill / role taxonomy used to turn an arbitrary resume into a searchable profile.
  *
  * The weights mirror CLAUDE.md rule #6 (CORE 10 / HIGH 7 / MID 5 / LOW 3) so that a
- * resume matching Sruthi's profile reproduces the previously hard-coded scoring exactly.
+ * résumé matching the original default profile reproduces the previously hard-coded scoring exactly.
  * Nothing here is candidate-specific — the profile builder keeps only the entries the
  * resume actually evidences.
  */

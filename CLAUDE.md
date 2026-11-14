@@ -162,7 +162,7 @@ by terms: they fetch their whole board regardless, so keying them would fragment
 > `export-jobs-xlsx.mjs` when no résumé is given. When the user supplies a résumé, the
 > equivalent values are derived from it instead — see *Résumé-Driven Search* above.
 
-Every search result must be relevant to **Sruthi Veerepalli's** profile. Only return roles where the job title aligns with her target roles AND the implied skills match at least 60% of her resume profile.
+Every search result must be relevant to the **default candidate profile** below. Only return roles where the job title aligns with its target roles AND the implied skills match at least 60% of that profile.
 
 **Candidate profile:** Java / Full Stack Developer, 5 years of experience.
 - Core: Java 8/11/17, Spring Boot, Spring MVC, Spring Security, Spring Cloud, Spring Batch, Hibernate, JPA
@@ -195,7 +195,7 @@ LOW    ( 3 pts): docker, kubernetes, ci/cd, jenkins, github actions, splunk, pos
 - A title like "Software Engineer" scores 0 from keyword weights → still included if it is a recognized target role title.
 - Exclude roles with no Java/Spring/Full Stack/Backend signal AND zero score (e.g., pure Data Scientist, ML Engineer, DevOps Engineer, QA Engineer).
 
-**Search terms to use in `find-java-24h.mjs`:** Run searches for `Java`, `Full Stack`, and `Software Engineer` across all companies to maximize coverage of her profile.
+**Search terms to use in `find-java-24h.mjs`:** Run searches for `Java`, `Full Stack`, and `Software Engineer` across all companies to maximize coverage of the profile.
 
 ---
 
@@ -336,10 +336,10 @@ owns `probe-results.json`.
 
 ### Publishing the Job Quest Board
 
-The user's daily command (spreadsheet + page in one run):
+The user's daily command (spreadsheet + page in one run). The real paths are not kept here; `node refresh-job-quest.mjs --status` prints them from `job-quest-outputs.json` (git-ignored):
 
 ```
-node export-jobs-xlsx.mjs --resume "C:\Users\sruth\Documents\FullTime\Sruthi Veerepall.docx" --today --out "C:\Users\sruth\Desktop\jobs.xlsx" --page "C:\Users\sruth\Desktop\job-quest.html"
+node export-jobs-xlsx.mjs --resume "<path to résumé>" --today --out "<Desktop>\jobs.xlsx" --page "<Desktop>\job-quest.html"
 ```
 
 **Publishing is automatic.** After a `--page` run, `publish-job-page.mjs` starts unattended

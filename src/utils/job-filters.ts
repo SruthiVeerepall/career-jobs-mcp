@@ -1,4 +1,4 @@
-// Shared filter/scoring logic for Sruthi Veerepalli's resume-match search.
+// Shared filter/scoring logic for the default-profile resume-match search.
 // Rules per CLAUDE.md rules #2 (experience level), #3 (location), #4 (clearance), #6 (resume match).
 
 // Senior / >5yr title patterns — EXCLUDE

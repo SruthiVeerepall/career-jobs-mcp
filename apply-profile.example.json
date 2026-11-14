@@ -1,0 +1,21 @@
+{
+  "_comment": "Copy to apply-profile.json (git-ignored), or let `node auto-apply.mjs --setup` write it. Everything is optional. 'standard' answers the questions most forms ask (allowed values: run --setup). 'answers' covers anything else: it picks a dropdown option or types text when a form question's label CONTAINS 'question' (case-insensitive) and wins over 'standard'. Unanswered questions are listed for you to answer by hand.",
+  "linkedin": "https://www.linkedin.com/in/your-handle",
+  "website": "",
+  "standard": {
+    "workAuthorized": "yes",
+    "sponsorship": "no",
+    "pronouns": "she/her",
+    "gender": "decline",
+    "hispanic": "decline",
+    "race": "decline",
+    "raceDetail": "",
+    "veteran": "decline",
+    "disability": "decline",
+    "lgbtq": "decline"
+  },
+  "answers": [
+    { "question": "at least 18 years", "answer": "Yes" },
+    { "question": "how did you hear", "answer": "LinkedIn" }
+  ]
+}

@@ -8,7 +8,7 @@
  *   - applied rows auto-strikethrough + greyed via conditional formatting
  *   - frozen header, autofilter, and sensible column widths
  *
- * Flags mirror find-java-24h.mjs:  --today (24h) | --week (7d) | default 3 days
+ * Flags mirror find-java-24h.mjs:  --today (24h) | --week (7d) | --month (30d) | --days <n> | default 3 days
  * Output path override:            --out <path>
  * Resume-driven search:            --resume <path to .pdf/.docx/.txt/.md>
  *
@@ -27,6 +27,12 @@
  *                   (--no-publish to skip; --publish-url <url> for a different artifact)
  *   --html          write ONLY the page, as a standalone file to open in a browser
  *   --artifact      write ONLY the page, publish-ready (no document skeleton)
+ *   --local-page <path>  with --page: ALSO write a standalone copy to open from disk
+ *
+ * A --resume --page run remembers its outputs in job-quest-outputs.json, so the board's
+ * search buttons, the sheet's refresh links and `node refresh-job-quest.mjs --days n` rewrite
+ * all of them (see refresh-job-quest.mjs). If the workbook is open in Excel it is saved,
+ * closed, rewritten and reopened, and its "Applied?" ticks carry over.
  */
 import path from 'node:path';
 import ExcelJS from 'exceljs';
@@ -38,6 +44,9 @@ import { scrapeMany } from './dist/scrapers/orchestrator.js';
 import { OVER_5YR, CLEARANCE, isUSJob, matchesProfile, resumeScore } from './dist/utils/job-filters.js';
 import { parsePostedDate } from './dist/utils/posted-date.js';
 import { searchJobsForResume } from './dist/resume/search.js';
+import { autoApplyLink, refreshLink } from './dist/apply/protocol.js';
+import { closeInExcel, isLocked, openInExcel, readAppliedUrls } from './excel-session.mjs';
+import { saveOutputs } from './job-quest-outputs.mjs';
 import { byJdMatch } from './dist/resume/jd-match.js';
 import { screenRequirements } from './dist/utils/requirement-screen.js';
 import { JOB_BOARDS, bySourceThenScore, companySitesFirst, crossSourceKey, sourceOf } from './dist/utils/source-priority.js';
@@ -47,17 +56,23 @@ const ALL_SLUGS = [...companyRegistry.companies.values()]
   .map(c => c.slug);
 
 const DAY_MS = 86_400_000;
-const WINDOW_DAYS = process.argv.includes('--today') ? 1
-  : process.argv.includes('--week') ? 7
-  : 3;
-const WINDOW_LABEL = WINDOW_DAYS === 1 ? '24 hours' : `${WINDOW_DAYS} days`;
-const API_SINCE = WINDOW_DAYS <= 1 ? 'today' : 'week';
-const CONCURRENCY = Number(process.env.SCRAPE_CONCURRENCY ?? 24);
-
 function flagValue(name) {
   const i = process.argv.indexOf(`--${name}`);
   return i !== -1 && process.argv[i + 1] && !process.argv[i + 1].startsWith('--') ? process.argv[i + 1] : undefined;
 }
+
+const DAYS_FLAG = flagValue('days') !== undefined ? Number(flagValue('days')) : undefined;
+if (DAYS_FLAG !== undefined && !(Number.isInteger(DAYS_FLAG) && DAYS_FLAG >= 1 && DAYS_FLAG <= 30)) {
+  console.error('--days needs a whole number from 1 to 30, e.g. --days 7');
+  process.exit(1);
+}
+const WINDOW_DAYS = DAYS_FLAG ?? (process.argv.includes('--today') ? 1
+  : process.argv.includes('--week') ? 7
+  : process.argv.includes('--month') ? 30
+  : 3);
+const WINDOW_LABEL = WINDOW_DAYS === 1 ? '24 hours' : `${WINDOW_DAYS} days`;
+const API_SINCE = WINDOW_DAYS <= 1 ? 'today' : WINDOW_DAYS <= 7 ? 'week' : 'month';
+const CONCURRENCY = Number(process.env.SCRAPE_CONCURRENCY ?? 24);
 
 // --html writes the Job Quest web page instead of the workbook; --artifact writes the same
 // page without the document skeleton, ready to publish as a claude.ai artifact.
@@ -67,6 +82,11 @@ const OUT = flagValue('out') ?? (HTML ? 'job-results.html' : 'job-results.xlsx')
 const PAGE = flagValue('page');
 if (process.argv.includes('--page') && !PAGE) {
   console.error('--page needs a file path, e.g. --page job-quest.html');
+  process.exit(1);
+}
+const LOCAL_PAGE = flagValue('local-page');
+if (process.argv.includes('--local-page') && !LOCAL_PAGE) {
+  console.error('--local-page needs a file path, e.g. --local-page job-quest-local.html');
   process.exit(1);
 }
 const RESUME = flagValue('resume');
@@ -296,6 +316,20 @@ async function run() {
   }
 
   // ---- Build the workbook -------------------------------------------------
+  const autoLink = (u) => (u ? autoApplyLink(u) : null);
+  const autoCount = jobs.filter(j => autoLink(j.url)).length;
+
+  // Open in Excel? Have Excel save (so recent ticks are on disk) and close it, so it can be
+  // rewritten; it is reopened after the write. Then carry the old file's ticks over.
+  let reopenExcel = false;
+  if (isLocked(OUT)) {
+    const closed = closeInExcel(OUT);
+    reopenExcel = closed === 'closed';
+    if (reopenExcel) console.log('  The sheet was open in Excel: saved your ticks, closed it for the update, will reopen it.');
+  }
+  const ticked = await readAppliedUrls(OUT);
+  if (ticked.size) console.log(`  Keeping ${ticked.size} "Applied?" ticks from the previous sheet.`);
+
   const wb = new ExcelJS.Workbook();
   wb.creator = 'career-jobs-mcp';
   wb.created = new Date();
@@ -315,6 +349,9 @@ async function run() {
     { header: 'JD Match %', key: 'jdMatch', width: 11 },
     { header: 'Platform', key: 'platform', width: 15 },
     { header: 'Apply', key: 'apply', width: 12 },
+    // Greenhouse jobs only: a jobquest:// link that fills the form in Chrome from the résumé
+    // (needs a one-time `node install-auto-apply.mjs --resume <path>`). Never submits.
+    { header: 'Auto Apply', key: 'auto', width: 13 },
     { header: 'Apply URL', key: 'url', width: 60 },
   ];
 
@@ -338,7 +375,7 @@ async function run() {
   jobs.forEach((j, i) => {
     const hasJd = typeof j.jdMatchPercent === 'number';
     const row = ws.addRow({
-      applied: false, // a boolean cell; addCheckboxes() turns it into a clickable checkbox
+      applied: !!(j.url && ticked.has(j.url)), // a boolean cell; addCheckboxes() turns it into a clickable checkbox
       num: i + 1,
       title: j.title,
       company: j.company,
@@ -350,6 +387,7 @@ async function run() {
       jdMatch: hasJd ? j.jdMatchPercent / 100 : (RESUME ? 'N/A' : ''),
       platform: j.platform,
       apply: j.url ? { text: 'Apply ↗', hyperlink: j.url } : '',
+      auto: autoLink(j.url) ? { text: '⚡ Auto apply', hyperlink: autoLink(j.url) } : '',
       url: j.url,
     });
     row.getCell('applied').alignment = { horizontal: 'center' };
@@ -365,6 +403,7 @@ async function run() {
       jc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: jdFill(j.jdMatchPercent) } };
     }
     if (j.url) row.getCell('apply').font = { color: { argb: 'FF4F46E5' }, underline: true };
+    if (autoLink(j.url)) row.getCell('auto').font = { color: { argb: 'FF4E7D2E' }, underline: true, bold: true };
   });
 
   const lastRow = jobs.length + 1;
@@ -386,6 +425,21 @@ async function run() {
     label.font = { bold: true, color: { argb: 'FF059669' } };
   }
 
+  // Refresh links: rerun this export for another window and update every output (this sheet,
+  // the pages, the published board). jobquest:// links; needs `node install-auto-apply.mjs`.
+  const refreshRowNum = totalRowNum + 2;
+  {
+    const r = ws.getRow(refreshRowNum);
+    const label = r.getCell('title');
+    label.value = 'Run a new search (updates this sheet, the page and the board):';
+    label.font = { bold: true, color: { argb: 'FF4F46E5' } };
+    [['company', 'Today', 1], ['source', '3 days', 3], ['location', 'Week', 7], ['posted', 'Month', 30]].forEach(([key, text, days]) => {
+      const c = r.getCell(key);
+      c.value = { text: `↻ ${text}`, hyperlink: refreshLink(days) };
+      c.font = { color: { argb: 'FF4F46E5' }, underline: true, bold: days === WINDOW_DAYS };
+    });
+  }
+
   // When Applied? is ticked, grey + strikethrough the whole row so done ones fade back
   ws.addConditionalFormatting({
     ref: `A2:${lastCol}${lastRow}`,
@@ -397,10 +451,22 @@ async function run() {
     }],
   });
 
-  await wb.xlsx.writeFile(OUT);
-  if (jobs.length > 0) await addCheckboxes(OUT, 2, lastRow);
+  let wroteSheet = true;
+  try {
+    await wb.xlsx.writeFile(OUT);
+    if (jobs.length > 0) await addCheckboxes(OUT, 2, lastRow);
+  } catch (err) {
+    if (!['EBUSY', 'EPERM', 'EACCES'].includes(err.code)) throw err;
+    // Excel would not let go of it: still update the pages and the board.
+    wroteSheet = false;
+    console.error(`\n  Could not update ${OUT}: it is open in Excel (${err.code}). Close it and run the refresh again.`);
+  }
+  if (reopenExcel) {
+    const opened = openInExcel(OUT);
+    if (opened !== 'opened') console.error(`  Reopen ${OUT} in Excel yourself (${opened}).`);
+  }
   const strong = jobs.filter(j => j.score >= 5).length;
-  console.log(`\nDone. ${OUT}`);
+  console.log(wroteSheet ? `\nDone. ${OUT}` : `\nSheet NOT updated: ${OUT}`);
   const fromCompanies = jobs.filter(j => j.source !== 'job-board').length;
   console.log(`  ${jobs.length} jobs  (${strong} strong, score ≥5)`);
   if (RESUME) {
@@ -409,12 +475,25 @@ async function run() {
     console.log(`  JD match: ${jd70} strong (≥70%), ${jd40} partial (40–69%) — best fit first within each group`);
   }
   console.log(`  ${fromCompanies} from company career sites (listed first), ${jobs.length - fromCompanies} from job boards`);
+  if (autoCount) console.log(`  ${autoCount} Greenhouse jobs have an "Auto apply" link (one-time setup: node install-auto-apply.mjs --resume <path>)`);
   console.log(`  Tick the "Applied?" checkbox to mark a job done; the row greys out and row ${totalRowNum} counts your applications.`);
 
   if (PAGE) {
     // Publish-ready form (no document skeleton): what Claude publishes to the Job Quest Board.
     await writeJobsHtml(PAGE, jobs, { ...pageMeta, standalone: false });
     console.log(`\nJob Quest page: ${PAGE}`);
+    if (LOCAL_PAGE) {
+      await writeJobsHtml(LOCAL_PAGE, jobs, { ...pageMeta, standalone: true });
+      console.log(`Local page (open in a browser): ${LOCAL_PAGE}`);
+    }
+    if (RESUME) {
+      // Remember every output, so a refresh from any button or link updates all of them.
+      saveOutputs({
+        resumePath: RESUME, xlsx: OUT, page: PAGE, localPage: LOCAL_PAGE,
+        publishUrl: flagValue('publish-url'), minJdMatch: MIN_JD_MATCH,
+        publish: !process.argv.includes('--no-publish'),
+      });
+    }
     if (process.argv.includes('--no-publish')) {
       console.log(`  Not published (--no-publish). Publish later with: node publish-job-page.mjs "${PAGE}"`);
     } else {

@@ -93,7 +93,7 @@ export function buildProfile(text: string, options: BuildProfileOptions = {}): C
  * The name is the first line that reads like one: resumes put it at the top, above the
  * contact block. Anything with an @, a digit, or a URL is contact info, not a name.
  */
-function extractName(text: string): string | undefined {
+export function extractName(text: string): string | undefined {
   for (const raw of text.split('\n').slice(0, 6)) {
     const line = raw.trim().replace(/\s{2,}/g, ' ');
     if (!line || line.length > 60) continue;

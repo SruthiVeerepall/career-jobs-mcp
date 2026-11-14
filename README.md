@@ -62,7 +62,7 @@ When this server is registered with Claude, Claude can call tools like `searchMu
 career-jobs-mcp/
 ├── src/
 │   ├── index.ts                    # Entry point — starts the MCP server
-│   ├── server.ts                   # Registers all 5 MCP tools with Claude
+│   ├── server.ts                   # Registers the MCP tools with Claude
 │   ├── types.ts                    # TypeScript types: JobListing, CompanyConfig, Filters
 │   ├── scrapers/
 │   │   ├── base-scraper.ts         # Shared scraper logic (filtering, level detection)
@@ -75,6 +75,14 @@ career-jobs-mcp/
 │   │       ├── smartrecruiters.ts  # SmartRecruiters JSON API scraper
 │   │       ├── workday.ts          # Workday scraper (CSRF-aware session handling)
 │   │       └── custom-puppeteer.ts # Headless Chrome fallback for JS-rendered sites
+│   ├── resume/
+│   │   └── applicant.ts            # Résumé → contact details, jobs held, education (for auto apply)
+│   ├── apply/
+│   │   ├── auto-apply.ts           # Opens a Greenhouse application in a visible Chrome and fills it
+│   │   ├── greenhouse.ts           # Greenhouse form field map, dropdown picking, "still needs you" report
+│   │   ├── protocol.ts             # jobquest://apply and jobquest://refresh links (build + validate)
+│   │   ├── standard-answers.ts     # Authorization / sponsorship / pronouns / EEO answers, matched by meaning
+│   │   └── apply-profile.ts        # Loads apply-profile.json (LinkedIn, answers to yes/no questions)
 │   ├── cache/
 │   │   └── cache-manager.ts        # SQLite cache with 24-hour TTL
 │   └── utils/
@@ -88,6 +96,13 @@ career-jobs-mcp/
 ├── jobs-html.mjs                   # Fills templates/job-quest.html with a run's jobs
 ├── publish-job-page.mjs            # Publishes the page to the Job Quest Board via unattended Claude Code
 ├── templates/job-quest.html        # The Job Quest Board page (goal ring, streak, JD match, Applied ticks)
+├── auto-apply.mjs                  # Standalone: fill a Greenhouse application from your résumé (never submits)
+├── install-auto-apply.mjs          # One-time: registers jobquest:// links (Auto apply + refresh) for Excel/any page
+├── jobquest-link.mjs               # What a jobquest:// link click runs: apply or refresh
+├── refresh-job-quest.mjs           # Reruns the daily export for a new window, updating every output
+├── job-quest-outputs.mjs           # Saves/loads where the daily export writes (job-quest-outputs.json)
+├── excel-session.mjs               # Rewrites a sheet open in Excel (save/close/reopen) and keeps its ticks
+├── apply-profile.example.json      # Template for apply-profile.json (git-ignored): LinkedIn + question answers
 ├── probe-registry.mjs              # Standalone: health-check all companies, remove broken ones
 ├── run-search.mjs                  # Standalone: broader search with month window
 ├── data/cache.db                   # SQLite cache (auto-created on first run)
@@ -260,8 +275,11 @@ node export-jobs-xlsx.mjs --resume ./resume.pdf --today --page job-quest.html --
 # Spreadsheet only: last 3 days to job-results.xlsx (default)
 node export-jobs-xlsx.mjs
 
-# Window: --today (24 hours) | --week (7 days) | default 3 days
+# Window: --today (24 hours) | --week (7 days) | --month (30 days) | --days <n> | default 3 days
 node export-jobs-xlsx.mjs --week
+
+# Daily run plus a standalone copy of the page to open from disk
+node export-jobs-xlsx.mjs --resume ./resume.pdf --today --out jobs.xlsx --page job-quest.html --local-page job-quest-local.html
 
 # Write the spreadsheet to a custom path
 node export-jobs-xlsx.mjs --out "C:\Users\me\Desktop\jobs.xlsx"
@@ -279,11 +297,13 @@ node export-jobs-xlsx.mjs --resume ./resume.pdf --html --out job-results.html
 | Flag | What it does |
 |---|---|
 | `--resume <path>` | Match against this résumé (`.pdf`, `.docx`, `.txt`, `.md`, `.html`) and add JD Match % |
-| `--today` / `--week` | 24-hour or 7-day window (default: 3 days) |
+| `--today` / `--week` / `--month` | 24-hour, 7-day or 30-day window (default: 3 days) |
+| `--days <n>` | Any window from 1 to 30 days |
 | `--out <path>` | Where to write the spreadsheet (or the page, with `--html` / `--artifact`) |
 | `--page <path>` | **Also** write the Job Quest page in the same run, then publish it to the Job Quest Board |
 | `--no-publish` | With `--page`: write the page but don't publish it |
 | `--publish-url <url>` | With `--page`: publish to a different artifact (default: `$JOB_QUEST_URL`, else the Job Quest Board) |
+| `--local-page <path>` | With `--page`: **also** write a standalone copy of the page to open from disk |
 | `--html` | Write **only** the page, as a standalone file to open in a browser |
 | `--artifact` | Write **only** the page, publish-ready (what `--page` writes) |
 | `--min-jd-match <n>` | Drop scored jobs below n% JD match |
@@ -314,6 +334,117 @@ Found 271 jobs (last 3 days | Junior–Senior | US | No clearance | ≥60% resum
 | 3 | Java Software Developer (Mid-Senior Level) | Interactive Brokers | Greenwich, CT | May 15 | 10 | [Apply]|
 ...
 ```
+
+### Refresh every output from any button
+
+A `--resume … --page …` run remembers where it wrote (sheet, page, local page, board) in
+`job-quest-outputs.json` (git-ignored). After that, picking a window anywhere reruns that same
+export for the new window and **updates all of them**: the Excel sheet, the page files and the
+published Job Quest Board.
+
+| Where you click | How it runs |
+|---|---|
+| **Today / 3 days / Week / Month** on the board in the Claude desktop app | results appear on the page at once (`searchJobsForResume`), then the `refreshJobQuest` MCP tool updates the sheet, the files and the board in the background |
+| The same buttons on the board in a browser, or a local page | a `jobquest://refresh?days=N` link: a console window shows progress (needs the one-time `node install-auto-apply.mjs`) |
+| **↻ Today / 3 days / Week / Month** links under the jobs in the Excel sheet | same link |
+| A terminal | `node refresh-job-quest.mjs --days 7`, or the full `export-jobs-xlsx.mjs` command |
+
+Ticked **Applied?** boxes in the sheet are kept across refreshes (matched by apply URL). If the
+sheet is open in Excel, Excel is asked to save it, close it, and reopen the new version. One
+refresh runs at a time: clicking another window while one runs queues it, and the last one
+clicked wins.
+
+```bash
+node refresh-job-quest.mjs --days 7           # 1 | 3 | 7 | 30, progress in this console
+node refresh-job-quest.mjs --days 3 --detach  # in the background, log in data/refresh.log
+node refresh-job-quest.mjs --status           # saved outputs, and whether a refresh is running
+```
+
+| Flag | Effect |
+|------|--------|
+| `--days <n>` | Window: 1, 3, 7 or 30 days. Required unless `--status`. |
+| `--detach` | Start in the background and return at once (what the MCP tool does). |
+| `--status` | Print the saved outputs and any running refresh. |
+
+### Auto Apply (Greenhouse jobs)
+
+Fills a Greenhouse job application from your résumé in a **visible** Chrome window: first and
+last name, email, phone, country, city, **every job you have held** (company, title, start and
+end month/year, "current role"), **education** (school, degree, discipline), LinkedIn, and the
+résumé file itself. **It never presses Submit.** You review the form, answer what is left, and
+submit it yourself.
+
+Greenhouse was picked first because it is the most common apply host in the cache (~20k jobs
+on `job-boards.greenhouse.io` / `boards.greenhouse.io`) and one form layout covers every board.
+
+**Works from anywhere** after a one-time setup on your PC:
+
+```bash
+node install-auto-apply.mjs --resume "C:\path\to\resume.docx"
+```
+
+This registers a `jobquest://` link type for your Windows user (no admin needed) and remembers
+which résumé to use. Then an **Auto apply** link appears on every Greenhouse job in:
+
+| Where | How it runs |
+|---|---|
+| The Excel sheet (`export-jobs-xlsx.mjs`) | **Auto Apply** column → `jobquest://` link |
+| A local page (`--html`) opened in a browser | **Auto apply** button → `jobquest://` link (the browser asks once to open Node.js) |
+| The Job Quest Board in a browser | same link |
+| The Job Quest Board in the Claude desktop app | the `autoApplyJob` MCP tool (reports what it filled on the page); falls back to the link if the tool isn't connected |
+
+A link carries only the job URL. The résumé path stays in `apply-profile.json` on your PC, so a
+link can't choose a file to upload, and it only accepts Greenhouse jobs. Each click opens a
+console window that lists what was filled and what still needs you. It closes once you close Chrome.
+
+```bash
+# Fill one application (waits until you close the Chrome window)
+node auto-apply.mjs --resume "C:\path\to\resume.docx" https://job-boards.greenhouse.io/boxinc/jobs/8328785
+
+# Show what would be filled, without opening a browser
+node auto-apply.mjs --resume "C:\path\to\resume.docx" --show-data
+```
+
+| Flag | Effect |
+|------|--------|
+| `--resume <path>` | Résumé to read and attach. Required. |
+| `<url>` | A Greenhouse job URL (`job-boards.greenhouse.io/<board>/jobs/<id>`, `boards.greenhouse.io/…`, or an `/embed/job_app` link). |
+| `--show-data` | Print the parsed applicant data (contact, jobs, education) and exit. |
+| `--link <jobquest://…>` | Fill from an apply link: job URL from the link, résumé from `apply-profile.json`. |
+| `--setup` | Answer LinkedIn, work authorization, sponsorship, pronouns and EEO questions once (interactive). |
+| `--set key=value` | Save one answer without prompts (repeatable), e.g. `--set sponsorship=no`. |
+
+Link clicks run `jobquest-link.mjs`, which hands apply links to `auto-apply.mjs` and refresh
+links to `refresh-job-quest.mjs`. It accepts only Greenhouse jobs and the four refresh windows.
+
+`install-auto-apply.mjs` flags: `--resume <path>` (register and remember the résumé),
+`--status` (show the registered command and résumé), `--uninstall` (remove the link type).
+Re-run it after moving this folder or changing Node; the registered command holds both paths.
+
+**Answers a résumé can't give: set them once.**
+
+```bash
+node auto-apply.mjs --setup                                   # asks each question in the terminal
+node auto-apply.mjs --set sponsorship=no --set workAuthorized=yes   # or set answers directly
+```
+
+`--setup` asks for your LinkedIn URL and the questions almost every form asks: work
+authorization, sponsorship (`no` / `now` / `future`), pronouns, and the voluntary EEO questions
+(gender, Hispanic/Latino, race, veteran, disability, LGBTQ+), each of which also accepts
+`decline`. Answers are saved under `standard` in `apply-profile.json` (git-ignored, on your PC
+only) and used on every form. They're matched by the question's wording, not its field id,
+so they work on the standard EEO section, on demographic surveys and on boards that ask them as
+custom questions. Options are matched by meaning ("Female" / "Woman", "Decline To Self Identify" /
+"I don't wish to answer"). If no option clearly fits (an "Asian" answer against a list of
+East / South / Southeast Asian), the field is left for you. Use `raceDetail` for that.
+
+For anything else, add `answers[]` (see `apply-profile.example.json`): each is used when a
+question's label *contains* its `question` text, and it wins over `standard`. Consent boxes and
+job-specific questions are never filled; they're listed as **still needs you**, along with a
+reminder to run `--setup` when a missing one-time answer was the reason.
+
+Chrome keeps its own profile in `data/apply-chrome-profile/`, so cookie banners or a
+Greenhouse sign-in are remembered between runs.
 
 ### Option C — Use as an MCP Server with Claude
 
@@ -374,6 +505,22 @@ Show what the searcher read out of a résumé — skills and weights, years of e
 role families, seniority band, board search terms — without spending a scrape on it.
 ```json
 { "resumePath": "C:/Users/me/Documents/resume.pdf" }
+```
+
+### `autoApplyJob`
+Open a Greenhouse application in a visible Chrome window and fill it from the résumé (contact
+details, all jobs, education, LinkedIn, résumé upload). **Never submits.** Returns the fields
+filled, any it could not fill, and the required questions still left for you.
+```json
+{ "applyUrl": "https://job-boards.greenhouse.io/boxinc/jobs/8328785", "resumePath": "C:/Users/me/Documents/resume.docx" }
+```
+
+### `refreshJobQuest`
+Rerun the last daily export (saved by `export-jobs-xlsx.mjs --resume … --page …`) for a new
+window, in the background, updating the Excel sheet, the page files and the published board.
+Returns at once with `status: "started"` or `"queued"`.
+```json
+{ "postedWithinDays": 7 }
 ```
 
 ### `searchCompanyJobs`

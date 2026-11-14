@@ -1,6 +1,7 @@
 import type { Page } from 'puppeteer';
 import { MONTH_NAMES, type Applicant, type YearMonth } from '../resume/applicant.js';
 import type { ApplyAnswer } from './apply-profile.js';
+import { STATE_NAMES, type FillReport } from './common.js';
 import { chooseDerived, chooseOption, classifyDerived, classifyQuestion, derivedText, type StandardAnswers } from './standard-answers.js';
 
 // Fills a Greenhouse application (the job-boards.greenhouse.io React form) from résumé data.
@@ -20,6 +21,8 @@ const HOST = /^(?:job-boards|boards)(\.eu)?\.greenhouse\.io$/i;
  * board, including the many whose job page redirects to the company's own careers site
  * (Coinbase, Airbnb), where the form is in an iframe or behind a bot wall.
  */
+export type { FillReport } from './common.js';
+
 export function greenhouseFormUrl(applyUrl: string): string | null {
   let u: URL;
   try { u = new URL(applyUrl); } catch { return null; }
@@ -35,14 +38,6 @@ export function greenhouseFormUrl(applyUrl: string): string | null {
   return `https://${host}/embed/job_app?for=${encodeURIComponent(p[1])}&token=${p[2]}`;
 }
 
-export interface FillReport {
-  filled: { field: string; value: string }[];
-  /** Fields we had a value for but the form would not take (no matching dropdown option…). */
-  failed: { field: string; value: string; reason: string }[];
-  /** Required fields still empty after filling: the candidate must answer these. */
-  needsYou: string[];
-  resumeUploaded: boolean;
-}
 
 const sel = (id: string) => `[id="${id.replace(/"/g, '\\"')}"]`;
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -261,7 +256,7 @@ export async function fillGreenhouse(page: Page, a: Applicant, resumePath: strin
     })))).filter((q) => q.label && !CORE.test(q.id));
   const links = { linkedin: extra.linkedin ?? a.linkedin, github: extra.github ?? a.github, website: extra.website ?? a.website };
   const std = extra.standard ?? {};
-  const facts = { fullName: a.fullName, city, state, inUS: !!(state && STATE_NAMES[state.toUpperCase()]) };
+  const facts = { fullName: a.fullName, city, state, inUS: !!(state && STATE_NAMES[state.toUpperCase()]), company: a.experience[0]?.company, title: a.experience[0]?.title };
   // Some questions only appear after an earlier answer (Netlify's work-authorization one shows
   // once Country is set), so collect again after each pass until nothing new turns up.
   const seen = new Set<string>();
@@ -351,6 +346,3 @@ export async function fillGreenhouse(page: Page, a: Applicant, resumePath: strin
   return report;
 }
 
-const STATE_NAMES: Record<string, string> = {
-  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', DC: 'District of Columbia', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming',
-};

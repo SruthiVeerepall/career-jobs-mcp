@@ -1,5 +1,5 @@
 /**
- * auto-apply.mjs: fill a Greenhouse job application from your résumé in a visible Chrome.
+ * auto-apply.mjs: fill a Greenhouse or Ashby job application from your résumé in a visible Chrome.
  *
  *   node auto-apply.mjs --resume <path> <greenhouse apply url>
  *   node auto-apply.mjs --resume <path> --show-data      # print what would be filled, no browser

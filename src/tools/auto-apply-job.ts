@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { autoApply } from '../apply/auto-apply.js';
 
 export const autoApplyJobSchema = {
-  applyUrl: z.string().describe('The job\'s apply URL. Greenhouse only: job-boards.greenhouse.io/<board>/jobs/<id> or boards.greenhouse.io/…'),
+  applyUrl: z.string().describe('The job\'s apply URL. Greenhouse (job-boards.greenhouse.io/<board>/jobs/<id>) or Ashby (jobs.ashbyhq.com/<org>/<job id>)'),
   resumePath: z.string().describe('Absolute path to the résumé (.pdf/.docx). Its data fills the form and the file itself is uploaded.'),
 };
 

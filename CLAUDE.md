@@ -2,7 +2,7 @@
 
 An MCP server (plus CLI scripts) that searches company career sites and job boards, matches
 jobs to a résumé, exports them to Excel and the "Job Quest Board" page, and auto-fills
-Greenhouse applications. Follow these rules on every request without being reminded.
+Greenhouse and Ashby applications. Follow these rules on every request without being reminded.
 
 ## Working rules
 
@@ -121,7 +121,7 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
 | `… --html` / `--artifact` | Write only the page (standalone / publish-ready) |
 | `node refresh-job-quest.mjs --days 1\|3\|7\|30` | Rerun the last `--resume --page` export for a new window, updating sheet, pages and board. `--detach`, `--status` |
 | `node publish-job-page.mjs <page>` | Publish a page to the board (retry after a failed auto-publish) |
-| `node auto-apply.mjs --resume <path> <greenhouse url>` | Fill one application in a visible Chrome; never submits. `--show-data`, `--link <jobquest://…>` |
+| `node auto-apply.mjs --resume <path> <job url>` | Fill one application in a visible Chrome; never submits. `--show-data`, `--link <jobquest://…>` |
 | `node auto-apply.mjs --setup` / `--set key=value` | Save one-time answers (LinkedIn, authorization, sponsorship, pronouns, EEO) |
 | `node install-auto-apply.mjs --resume <path>` | Register `jobquest://` links (Windows, HKCU) → `jobquest-link.mjs`. `--status`, `--uninstall`. Re-run after moving the repo or Node |
 | `node probe-registry.mjs` (`--dry-run`, `--platform X`) | Health-check the registry; removes only definitive 404s |
@@ -155,14 +155,32 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
   open in Excel is saved, closed and reopened over COM (`excel-session.mjs`, path passed via
   env, not `$args`).
 
-## Auto Apply (Greenhouse only)
+## Auto Apply (Greenhouse and Ashby)
 
 - **Never submits.** It fills the form; the user reviews and presses Submit. Keep it that way.
-- Always open the embed form `job-boards.greenhouse.io/embed/job_app?for=<board>&token=<id>`
+- **Platforms** are chosen in one place, `applyFormFor()` (`src/apply/platforms.ts`); the CLI, MCP tool,
+  links, the sheet's Auto Apply column and the board all ask it. Shared helpers are in
+  `src/apply/common.ts`. To add a platform: a `<name>FormUrl()` + `fill<Name>()` pair, one line in
+  `applyFormFor()`, its "form loaded" selector in `FORM_READY` (`auto-apply.ts`), and the URL regex
+  next to `GH_JOB` in `templates/job-quest.html`.
+- **Greenhouse:** always open the embed form `job-boards.greenhouse.io/embed/job_app?for=<board>&token=<id>`
   (`greenhouseFormUrl()`); many job pages redirect to the company site.
 - Core field ids are stable (`first_name`, `email`, `phone`, `country`, `candidate-location`,
   `resume`, `company-name-N`, `school--N`…). Dropdowns are react-select: type, then click the
   option, never set `.value`. A current role's end date stays required; leave it blank.
+- **Ashby** (`src/apply/ashby.ts`): open `jobs.ashbyhq.com/<org>/<job id>/application`
+  (`ashbyFormUrl()`); wait for `#_systemfield_name`, which renders after page load. Every question
+  is an `.ashby-application-form-field-entry` with a `.ashby-application-form-question-title`
+  label (a `_required` class marks required). System fields: `_systemfield_name` (full name),
+  `_systemfield_email`, `_systemfield_resume`, `_systemfield_location` (type-ahead; pick
+  "City, State, United States"), EEO radios `…_systemfield_eeoc_gender/race/veteran_status`.
+  Yes/No questions are `button[data-option="yes"|"no"]`. A text box inside a block wins over its
+  Yes/No buttons (Ramp's Phone carries an SMS-consent Yes/No, which is left alone). Text boxes
+  include `type=url` and `type=number`. When selecting inside a block, scope **every**
+  comma-separated selector (`entryHandle()`); `[block] a, b` matches `b` anywhere and typed the
+  phone into Email. Ashby has no work-history or education sections.
+  Live check (2026-11-14, headless, 0 failures, values read back from the page): Mercor, OpenAI,
+  Ramp, Zip, WHOOP, UiPath, Thumbtack.
 - Résumé → applicant: `src/resume/applicant.ts`. Other answers: `apply-profile.json`
   (`apply-profile.example.json` shows the shape):
   - `standard` (`src/apply/standard-answers.ts`): authorization, sponsorship, pronouns and EEO
@@ -170,14 +188,15 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
     field (EEO sections, numeric-id surveys and custom questions differ by board).
     `chooseOption()` returns null on no match **or a tie**, leaving the field blank.
   - `answers[]`: label *contains* `question`; wins over `standard`.
-  - Résumé facts: legal name, `City, ST`, "located in the US", country of residence. Citizenship,
+  - Résumé facts: legal name, `City, ST`, "located in the US", country of residence, current
+    employer and title (latest job). Citizenship,
     relocation, office and H-1B history are **not** derived.
   - Never fill demographic, consent or authorization questions from guesses; never tick consent
     boxes. Leftovers are returned as `needsYou` (+ `setupHint`). Questions are re-collected up
     to 3 times (some appear after earlier answers); a checkbox group is one `needsYou` entry.
 - Two routes, one filler: the `autoApplyJob` MCP tool (desktop app; not read-only, so the app
   asks first) and `jobquest://apply?url=…` links (Excel, local page, browser). **A link carries
-  only the job URL** (Greenhouse only); `refresh` links accept only 1/3/7/30. Any website can
+  only the job URL** (Greenhouse/Ashby only); `refresh` links accept only 1/3/7/30. Any website can
   fire these links, so never let one name a path or file.
 - Visible Chrome: `getVisibleBrowser()`, profile `data/apply-chrome-profile/` (falls back to a
   temp profile when it's in use). `APPLY_HEADLESS=true` is for tests only.

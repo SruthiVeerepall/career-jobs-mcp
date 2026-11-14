@@ -150,12 +150,15 @@ export function setupHint(needsYou: string[], std: StandardAnswers | undefined, 
 // Citizenship, relocation and "willing to work from the office" are NOT derived: they are not
 // on a résumé, so they stay with the candidate.
 
-export type DerivedKey = 'legalName' | 'currentLocation' | 'locatedInUS' | 'residenceCountry';
-export interface ApplicantFacts { fullName?: string; city?: string; state?: string; inUS: boolean }
+export type DerivedKey = 'legalName' | 'currentLocation' | 'locatedInUS' | 'residenceCountry' | 'currentEmployer' | 'currentTitle';
+/** company/title: the most recent job on the résumé. */
+export interface ApplicantFacts { fullName?: string; city?: string; state?: string; inUS: boolean; company?: string; title?: string }
 
 export function classifyDerived(label: string): DerivedKey | null {
   const l = label.toLowerCase();
   if (/legal name/.test(l) && !/native|other language|characters/.test(l)) return 'legalName';
+  if (/(?:current|most recent|previous|latest)(?: or (?:most recent|previous))? (?:employer|company)/.test(l)) return 'currentEmployer';
+  if (/(?:current|most recent|previous|latest)(?: or (?:most recent|previous))? (?:job |role )?title/.test(l)) return 'currentTitle';
   if (/which country|country of residence|country (?:do|in which) you (?:currently )?(?:reside|live)/.test(l) && !/citizen/.test(l)) return 'residenceCountry';
   if (/\b(?:located|based|reside|residing|live|living) in\b.*\b(?:us|u\.s\.?|usa|united states)\b/.test(l) && !/willing|relocat|citizen/.test(l)) return 'locatedInUS';
   if (/^(?:your |current )?(?:current )?location\b|where are you (?:currently )?(?:located|based)/.test(l) && !/willing|relocat|office|preferred/.test(l)) return 'currentLocation';
@@ -165,6 +168,8 @@ export function classifyDerived(label: string): DerivedKey | null {
 /** Value to type into a text box for a derived question, or undefined. */
 export function derivedText(key: DerivedKey | null, f: ApplicantFacts): string | undefined {
   if (key === 'legalName') return f.fullName || undefined;
+  if (key === 'currentEmployer') return f.company || undefined;
+  if (key === 'currentTitle') return f.title || undefined;
   if (key === 'currentLocation') return f.city ? [f.city, f.state].filter(Boolean).join(', ') : undefined;
   if (key === 'residenceCountry' && f.inUS) return 'United States';
   if (key === 'locatedInUS' && f.inUS) return 'Yes';

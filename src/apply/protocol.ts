@@ -1,11 +1,11 @@
-import { greenhouseFormUrl } from './greenhouse.js';
+import { applyFormFor, SUPPORTED_PLATFORMS } from './platforms.js';
 
 // The jobquest:// link type: lets an Excel cell, a local HTML page, or any browser start auto
 // apply or a refresh without the Claude desktop app. `node install-auto-apply.mjs` registers
 // the scheme for the current Windows user; a click runs `node jobquest-link.mjs "<the link>"`.
 //
 // Links carry as little as possible, because any website can fire one:
-//   jobquest://apply?url=<Greenhouse job>  — the résumé path comes from apply-profile.json on
+//   jobquest://apply?url=<Greenhouse or Ashby job>  — the résumé path comes from apply-profile.json on
 //     this machine, so a link can never choose which file is uploaded. The filler never submits.
 //   jobquest://refresh?days=1|3|7|30       — reruns the last daily export (job-quest-outputs.json)
 //     for that window. Only those four values are accepted; outputs are never named by a link.
@@ -15,9 +15,9 @@ export const REFRESH_DAYS = [1, 3, 7, 30] as const;
 
 export type JobQuestLink = { action: 'apply'; url: string } | { action: 'refresh'; days: number };
 
-/** Greenhouse apply URL -> jobquest://apply?url=…, or null for any other site. */
+/** Greenhouse / Ashby apply URL -> jobquest://apply?url=…, or null for any other site. */
 export function autoApplyLink(applyUrl: string): string | null {
-  if (!greenhouseFormUrl(applyUrl)) return null;
+  if (!applyFormFor(applyUrl)) return null;
   return `${SCHEME}://apply?url=${encodeURIComponent(applyUrl)}`;
 }
 
@@ -36,7 +36,7 @@ export function parseJobQuestLink(link: string): JobQuestLink {
   const action = (u.hostname || u.pathname).replace(/^\/+|\/+$/g, '');
   if (action === 'apply') {
     const url = u.searchParams.get('url');
-    if (!url || !greenhouseFormUrl(url)) throw new Error(`Auto apply supports Greenhouse jobs only. Got: ${url ?? '(no url)'}`);
+    if (!url || !applyFormFor(url)) throw new Error(`Auto apply supports ${SUPPORTED_PLATFORMS} jobs only. Got: ${url ?? '(no url)'}`);
     return { action, url };
   }
   if (action === 'refresh') {
@@ -47,7 +47,7 @@ export function parseJobQuestLink(link: string): JobQuestLink {
   throw new Error(`Unknown ${SCHEME}:// action "${action}"`);
 }
 
-/** jobquest://apply?url=… -> the Greenhouse apply URL. Throws on anything else. */
+/** jobquest://apply?url=… -> the job's apply URL. Throws on anything else. */
 export function parseAutoApplyLink(link: string): string {
   const parsed = parseJobQuestLink(link);
   if (parsed.action !== 'apply') throw new Error(`Unknown ${SCHEME}:// action "${parsed.action}"`);

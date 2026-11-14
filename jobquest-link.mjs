@@ -5,7 +5,7 @@
  *   node jobquest-link.mjs "jobquest://apply?url=<greenhouse job>"   # fill the form, never submit
  *   node jobquest-link.mjs "jobquest://refresh?days=7"               # update every Job Quest output
  *
- * The link is validated by parseJobQuestLink(): apply accepts only Greenhouse URLs, refresh only
+ * The link is validated by parseJobQuestLink(): apply accepts only Greenhouse and Ashby URLs, refresh only
  * 1/3/7/30 days. Nothing else a link says is used.
  */
 import path from 'node:path';

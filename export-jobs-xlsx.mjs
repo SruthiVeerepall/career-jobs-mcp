@@ -349,7 +349,7 @@ async function run() {
     { header: 'JD Match %', key: 'jdMatch', width: 11 },
     { header: 'Platform', key: 'platform', width: 15 },
     { header: 'Apply', key: 'apply', width: 12 },
-    // Greenhouse jobs only: a jobquest:// link that fills the form in Chrome from the résumé
+    // Greenhouse and Ashby jobs: a jobquest:// link that fills the form in Chrome from the résumé
     // (needs a one-time `node install-auto-apply.mjs --resume <path>`). Never submits.
     { header: 'Auto Apply', key: 'auto', width: 13 },
     { header: 'Apply URL', key: 'url', width: 60 },
@@ -475,7 +475,7 @@ async function run() {
     console.log(`  JD match: ${jd70} strong (≥70%), ${jd40} partial (40–69%) — best fit first within each group`);
   }
   console.log(`  ${fromCompanies} from company career sites (listed first), ${jobs.length - fromCompanies} from job boards`);
-  if (autoCount) console.log(`  ${autoCount} Greenhouse jobs have an "Auto apply" link (one-time setup: node install-auto-apply.mjs --resume <path>)`);
+  if (autoCount) console.log(`  ${autoCount} Greenhouse/Ashby jobs have an "Auto apply" link (one-time setup: node install-auto-apply.mjs --resume <path>)`);
   console.log(`  Tick the "Applied?" checkbox to mark a job done; the row greys out and row ${totalRowNum} counts your applications.`);
 
   if (PAGE) {

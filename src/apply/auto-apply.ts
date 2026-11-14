@@ -3,7 +3,10 @@ import { extractResumeText } from '../resume/extract-text.js';
 import { buildApplicant, type Applicant } from '../resume/applicant.js';
 import { getVisibleBrowser } from '../utils/browser.js';
 import { loadApplyProfile } from './apply-profile.js';
-import { fillGreenhouse, greenhouseFormUrl, type FillReport } from './greenhouse.js';
+import { fillAshby } from './ashby.js';
+import type { FillReport } from './common.js';
+import { fillGreenhouse } from './greenhouse.js';
+import { applyFormFor, SUPPORTED_PLATFORMS, type ApplyPlatform } from './platforms.js';
 import { setupHint } from './standard-answers.js';
 
 export interface AutoApplyOptions {
@@ -12,7 +15,7 @@ export interface AutoApplyOptions {
 }
 
 export interface AutoApplyResult extends FillReport {
-  platform: 'greenhouse';
+  platform: ApplyPlatform;
   formUrl: string;
   applicant: Applicant;
   submitted: false;
@@ -20,13 +23,20 @@ export interface AutoApplyResult extends FillReport {
   setupHint?: string;
 }
 
+/** The element that proves the application form loaded (a closed job shows none). */
+const FORM_READY: Record<ApplyPlatform, string> = {
+  greenhouse: '[id="first_name"]',
+  ashby: '#_systemfield_name',
+};
+
 /**
  * Open the job's application in a visible Chrome and fill it from the résumé. Returns once
  * the form is filled, leaving the tab open; the candidate reviews it and presses Submit.
  */
 export async function autoApply({ applyUrl, resumePath }: AutoApplyOptions): Promise<AutoApplyResult> {
-  const formUrl = greenhouseFormUrl(applyUrl);
-  if (!formUrl) throw new Error(`Auto apply supports Greenhouse jobs only (job-boards.greenhouse.io / boards.greenhouse.io). Not supported: ${applyUrl}`);
+  const target = applyFormFor(applyUrl);
+  if (!target) throw new Error(`Auto apply supports ${SUPPORTED_PLATFORMS} jobs only. Not supported: ${applyUrl}`);
+  const { platform, formUrl } = target;
 
   const file = resolve(resumePath);
   const { text } = await extractResumeText({ resumePath: file });
@@ -36,13 +46,15 @@ export async function autoApply({ applyUrl, resumePath }: AutoApplyOptions): Pro
   const browser = await getVisibleBrowser();
   const page = await browser.newPage();
   await page.goto(formUrl, { waitUntil: 'networkidle2', timeout: 60_000 });
-  if (!(await page.$('[id="first_name"]'))) {
-    throw new Error('No application form on this page; the job has probably closed.');
-  }
-  const report = await fillGreenhouse(page, applicant, file, extra.answers ?? [], extra);
+  // Ashby renders the form client-side after the page settles.
+  const ready = await page.waitForSelector(FORM_READY[platform], { timeout: 15_000 }).catch(() => null);
+  if (!ready) throw new Error('No application form on this page; the job has probably closed.');
+
+  const fill = platform === 'ashby' ? fillAshby : fillGreenhouse;
+  const report = await fill(page, applicant, file, extra.answers ?? [], extra);
   await page.bringToFront();
   // Leave the reviewer at the top of the form.
   await page.evaluate(() => window.scrollTo(0, 0));
   const hint = setupHint(report.needsYou, extra.standard, !!(extra.linkedin ?? applicant.linkedin));
-  return { platform: 'greenhouse', formUrl, applicant, submitted: false, ...report, ...(hint ? { setupHint: hint } : {}) };
+  return { platform, formUrl, applicant, submitted: false, ...report, ...(hint ? { setupHint: hint } : {}) };
 }

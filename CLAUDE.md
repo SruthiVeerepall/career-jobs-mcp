@@ -316,6 +316,12 @@ from the table above is actually populated, not just that the endpoint answers.
 | `node export-jobs-xlsx.mjs` | Same search as `find-java-24h.mjs`, exported to `job-results.xlsx` with a clickable Apply link, a first column of real Excel "Applied?" checkboxes (patched in by `xlsx-checkboxes.mjs`, since ExcelJS cannot write them) and a live "Total jobs applied" count under the last row (accepts `--today`/`--week`/`--out <path>`) |
 | `node export-jobs-xlsx.mjs --page <path>` | Writes the spreadsheet **and** the "Job Quest Board" page in one run, then publishes the page automatically (`--no-publish` to skip) (combine with `--resume`, `--today`/`--week`, `--out`). Page = `templates/job-quest.html` filled by `jobs-html.mjs`: mission banner, daily goal ring, streak, milestone badges, top picks by JD match, JD meter per job, Applied checkbox per job, running total. |
 | `node export-jobs-xlsx.mjs --html` / `--artifact` | Writes **only** the page: `--html` as a standalone file to open in a browser (ticks saved in that browser), `--artifact` publish-ready like `--page`. `--out` names the page file in these modes. |
+| `node auto-apply.mjs --setup` / `--set key=value` | Save the one-time answers (LinkedIn, authorization, sponsorship, pronouns, EEO) to `apply-profile.json` `standard`. |
+| `node auto-apply.mjs --resume <path> <greenhouse url>` | Fill one Greenhouse application in a visible Chrome from the résumé; never submits; waits for the window to close. `--show-data` prints the parsed applicant data instead; `--link <jobquest://…>` is what a link click runs (résumé from `apply-profile.json`). See *Auto Apply*. |
+| `node install-auto-apply.mjs --resume <path>` | One-time: registers the `jobquest://` link type (HKCU) → `jobquest-link.mjs "%1"` and saves `resumePath` to `apply-profile.json`. `--status`, `--uninstall`. Re-run after moving the repo or Node. |
+| `node refresh-job-quest.mjs --days 1\|3\|7\|30` | Rerun the last `--resume --page` export (from `job-quest-outputs.json`) for a new window: rewrites the sheet, the page(s), republishes the board. `--detach` (background, `data/refresh.log`), `--status`. See *Refresh everywhere*. |
+| `node jobquest-link.mjs "<jobquest://…>"` | What a link click runs: `apply` → `auto-apply.mjs --link`, `refresh` → `runRefresh()`. |
+| `export-jobs-xlsx.mjs --days <n>` / `--month` / `--local-page <path>` | Any 1–30 day window; `--local-page` also writes a standalone page copy beside `--page`. |
 | `node get-5-companies.mjs` | Targeted fetch for Deloitte, SAP, Lyft, Visa, Infosys with special scrapers |
 | `node deloitte-scrape.mjs` | Puppeteer DOM scraper for Deloitte (Avature ATS, server-rendered) |
 | `node probe-registry.mjs` | Health-check all companies, removes broken registry entries |
@@ -369,8 +375,9 @@ declaration (`db`, `user`, and the `mcp` entry below) carries forward.
   postedWithinDays: 1|3|7|30, format: 'json'}` through the artifact `mcp` capability, then
   re-render the page from `matches` in place (not saved; reload restores the published list).
   `export-jobs-xlsx.mjs` embeds `meta.resumePath` for this. The stored declaration is therefore
-  `{db: {}, user: {}, mcp: {servers: [{server: 'host:career-jobs', tools: ['searchJobsForResume']}]}}`
-  — omitting `capabilities` on republish keeps it. Host servers only answer in the Claude
+  `{db: {}, user: {}, mcp: {servers: [{server: 'host:career-jobs', tools: ['searchJobsForResume', 'autoApplyJob', 'refreshJobQuest']}]}}`
+  — omitting `capabilities` on republish keeps it. (`autoApplyJob` was added 2026-11-14 for the
+  Auto apply buttons; a declaration without it makes those calls fail with `not_in_manifest`.) Host servers only answer in the Claude
   **desktop app**, for the artifact's owner, with `career-jobs` in that app's
   `claude_desktop_config.json` (not Claude Code's config — on the MSIX install it lives at
   `%LOCALAPPDATA%\Claude-Data\claude_pzs8sxrjxfjjc\`, and Settings has no Developer tab). The
@@ -379,6 +386,93 @@ declaration (`db`, `user`, and the `mcp` entry below) carries forward.
   server died on startup with `EPERM mkdir C:\WINDOWS\System32\data`. Everywhere else `use("mcp")`/the call
   fails and the buttons stay disabled. A cold search can exceed the ~130s reply budget
   (`upstream_error`); the server keeps running and caches, so a retry is fast.
+
+### Refresh everywhere (one click updates the sheet, the pages and the board)
+
+- Every `export-jobs-xlsx.mjs --resume … --page …` run saves its outputs (`resumePath`, `xlsx`,
+  `page`, `localPage`, `publishUrl`, `minJdMatch`, `publish`) to `job-quest-outputs.json`
+  (git-ignored; `$JOB_QUEST_OUTPUTS_PATH` overrides, which tests and scratch runs should set so
+  they don't overwrite the user's real outputs). `refresh-job-quest.mjs` rebuilds the export
+  command from it via `exportArgs()`, changing only `--days`.
+- Triggers: board buttons in the desktop app (`searchJobsForResume` for an instant in-page list,
+  then the `refreshJobQuest` MCP tool, which spawns the runner detached and returns at once);
+  board buttons anywhere else, and the ↻ row under the jobs in the sheet → `jobquest://refresh?days=N`;
+  the terminal. Refresh links accept only 1/3/7/30 and ignore every other parameter: a website
+  can fire one, so it must never be able to name a path.
+- One run at a time: `data/refresh.lock` (pid, written by the parent at spawn so a fast second
+  click can't race) and `data/refresh.pending` (latest queued window wins, run straight after).
+- The sheet keeps **Applied?** ticks across rewrites (`readAppliedUrls()`, keyed by Apply URL).
+  An open workbook is locked (EBUSY), so `excel-session.mjs` asks Excel over COM to save it
+  (persisting new ticks), close it, then reopens it after the write. If Excel won't let go, the
+  sheet is skipped with a message and the pages and board still update.
+- The artifact's capability declaration must list `refreshJobQuest` (added 2026-11-14), or the
+  in-app refresh fails `not_in_manifest` and the page shows the terminal command instead.
+
+### Auto Apply (Greenhouse only)
+
+`autoApplyJob` (MCP tool), `node auto-apply.mjs`, and the Job Quest Board's **Auto apply**
+button open a Greenhouse application in a **visible** Chrome and fill it from the résumé.
+**It never submits** — the user reviews and presses Submit. Keep it that way.
+
+- **Why Greenhouse:** largest apply host in the cache (~20k jobs) and one React form layout
+  for every board. Always open `job-boards.greenhouse.io/embed/job_app?for=<board>&token=<id>`
+  (`greenhouseFormUrl()`), not the job page: many boards (Coinbase, Airbnb) redirect the job
+  page to the company's own site, where the form is in an iframe or behind Cloudflare.
+- **Field ids are stable across boards:** `first_name`, `last_name`, `email`, `country`,
+  `phone`, `candidate-location`, `resume` (file), `company-name-N`/`title-N`/`start-date-month-N`/
+  `start-date-year-N`/`end-date-…-N`/`current-role-N` (employment), `school--N`/`degree--N`/
+  `discipline--N` (education, double dash), `question_NNN` (board questions). Extra entries
+  appear after clicking the section's "Add another".
+- **Dropdowns are react-select:** fill by typing then clicking the option, never by setting
+  `.value` (React ignores it). School and city lists load asynchronously after typing.
+- Greenhouse keeps a current role's end-date fields **visible and required** even with
+  "Current role" ticked. They are left blank (not invented) and reported in `needsYou`.
+- Résumé → applicant data is `src/resume/applicant.ts` (`buildApplicant`), pure and tested in
+  `test/auto-apply.test.mjs`. It handles `Company / Title  Mon YYYY - Present` (the user's
+  résumé) and `Title | Company | dates`, picking the title side by its wording.
+- Answers the résumé can't give come from `apply-profile.json` at the project root
+  (git-ignored; `apply-profile.example.json` shows the shape). The user's résumé has **no
+  LinkedIn URL** (its only links are GitHub and LeetCode), so LinkedIn must come from here too.
+  - `standard` (`src/apply/standard-answers.ts`): workAuthorized, sponsorship (no/now/future),
+    pronouns, gender, hispanic, race (+ raceDetail), veteran, disability, lgbtq, each EEO one
+    accepting `decline`. Written by `node auto-apply.mjs --setup` / `--set key=value`.
+    Fields are found by **label** over every visible input, not by id: the EEO section is
+    `gender`/`hispanic_ethnicity`/`veteran_status`, demographic surveys use bare numeric ids
+    (Discord `4033064002`, Robinhood `1258`), and Airbnb asks Gender as a `question_N`.
+    `chooseOption()` matches by meaning and returns null on no match **or a tie**, leaving the
+    field blank. Option lists in `test/standard-answers.test.mjs` are copied from live forms.
+  - `answers[]` match when the question label *contains* `question`, and win over `standard`.
+  - Résumé facts need no setup (`classifyDerived`): "Full Legal Name" (not the native-language
+    one), "Your Location" → `City, ST`, "located/based in the US" → Yes and "which country do
+    you reside" → United States, only when the résumé's state is a US state. Citizenship,
+    relocation, office preference and H-1B history are deliberately NOT derived.
+  - Questions are collected in up to 3 passes: some appear only after an earlier answer
+    (Netlify's work-authorization question shows once Country is set).
+  - A required "select all that apply" checkbox group (`name="question_N[]"`) is ONE
+    `needsYou` entry (its legend), not one per option; Netlify's produced ~30 lines.
+  - Retest set (2026-11-14, real profile, headless, 0 failures): Netlify, xAI, Twitch, Discord,
+    Robinhood. Many boards have no employment/education section at all; that is not a bug.
+  - Never fill demographic, consent or authorization questions from anything but the user's
+    own saved answers; never tick consent checkboxes. Unanswered required fields are returned
+    as `needsYou`, plus `setupHint` when a missing one-time answer is the cause.
+- The visible Chrome is `getVisibleBrowser()` in `src/utils/browser.ts`, with a persistent
+  profile in `data/apply-chrome-profile/`, closed by `closeSharedBrowser()`. Paths resolve from
+  the module, not the cwd (the desktop app runs the server in `C:\Windows\System32`).
+  `APPLY_HEADLESS=true` is for tests only.
+- **Two routes, one filler.** In the Claude desktop app the page button calls the MCP tool
+  (deliberately **not** `readOnlyHint`, so the app asks before opening Chrome). Everywhere else
+  (Excel's *Auto Apply* column, a local `--html` page, the board in a browser) it is a
+  `jobquest://apply?url=<enc>` link (`src/apply/protocol.ts`). `install-auto-apply.mjs`
+  registers that scheme under `HKCU\Software\Classes\jobquest` →
+  `"<node.exe>" "<repo>\jobquest-link.mjs" "%1"` (dispatches apply links to `auto-apply.mjs --link`). The page also falls back to the link when
+  the MCP call fails with `server_not_connected`/`not_in_manifest`/`not_granted`.
+- **A link carries only the job URL**, validated as Greenhouse on both ends. The résumé comes
+  from `apply-profile.json` `resumePath`. Never add a path or other parameter to the link: any
+  website can fire a `jobquest://` link (the browser's "open Node.js?" prompt is the only guard).
+- A second link click while Chrome is open can't share the persistent profile (one Chrome per
+  profile), so `getVisibleBrowser()` falls back to a throwaway temp profile.
+- On a link-mode error `auto-apply.mjs` waits for Enter so the console window doesn't vanish
+  with the message.
 
 ### Adding companies to the registry
 

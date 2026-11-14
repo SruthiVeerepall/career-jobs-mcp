@@ -17,3 +17,8 @@ scrape-err.log
 batch2-progress.log
 validated-*.json
 companies-final.txt
+apply-profile.json
+data/apply-chrome-profile/
+job-quest-outputs.json
+data/refresh.lock
+data/refresh.pending

@@ -8,6 +8,8 @@ import { listCompanies } from './tools/list-companies.js';
 import { addCompanyCareerSite, addCompanyCareerSiteSchema } from './tools/add-company-career-site.js';
 import { searchJobsForResume, searchJobsForResumeSchema } from './tools/search-jobs-for-resume.js';
 import { parseResume, parseResumeSchema } from './tools/parse-resume.js';
+import { autoApplyJob, autoApplyJobSchema } from './tools/auto-apply-job.js';
+import { refreshJobQuest, refreshJobQuestSchema } from './tools/refresh-job-quest.js';
 import { logger } from './utils/logger.js';
 import { closeSharedBrowser } from './utils/browser.js';
 import { cacheManager } from './cache/cache-manager.js';
@@ -31,6 +33,29 @@ export async function startServer(): Promise<void> {
     { title: 'Search jobs for a résumé', readOnlyHint: true, openWorldHint: true },
     async (args) => ({
       content: [{ type: 'text', text: await searchJobsForResume(args) }],
+    }),
+  );
+
+  // Not read-only on purpose: it opens a Chrome window on the user's desktop, so the Claude
+  // desktop app asks before each call. It fills the form and never submits it.
+  server.tool(
+    'autoApplyJob',
+    'Open a Greenhouse job application in a visible Chrome window and fill it from the résumé: name, email, phone, location, every job held, education, LinkedIn, and the résumé file itself. It never submits; the user reviews the form and presses Submit. Returns what was filled and which required questions still need the user.',
+    autoApplyJobSchema,
+    { title: 'Auto-fill a job application', readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    async (args) => ({
+      content: [{ type: 'text', text: JSON.stringify(await autoApplyJob(args), null, 2) }],
+    }),
+  );
+
+  // Not read-only: it rewrites the user's Excel sheet and pages and republishes the board.
+  server.tool(
+    'refreshJobQuest',
+    'Rerun the last daily Job Quest export (saved by `export-jobs-xlsx.mjs --resume … --page …`) for a new posting window, in the background, so EVERY output updates: the Excel sheet (ticks kept; reopened if it was open in Excel), the Job Quest page files, and the published Job Quest Board. Returns at once with status "started" or "queued".',
+    refreshJobQuestSchema,
+    { title: 'Refresh the Job Quest outputs', readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    async (args) => ({
+      content: [{ type: 'text', text: JSON.stringify(await refreshJobQuest(args), null, 2) }],
     }),
   );
 

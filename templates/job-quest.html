@@ -173,6 +173,15 @@ main.wrap{padding-block:22px 116px;display:flex;flex-direction:column;gap:22px}
 .side{display:flex;align-items:center;gap:14px}
 .go{display:inline-block;font-size:13px;font-weight:600;text-decoration:none;border-radius:7px;padding:7px 13px;background:var(--accent);color:var(--on-accent);white-space:nowrap}
 .go:hover{background:var(--accent-hover)}
+/* auto apply (Greenhouse jobs, career-jobs MCP via the Claude desktop app) */
+.auto{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;border-radius:7px;padding:6px 11px;background:var(--spark-soft);color:var(--spark);border:1px solid color-mix(in srgb,var(--spark) 40%,var(--line));white-space:nowrap;cursor:pointer}
+.auto:hover:not(:disabled){background:color-mix(in srgb,var(--spark) 18%,var(--surface))}
+.auto:disabled{opacity:.7;cursor:progress}
+.auto.busy svg{animation:pulse 1.2s ease-in-out infinite}
+a.auto{text-decoration:none}
+.autonote{font-size:12.5px;color:var(--spark);margin-top:6px}
+.autonote.bad{color:var(--bad)}
+.pick .foot{flex-wrap:wrap}
 
 /* JD meter */
 .jd{display:flex;align-items:center;gap:8px;min-width:112px}
@@ -447,8 +456,72 @@ function card(j){
     + '<div class="meta"><span class="tag' + (j.repost ? " repost" : age !== null && age < 1 ? " new" : "") + '">' + (age !== null && age < 1 && !j.repost ? "New · " : "") + esc(j.posted) + '</span>'
     + (j.via ? '<span class="tag">via ' + esc(j.via) + '</span>' : '')
     + (j.platform && j.platform !== "Other" && j.platform !== j.via ? '<span class="tag">' + esc(j.platform) + '</span>' : '')
-    + '</div></div>'
-    + '<div class="side">' + jdMeter(j) + (url ? '<a class="go" href="' + esc(url) + '" target="_blank" rel="noopener">Apply ↗</a>' : '') + '</div></article>';
+    + '</div>' + autoNote(j) + '</div>'
+    + '<div class="side">' + jdMeter(j) + autoBtn(j, "ar-") + (url ? '<a class="go" href="' + esc(url) + '" target="_blank" rel="noopener">Apply ↗</a>' : '') + '</div></article>';
+}
+/* Auto apply: Greenhouse forms only. Two routes to the same filler:
+   - in the Claude desktop app, the career-jobs MCP tool (reports back what it filled);
+   - anywhere else (a local file, any browser), a jobquest:// link that Windows hands to
+     auto-apply.mjs. One-time setup on the PC: node install-auto-apply.mjs --resume <path>. */
+var GH_JOB = /^https:\/\/(?:job-boards|boards)(?:\.eu)?\.greenhouse\.io\/(?:[^\/?#]+\/jobs\/\d+|embed\/job_app\?)/i;
+var autoState = {};  // job key -> { busy } | { ok, filled, needs } | { err }
+var AUTO_ICON = '<svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 1L3 9h4l-1 6 6.5-8h-4z" fill="currentColor"/></svg>';
+function isGh(j){ return GH_JOB.test(j.url || ""); }
+function viaApp(){ return !!(mcpApi && META.resumePath); }
+function canAuto(j){ return isGh(j) && viaApp(); }
+function autoLinkFor(j){ return "jobquest://apply?url=" + encodeURIComponent(j.url); }
+function autoBtn(j, prefix){
+  if (!isGh(j)) return "";
+  if (!viaApp()) {
+    // A local file navigates in place (the browser asks to open Node.js); a hosted page opens it from a new tab.
+    return '<a class="auto" id="' + prefix + j.k + '" href="' + esc(autoLinkFor(j)) + '"' + (location.protocol === "file:" ? "" : ' target="_blank" rel="noopener"')
+      + ' title="Fill this application in Chrome from your résumé. You review it and press Submit. One-time setup on this PC: node install-auto-apply.mjs --resume &lt;path&gt;">'
+      + AUTO_ICON + 'Auto apply</a>';
+  }
+  var st = autoState[j.k] || {};
+  return '<button class="auto' + (st.busy ? " busy" : "") + '" id="' + prefix + j.k + '" data-auto="' + j.k + '"' + (st.busy ? " disabled" : "")
+    + ' title="Open this application in Chrome with your résumé details filled in. You review it and press Submit.">'
+    + AUTO_ICON
+    + (st.busy ? "Filling…" : st.ok ? "Fill again" : "Auto apply") + '</button>';
+}
+function autoNote(j){
+  var st = autoState[j.k];
+  if (!st || st.busy) return "";
+  if (st.err) return '<div class="autonote bad">' + esc(st.err) + '</div>';
+  return '<div class="autonote">Filled ' + st.filled + ' fields in Chrome' + (st.needs ? ' · ' + st.needs + ' question' + (st.needs === 1 ? '' : 's') + ' left for you' : '') + '. Review it there and press Submit, then tick Applied.' + (st.hint ? ' ' + esc(st.hint) + '.' : '') + '</div>';
+}
+function autoError(e){
+  var code = e && e.code;
+  if (code === "not_in_manifest") return "Auto apply isn't enabled for this page yet. Republish the board so it may use autoApplyJob.";
+  if (code === "cancelled") return "Cancelled: the Claude app's confirmation was closed. Click Auto apply again and choose Allow.";
+  if (code === "tool_error") return "Couldn't fill the form: " + String(e.message || "").slice(0, 200);
+  if (code === "upstream_error") return "Chrome took too long to answer. Check the Chrome window; the form may still be filling.";
+  return runError(e);
+}
+function autoApply(k){
+  var j = BY_KEY[k]; if (!j || !canAuto(j) || (autoState[k] && autoState[k].busy)) return;
+  autoState[k] = { busy: true }; renderList(); renderPicks();
+  toast("Opening the application in Chrome…");
+  mcpApi.callTool(MCP_SERVER, "autoApplyJob", { applyUrl: j.url, resumePath: META.resumePath }, { cache: false })
+    .then(function(res){
+      var p = res && res.payload;
+      if (typeof p === "string") { try { p = JSON.parse(p); } catch(e) { p = null; } }
+      if (!p || typeof p.filledCount !== "number") throw { code: "tool_error", message: "unexpected answer from the auto-apply tool" };
+      var needs = (p.needsYou || []).length;
+      autoState[k] = { ok: true, filled: p.filledCount, needs: needs, hint: p.setupHint || "" };
+      toast("Filled " + p.filledCount + " fields in Chrome" + (needs ? ", " + needs + " left for you" : "") + ". Review and press Submit there.", true);
+    })
+    .catch(function(e){
+      // The app can't reach career-jobs here: hand the job to the jobquest:// link instead.
+      if (e && /^(server_not_connected|server_unavailable|not_in_manifest|not_granted|capability_disabled|capability_removed)$/.test(e.code)) {
+        delete autoState[k];
+        window.open(autoLinkFor(j), "_blank");
+        toast("Opened via the Auto apply link. Chrome will fill the form.", true);
+        return;
+      }
+      autoState[k] = { err: autoError(e) };
+    })
+    .then(function(){ renderList(); renderPicks(); });
 }
 function matches(j){
   if (f.src !== "all" && j.group !== f.src) return false;
@@ -520,7 +593,7 @@ function renderPicks(){
     return '<article class="pick' + (applied[j.k] ? " done" : "") + '" id="pick-' + j.k + '"><span class="rank">#' + (n + 1) + '</span>'
       + (url ? '<a class="ptitle" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(j.title) + '</a>' : '<span class="ptitle">' + esc(j.title) + '</span>')
       + '<div class="pco">' + esc(j.company) + (j.via ? ' · via ' + esc(j.via) : '') + ' · ' + esc(j.posted) + '</div>'
-      + '<div class="foot">' + tick(j, "pk-") + jdMeter(j) + (url ? '<a class="go" href="' + esc(url) + '" target="_blank" rel="noopener">Apply ↗</a>' : '') + '</div></article>';
+      + '<div class="foot">' + tick(j, "pk-") + jdMeter(j) + '<span class="go-wrap" style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">' + autoBtn(j, "ap-") + (url ? '<a class="go" href="' + esc(url) + '" target="_blank" rel="noopener">Apply ↗</a>' : '') + '</span></div>' + autoNote(j) + '</article>';
   }).join("");
 }
 var BADGES = [
@@ -655,6 +728,7 @@ document.addEventListener("change", function(ev){
 document.addEventListener("click", function(ev){
   var b = ev.target.closest("button"); if (!b) return;
   if (b.dataset.run) { runSearch(b.dataset.run); return; }
+  if (b.dataset.auto) { autoApply(b.dataset.auto); return; }
   if (b.id === "goal-minus" || b.id === "goal-plus") { goal = Math.max(1, Math.min(40, goal + (b.id === "goal-plus" ? 1 : -1))); saveGoal(); renderProgress(); return; }
   if (b.dataset.src) { f.src = b.dataset.src; document.querySelectorAll("[data-src]").forEach(function(x){ x.setAttribute("aria-pressed", x === b); }); }
   else if (b.dataset.jd) { f.jd = +b.dataset.jd; document.querySelectorAll("[data-jd]").forEach(function(x){ x.setAttribute("aria-pressed", x === b); }); }
@@ -681,10 +755,12 @@ document.addEventListener("click", function(ev){
 var qT;
 document.getElementById("q").addEventListener("input", function(ev){ clearTimeout(qT); qT = setTimeout(function(){ f.q = ev.target.value.trim().toLowerCase(); page = { company: 1, board: 1 }; renderList(); }, 150); });
 
-/* ---- run a new search: the career-jobs MCP tool, through the Claude desktop app ---- */
-// Works only where the Claude app relays calls to the local "career-jobs" MCP server (the
-// desktop app, for the board's owner). Everywhere else the buttons stay off with a note.
-var MCP_SERVER = "host:career-jobs", MCP_TOOL = "searchJobsForResume";
+/* ---- run a new search, and update every output (Excel, pages, the published board) ---- */
+// In the Claude desktop app: searchJobsForResume shows the results here at once, then
+// refreshJobQuest reruns the daily export in the background so the sheet, the page files and
+// the board update too. Anywhere else (a browser, a local file): a jobquest://refresh link
+// runs the same refresh on this PC (one-time setup: node install-auto-apply.mjs).
+var MCP_SERVER = "host:career-jobs", MCP_TOOL = "searchJobsForResume", REFRESH_TOOL = "refreshJobQuest";
 var RUN_DAYS = { today: 1, "3days": 3, week: 7, month: 30 };
 var RUN_LABEL = { today: "last 24 hours", "3days": "last 3 days", week: "last 7 days", month: "last 30 days" };
 var mcpApi = null, runBusy = false, runTimer = 0;
@@ -735,8 +811,34 @@ function runError(e){
   if (code === "not_granted" || code === "capability_disabled" || code === "capability_removed") return "Searching isn't available in this view. Open the board in the Claude desktop app.";
   return "The search didn't finish (" + (code || "unknown error") + "). Try again.";
 }
+function refreshLinkFor(win){ return "jobquest://refresh?days=" + RUN_DAYS[win]; }
+function openLink(href){ if (location.protocol === "file:") location.href = href; else window.open(href, "_blank"); }
+/* No app: hand the refresh to this PC through the jobquest:// link. */
+function runViaLink(win){
+  markWindow(win);
+  openLink(refreshLinkFor(win));
+  setRun("busy", "Refreshing the " + RUN_LABEL[win] + " on your PC: a console window shows progress, then the Excel sheet, this page and the board are all updated. Reload this page when it says done (usually 1–4 minutes). Nothing happens? Run node install-auto-apply.mjs once.");
+}
+/* After the in-page search: rewrite the sheet and the page files and republish the board. */
+function refreshEverywhere(win, found){
+  mcpApi.callTool(MCP_SERVER, REFRESH_TOOL, { postedWithinDays: RUN_DAYS[win] }, { cache: false })
+    .then(function(res){
+      var p = res && res.payload;
+      if (typeof p === "string") { try { p = JSON.parse(p); } catch(e) { p = null; } }
+      setRun("up", found + " jobs from the " + RUN_LABEL[win] + ". " + ((p && p.message) || "Updating the Excel sheet and the board in the background."));
+    })
+    .catch(function(e){
+      var code = e && e.code;
+      var why = code === "not_in_manifest" ? "this page isn't allowed to call refreshJobQuest yet"
+        : code === "server_not_connected" ? "career-jobs isn't connected"
+        : code === "tool_error" ? String(e.message || "the refresh tool reported a problem").slice(0, 200)
+        : (code || "unknown error");
+      setRun("bad", found + " jobs shown here, but the Excel sheet and the board were not updated (" + why + "). Run: node refresh-job-quest.mjs --days " + RUN_DAYS[win]);
+    });
+}
 function runSearch(win){
-  if (runBusy || !RUN_DAYS[win] || !mcpApi) return;
+  if (runBusy || !RUN_DAYS[win]) return;
+  if (!mcpApi) { runViaLink(win); return; }
   if (!META.resumePath) { setRun("bad", "This page doesn't know your résumé yet. Run the daily export once, then use these buttons."); return; }
   runBusy = true; setRunButtons(false); markWindow(win);
   var t0 = Date.now();
@@ -748,20 +850,25 @@ function runSearch(win){
       if (typeof p === "string") { try { p = JSON.parse(p); } catch(e) { p = null; } }
       if (!p || !Array.isArray(p.matches)) throw { code: "tool_error", message: "unexpected answer from the search tool" };
       loadJobs(p.matches, win);
-      setRun("up", p.matches.length + " jobs from the " + RUN_LABEL[win] + ". Shown here until you reload; the daily export still updates the published board.");
+      setRun("busy", p.matches.length + " jobs from the " + RUN_LABEL[win] + ". Now updating the Excel sheet and the board…");
       toast(p.matches.length + " jobs found", true);
+      refreshEverywhere(win, p.matches.length);
     })
     .catch(function(e){ setRun("bad", runError(e)); markWindow(currentWindow()); })
     .then(function(){ runBusy = false; clearInterval(runTimer); setRunButtons(true); });
 }
+var LINK_NOTE = "Pick a window: it runs on your PC and updates the Excel sheet, this page and the board (one-time setup: node install-auto-apply.mjs).";
 function startMcp(){
+  setRunButtons(true);
+  if (!window.claude || !window.claude.use) { setRun("off", LINK_NOTE); return; }
   setRunButtons(false);
-  if (!window.claude || !window.claude.use) { setRun("off", "Open this board in the Claude desktop app to run a new search from here."); return; }
   window.claude.use("mcp").then(function(m){
-    if (!m) { setRun("off", "Open this board in the Claude desktop app to run a new search from here."); return; }
+    setRunButtons(true);
+    if (!m) { setRun("off", LINK_NOTE); return; }
     mcpApi = m; setRunButtons(true);
-    setRun("up", "Pick a window to search with your résumé. A search takes about 1–4 minutes.");
-  }).catch(function(){ setRun("off", "Open this board in the Claude desktop app to run a new search from here."); });
+    setRun("up", "Pick a window to search with your résumé (about 1–4 minutes). The results show here, and the Excel sheet and the board update too. Greenhouse jobs also get an Auto apply button.");
+    renderList(); renderPicks();  // show Auto apply buttons now that the tool can answer
+  }).catch(function(){ setRunButtons(true); setRun("off", LINK_NOTE); });
 }
 markWindow(currentWindow());
 startMcp();

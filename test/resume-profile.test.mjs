@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { buildProfile, extractSkills, extractTitles, inferYears, detectCountry } from '../dist/resume/build-profile.js';
 import { judgeTitle, matchesCountry, scoreTitle } from '../dist/resume/match-jobs.js';
 
-const JAVA_RESUME = `Sruthi Veerepalli
-Dallas, TX | sruthi@example.com
+const JAVA_RESUME = `Jordan Ellis
+Dallas, TX | jordan@example.com
 
 SUMMARY
 Java / Full Stack Developer with 5 years of professional experience.
@@ -42,7 +42,7 @@ Data Scientist | Expedia | Jun 2016 - Dec 2020
 
 test('buildProfile reproduces the previously hard-coded Java/Full Stack profile', () => {
   const p = buildProfile(JAVA_RESUME);
-  assert.equal(p.name, 'Sruthi Veerepalli');
+  assert.equal(p.name, 'Jordan Ellis');
   assert.equal(p.yearsOfExperience, 5);
   assert.equal(p.yearsSource, 'stated');
   assert.equal(p.country, 'US');

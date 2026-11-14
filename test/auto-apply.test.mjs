@@ -18,16 +18,16 @@ test('jobquest:// links round-trip and only ever carry a Greenhouse job', () => 
 });
 
 // The layout of the user's real résumé: "Company / Title  Mon YYYY - Mon YYYY".
-const SLASH_RESUME = `Sruthi Veerepalli
+const SLASH_RESUME = `Jordan Ellis
 
-Austin, TX | sruthi@example.com +1 (555)0142233
+Denver, CO | jordan@example.com +1 (555)0142233
 
 Summary
 Java Software Developer with 5 years of experience.
 
 Education
 
-Wright State University, OH August 2022 - December 2023
+Lakeview State University, OH August 2022 - December 2023
 
 Master of Computer Science
 
@@ -35,14 +35,14 @@ Relevant courses: Advanced software engineering, Machine Learning.
 
 Experience
 
-Vanguard / Full Stack Developer Mar 2026 - Present
+Northwind Bank / Full Stack Developer Mar 2026 - Present
 
-Location: Malvern, PA
+Location: Columbus, OH
 Developed scalable full-stack applications using Java and Angular.
 
-Apple / Java Developer Dec 2023 - July 2025
+Contoso / Java Developer Dec 2023 - July 2025
 
-Wipro / Software Developer Jan 2020 - Aug 2021
+Fabrikam / Software Developer Jan 2020 - Aug 2021
 
 Projects
 Github Repo: https://github.com/someone/career-jobs-mcp
@@ -64,30 +64,30 @@ Bachelor of Technology in Electronics, JNTU Hyderabad, 2016
 
 test('contact details from the header', () => {
   const a = buildApplicant(SLASH_RESUME);
-  assert.equal(a.firstName, 'Sruthi');
-  assert.equal(a.lastName, 'Veerepalli');
-  assert.equal(a.email, 'sruthi@example.com');
+  assert.equal(a.firstName, 'Jordan');
+  assert.equal(a.lastName, 'Ellis');
+  assert.equal(a.email, 'jordan@example.com');
   assert.equal(a.phone, '555-014-2233');
-  assert.equal(a.city, 'Austin');
-  assert.equal(a.state, 'TX');
+  assert.equal(a.city, 'Denver');
+  assert.equal(a.state, 'CO');
   assert.equal(a.github, 'https://github.com/someone'); // repo link -> profile
 });
 
 test('company / title layout, current role, months', () => {
   const { experience } = buildApplicant(SLASH_RESUME);
   assert.deepEqual(experience.map((j) => [j.company, j.title]), [
-    ['Vanguard', 'Full Stack Developer'], ['Apple', 'Java Developer'], ['Wipro', 'Software Developer'],
+    ['Northwind Bank', 'Full Stack Developer'], ['Contoso', 'Java Developer'], ['Fabrikam', 'Software Developer'],
   ]);
   assert.deepEqual(experience[0].start, { year: 2026, month: 3 });
   assert.equal(experience[0].current, true);
   assert.equal(experience[0].end, undefined);
-  assert.equal(experience[0].location, 'Malvern, PA');
+  assert.equal(experience[0].location, 'Columbus, OH');
   assert.deepEqual(experience[1].end, { year: 2025, month: 7 });
 });
 
 test('education: school line with dates, degree on the next line', () => {
   const [e] = buildApplicant(SLASH_RESUME).education;
-  assert.equal(e.school, 'Wright State University');
+  assert.equal(e.school, 'Lakeview State University');
   assert.equal(e.degreeLevel, "Master's");
   assert.equal(e.discipline, 'Computer Science');
   assert.deepEqual(e.end, { year: 2023, month: 12 });

@@ -68,7 +68,7 @@ test('setup hint names only what the one-time answers would cover', () => {
 
 test('résumé facts answer location, residence and legal-name questions', async () => {
   const { classifyDerived, derivedText, chooseDerived } = await import('../dist/apply/standard-answers.js');
-  const f = { fullName: 'Sruthi Veerepalli', city: 'Austin', state: 'TX', inUS: true };
+  const f = { fullName: 'Jordan Ellis', city: 'Denver', state: 'CO', inUS: true };
   assert.equal(classifyDerived('Full Legal Name'), 'legalName');
   assert.equal(classifyDerived('Full Legal Name in Native Language (e.g. Chinese Characters, Cyrillic, Farsi etc)'), null);
   assert.equal(classifyDerived('Your Location'), 'currentLocation');
@@ -78,8 +78,8 @@ test('résumé facts answer location, residence and legal-name questions', async
   assert.equal(classifyDerived('In which country/region do you have citizenship?'), null);
   assert.equal(classifyDerived('Are you open to relocation?'), null);
   assert.equal(classifyDerived('What is your preferred office location?'), null);
-  assert.equal(derivedText('legalName', f), 'Sruthi Veerepalli');
-  assert.equal(derivedText('currentLocation', f), 'Austin, TX');
+  assert.equal(derivedText('legalName', f), 'Jordan Ellis');
+  assert.equal(derivedText('currentLocation', f), 'Denver, CO');
   assert.equal(chooseDerived('residenceCountry', f, ['United States', 'Canada', 'None of the above']), 'United States');
   assert.equal(chooseDerived('locatedInUS', f, ['Yes', 'No']), 'Yes');
   assert.equal(chooseDerived('locatedInUS', { ...f, inUS: false }, ['Yes', 'No']), null);

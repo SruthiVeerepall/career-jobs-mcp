@@ -4,7 +4,7 @@ import { extractName } from './build-profile.js';
 // and education. Pure text work (no I/O), so it is unit-tested directly.
 //
 // Résumés lay a job header out in many ways; the two seen in practice are
-//   "Vanguard / Full Stack Developer Mar 2026 - Present"     (company / title  dates)
+//   "Northwind Bank / Full Stack Developer Mar 2026 - Present"     (company / title  dates)
 //   "Java Full Stack Developer | Fidelity | Mar 2023 - Present" (title | company | dates)
 // so the side holding the job title is found by its wording, not by its position.
 
@@ -98,7 +98,7 @@ function parseRange(line: string) {
 
 const clean = (s: string) => s.replace(/^[\s|,/–—-]+|[\s|,/–—-]+$/g, '').replace(/\s{2,}/g, ' ').trim();
 
-/** "Wright State University, OH" -> "Wright State University". */
+/** "Lakeview State University, OH" -> "Lakeview State University". */
 function stripTrailingPlace(s: string): string {
   return clean(s.replace(/,\s*(?:[A-Z]{2}|[A-Z][a-z]+(?: [A-Z][a-z]+)?)(?:,\s*(?:USA|US|United States))?\s*$/, ''));
 }

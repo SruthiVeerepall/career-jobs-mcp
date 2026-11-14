@@ -19,11 +19,11 @@ test('Ashby job URLs map to the application form; other hosts do not', () => {
 test('one platform lookup serves every entry point', () => {
   assert.equal(applyFormFor(`https://jobs.ashbyhq.com/ramp/${ID}`).platform, 'ashby');
   assert.equal(applyFormFor('https://job-boards.greenhouse.io/acme/jobs/42').platform, 'greenhouse');
-  assert.equal(applyFormFor('https://jobs.lever.co/acme/123'), null);
+  assert.equal(applyFormFor('https://jobs.smartrecruiters.com/Acme/123'), null);
   const link = autoApplyLink(`https://jobs.ashbyhq.com/ramp/${ID}/application`);
   assert.ok(link.startsWith('jobquest://apply?url='));
   assert.equal(parseAutoApplyLink(link), `https://jobs.ashbyhq.com/ramp/${ID}/application`);
-  assert.throws(() => parseAutoApplyLink('jobquest://apply?url=' + encodeURIComponent('https://jobs.lever.co/acme/1')), /Greenhouse and Ashby/);
+  assert.throws(() => parseAutoApplyLink('jobquest://apply?url=' + encodeURIComponent('https://jobs.smartrecruiters.com/Acme/1')), /Greenhouse, Ashby and Lever/);
 });
 
 test('current employer and title come from the latest job on the résumé', () => {

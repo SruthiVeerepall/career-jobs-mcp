@@ -2,7 +2,7 @@
 
 An MCP server (plus CLI scripts) that searches company career sites and job boards, matches
 jobs to a résumé, exports them to Excel and the "Job Quest Board" page, and auto-fills
-Greenhouse and Ashby applications. Follow these rules on every request without being reminded.
+Greenhouse, Ashby and Lever applications. Follow these rules on every request without being reminded.
 
 ## Working rules
 
@@ -155,7 +155,7 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
   open in Excel is saved, closed and reopened over COM (`excel-session.mjs`, path passed via
   env, not `$args`).
 
-## Auto Apply (Greenhouse and Ashby)
+## Auto Apply (Greenhouse, Ashby, Lever)
 
 - **Never submits.** It fills the form; the user reviews and presses Submit. Keep it that way.
 - **Platforms** are chosen in one place, `applyFormFor()` (`src/apply/platforms.ts`); the CLI, MCP tool,
@@ -181,6 +181,22 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
   phone into Email. Ashby has no work-history or education sections.
   Live check (2026-11-14, headless, 0 failures, values read back from the page): Mercor, OpenAI,
   Ramp, Zip, WHOOP, UiPath, Thumbtack.
+- **Lever** (`src/apply/lever.ts`): open `jobs.lever.co/<company>/<posting id>/apply` (`leverFormUrl()`).
+  Plain HTML: each question is an `.application-question` (skip `.awli-application-row`, the
+  "Apply with LinkedIn" widget) with an `.application-label`. Fixed names: `resume`, `name`,
+  `email`, `phone`, `location`, `org` (current company), `urls[LinkedIn|GitHub|Portfolio|Other]`,
+  `pronouns` (checkboxes), `eeo[gender|race|veteran|disability]` (selects); custom questions are
+  `cards[…][fieldN]`, surveys `surveysResponses[…]`. Pitfalls: **radios** are ticked with a DOM
+  `.click()` and then checked (a mouse click missed TrueML's sponsorship radio); the **location**
+  type-ahead ignores a DOM click, so pick with ArrowDown × n + Enter, accept only a result in the
+  résumé's state (the list briefly shows "Austin, MN" first), and confirm `selectedLocation`.
+  hCaptcha runs only on Submit. Live check (2026-11-14, 8 boards, 0 failures): Zoox, Match
+  Group, TrueML, SonarSource, Spotify, Restaurant365, Protolabs, Palantir.
+- **Not supported:** SmartRecruiters' apply page (`oneclick-ui`) answers automated browsers with
+  a DataDome 403 + captcha; do not try to get around it. Workday needs an account per tenant.
+- "Are you authorized to work … **without** sponsorship?" is its own key
+  (`authorizedWithoutSponsorship`, Yes only when workAuthorized=yes AND sponsorship=no). Read as a
+  sponsorship question it was answered No. Use `savedAnswer(key, std)`, not `std[key]`.
 - Résumé → applicant: `src/resume/applicant.ts`. Other answers: `apply-profile.json`
   (`apply-profile.example.json` shows the shape):
   - `standard` (`src/apply/standard-answers.ts`): authorization, sponsorship, pronouns and EEO
@@ -196,7 +212,7 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
     to 3 times (some appear after earlier answers); a checkbox group is one `needsYou` entry.
 - Two routes, one filler: the `autoApplyJob` MCP tool (desktop app; not read-only, so the app
   asks first) and `jobquest://apply?url=…` links (Excel, local page, browser). **A link carries
-  only the job URL** (Greenhouse/Ashby only); `refresh` links accept only 1/3/7/30. Any website can
+  only the job URL** (Greenhouse/Ashby/Lever only); `refresh` links accept only 1/3/7/30. Any website can
   fire these links, so never let one name a path or file.
 - Visible Chrome: `getVisibleBrowser()`, profile `data/apply-chrome-profile/` (falls back to a
   temp profile when it's in use). `APPLY_HEADLESS=true` is for tests only.

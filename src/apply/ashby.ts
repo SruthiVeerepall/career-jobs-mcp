@@ -1,8 +1,8 @@
-import type { ElementHandle, Page } from 'puppeteer';
+import type { Page } from 'puppeteer';
 import type { Applicant } from '../resume/applicant.js';
 import type { ApplyAnswer } from './apply-profile.js';
-import { STATE_NAMES, norm, sleep, type FillReport } from './common.js';
-import { chooseDerived, chooseOption, classifyDerived, classifyQuestion, derivedText, type StandardAnswers } from './standard-answers.js';
+import { STATE_NAMES, TEXT_BOX, entryHandle, norm, sleep, typeInEntry, type FillReport } from './common.js';
+import { savedAnswer, chooseDerived, chooseOption, classifyDerived, classifyQuestion, derivedText, type StandardAnswers } from './standard-answers.js';
 
 // Fills an Ashby application (jobs.ashbyhq.com/<org>/<job id>/application) from résumé data.
 //
@@ -72,20 +72,6 @@ async function readEntries(page: Page): Promise<Entry[]> {
   });
 }
 
-/** First element in question block `i` matching any of the comma-separated selectors. */
-async function entryHandle(page: Page, i: number, sel: string): Promise<ElementHandle | null> {
-  // Scope EVERY alternative: `[entry] a, b` would match `b` anywhere on the page.
-  return page.$(sel.split(',').map((s) => `[data-jq-entry="${i}"] ${s.trim()}`).join(', '));
-}
-
-async function typeText(page: Page, i: number, value: string): Promise<boolean> {
-  const el = await entryHandle(page, i, 'input[type=text]:not([role=combobox]), input[type=tel], input[type=email], input[type=url], input[type=number], textarea');
-  if (!el) return false;
-  await el.click({ clickCount: 3 });
-  await page.keyboard.press('Backspace');
-  await el.type(value, { delay: 8 });
-  return true;
-}
 
 /** Click the radio (or Yes/No button) whose visible text is `text`. */
 async function clickOption(page: Page, i: number, text: string, kind: 'radio' | 'yesno'): Promise<boolean> {
@@ -183,7 +169,7 @@ export async function fillAshby(page: Page, a: Applicant, resumePath: string | u
     const custom = answers.find((x) => e.label.toLowerCase().includes(x.question.toLowerCase()));
     if (custom?.answer) return matchAnswer(custom.answer, options);
     const key = classifyQuestion(e.label); // the EEO section's labels are "Gender", "Race", "Veteran Status"
-    if (key) return std[key] ? chooseOption(key, std, options) : null;
+    if (key) return savedAnswer(key, std) ? chooseOption(key, std, options) : null;
     const dkey = classifyDerived(e.label);
     if (dkey === 'locatedInUS' || dkey === 'residenceCountry') return chooseDerived(dkey, facts, options);
     return null;
@@ -201,7 +187,7 @@ export async function fillAshby(page: Page, a: Applicant, resumePath: string | u
         const custom = answers.find((x) => e.label.toLowerCase().includes(x.question.toLowerCase()));
         const v = custom?.answer ?? textFor(e);
         if (!v) continue;
-        if (await typeText(page, e.i, v)) ok(name, v); else bad(name, v, 'field not found');
+        if (await typeInEntry(page, e.i, TEXT_BOX, v)) ok(name, v); else bad(name, v, 'field not found');
       } else if (e.kind === 'combobox') {
         if (!city || !(e.path === '_systemfield_location' || /location|where .* (?:located|based|live)/i.test(e.label))) continue;
         const got = await pickLocation(page, e.i, city, state);
@@ -211,7 +197,7 @@ export async function fillAshby(page: Page, a: Applicant, resumePath: string | u
         const pick = choiceFor(e, options);
         if (!pick) {
           const key = classifyQuestion(e.label);
-          if (key && std[key]) bad(name, String(std[key]), 'no option clearly matches your saved answer');
+          if (key && savedAnswer(key, std)) bad(name, String(savedAnswer(key, std)), 'no option clearly matches your saved answer');
           continue;
         }
         if (await clickOption(page, e.i, pick, e.kind)) ok(name, pick); else bad(name, pick, 'option not found');

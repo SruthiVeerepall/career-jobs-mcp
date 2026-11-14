@@ -33,6 +33,20 @@ export interface StandardAnswers {
 }
 
 export type StandardKey = Exclude<keyof StandardAnswers, 'raceDetail'>;
+/**
+ * A question key: a saved answer, or `authorizedWithoutSponsorship` for "Are you authorized to work
+ * … without (employer) sponsorship?", whose Yes needs BOTH workAuthorized=yes and sponsorship=no.
+ * It mentions sponsorship, so it was once read as "do you need sponsorship?" and answered No.
+ */
+export type QuestionKey = StandardKey | 'authorizedWithoutSponsorship';
+
+/** The effective saved answer for a question key, or undefined when the candidate hasn't given one. */
+export function savedAnswer(key: QuestionKey, a: StandardAnswers): string | undefined {
+  if (key !== 'authorizedWithoutSponsorship') return a[key] || undefined;
+  if (a.workAuthorized === 'no' || a.sponsorship === 'now' || a.sponsorship === 'future') return 'no';
+  if (a.workAuthorized === 'yes' && a.sponsorship === 'no') return 'yes';
+  return undefined;
+}
 
 export const RACES = [
   'American Indian or Alaska Native', 'Asian', 'Black or African American', 'Hispanic or Latino',
@@ -40,8 +54,9 @@ export const RACES = [
 ];
 
 /** Which standard question a form label asks, or null. Order matters: "sponsor" before "authorized". */
-export function classifyQuestion(label: string): StandardKey | null {
+export function classifyQuestion(label: string): QuestionKey | null {
   const l = label.toLowerCase();
+  if (/(?:authori[sz]ed|eligible|able|permitted) to work\b.*\b(?:without|with no|not (?:needing|requiring))\b.{0,50}?sponsor/.test(l)) return 'authorizedWithoutSponsorship';
   if (/sponsor/.test(l)) return 'sponsorship';
   if (/authori[sz]ed to work|work authori[sz]|eligible to work|right to work|legally (?:able|permitted) to work|legally eligible to (?:begin|start|accept)/.test(l)) return 'workAuthorized';
   if (/pronoun/.test(l)) return 'pronouns';
@@ -71,10 +86,11 @@ const yesNoDecline = (v: YesNoDecline) => (o: string) =>
   v === 'decline' ? (DECLINE.test(o) ? 10 : 0) : DECLINE.test(o) ? 0 : v === 'yes' ? (startsYes(o) ? 10 : 0) : (startsNo(o) ? 10 : 0);
 
 /** Pick the option of a dropdown that answers `key`, or null to leave it for the candidate. */
-export function chooseOption(key: StandardKey, a: StandardAnswers, options: string[]): string | null {
-  const v = a[key];
+export function chooseOption(key: QuestionKey, a: StandardAnswers, options: string[]): string | null {
+  const v = savedAnswer(key, a);
   if (!v) return null;
   switch (key) {
+    case 'authorizedWithoutSponsorship': return best(options, (o) => (v === 'yes' ? startsYes(o) : startsNo(o)) ? 10 : 0);
     case 'workAuthorized': return best(options, (o) => (a.workAuthorized === 'yes' ? startsYes(o) : startsNo(o)) ? 10 : 0);
     case 'sponsorship': return best(options, (o) => {
       if (a.sponsorship === 'no') return startsNo(o) ? 10 : 0;
@@ -139,7 +155,10 @@ export function setupHint(needsYou: string[], std: StandardAnswers | undefined, 
   for (const label of needsYou) {
     if (/linked ?in/i.test(label) && !hasLinkedin) missing.add('LinkedIn URL');
     const key = classifyQuestion(label);
-    if (key && !std?.[key]) missing.add(SETUP_QUESTIONS.find((q) => q.key === key)?.question.replace(/ \(.*\)$/, '') ?? key);
+    if (key && !savedAnswer(key, std ?? {})) {
+      const ask = key === 'authorizedWithoutSponsorship' ? ['workAuthorized', 'sponsorship'] : [key];
+      for (const k of ask) missing.add(SETUP_QUESTIONS.find((q) => q.key === k)?.question.replace(/ \(.*\)$/, '') ?? k);
+    }
   }
   if (!missing.size) return null;
   return `Answer these once and every form fills them: ${[...missing].join('; ')}. Run: node auto-apply.mjs --setup`;

@@ -459,7 +459,7 @@ function card(j){
     + '</div>' + autoNote(j) + '</div>'
     + '<div class="side">' + jdMeter(j) + autoBtn(j, "ar-") + (url ? '<a class="go" href="' + esc(url) + '" target="_blank" rel="noopener">Apply ↗</a>' : '') + '</div></article>';
 }
-/* Auto apply: Greenhouse and Ashby forms. Two routes to the same filler:
+/* Auto apply: Greenhouse, Ashby and Lever forms. Two routes to the same filler:
    - in the Claude desktop app, the career-jobs MCP tool (reports back what it filled);
    - anywhere else (a local file, any browser), a jobquest:// link that Windows hands to
      auto-apply.mjs. One-time setup on the PC: node install-auto-apply.mjs --resume <path>. */
@@ -467,7 +467,8 @@ var GH_JOB = /^https:\/\/(?:job-boards|boards)(?:\.eu)?\.greenhouse\.io\/(?:[^\/
 var autoState = {};  // job key -> { busy } | { ok, filled, needs } | { err }
 var AUTO_ICON = '<svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 1L3 9h4l-1 6 6.5-8h-4z" fill="currentColor"/></svg>';
 var ASHBY_JOB = /^https:\/\/jobs(?:\.eu)?\.ashbyhq\.com\/[^\/?#]+\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
-function isGh(j){ var u = j.url || ""; return GH_JOB.test(u) || ASHBY_JOB.test(u); }  // any auto-apply form (Greenhouse or Ashby)
+var LEVER_JOB = /^https:\/\/jobs(?:\.eu)?\.lever\.co\/[^\/?#]+\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+function isGh(j){ var u = j.url || ""; return GH_JOB.test(u) || ASHBY_JOB.test(u) || LEVER_JOB.test(u); }  // any auto-apply form (Greenhouse, Ashby, Lever)
 function viaApp(){ return !!(mcpApi && META.resumePath); }
 function canAuto(j){ return isGh(j) && viaApp(); }
 function autoLinkFor(j){ return "jobquest://apply?url=" + encodeURIComponent(j.url); }
@@ -867,7 +868,7 @@ function startMcp(){
     setRunButtons(true);
     if (!m) { setRun("off", LINK_NOTE); return; }
     mcpApi = m; setRunButtons(true);
-    setRun("up", "Pick a window to search with your résumé (about 1–4 minutes). The results show here, and the Excel sheet and the board update too. Greenhouse and Ashby jobs also get an Auto apply button.");
+    setRun("up", "Pick a window to search with your résumé (about 1–4 minutes). The results show here, and the Excel sheet and the board update too. Greenhouse, Ashby and Lever jobs also get an Auto apply button.");
     renderList(); renderPicks();  // show Auto apply buttons now that the tool can answer
   }).catch(function(){ setRunButtons(true); setRun("off", LINK_NOTE); });
 }

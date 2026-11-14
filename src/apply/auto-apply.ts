@@ -6,6 +6,7 @@ import { loadApplyProfile } from './apply-profile.js';
 import { fillAshby } from './ashby.js';
 import type { FillReport } from './common.js';
 import { fillGreenhouse } from './greenhouse.js';
+import { fillLever } from './lever.js';
 import { applyFormFor, SUPPORTED_PLATFORMS, type ApplyPlatform } from './platforms.js';
 import { setupHint } from './standard-answers.js';
 
@@ -27,6 +28,7 @@ export interface AutoApplyResult extends FillReport {
 const FORM_READY: Record<ApplyPlatform, string> = {
   greenhouse: '[id="first_name"]',
   ashby: '#_systemfield_name',
+  lever: 'input[name="email"]',
 };
 
 /**
@@ -50,7 +52,7 @@ export async function autoApply({ applyUrl, resumePath }: AutoApplyOptions): Pro
   const ready = await page.waitForSelector(FORM_READY[platform], { timeout: 15_000 }).catch(() => null);
   if (!ready) throw new Error('No application form on this page; the job has probably closed.');
 
-  const fill = platform === 'ashby' ? fillAshby : fillGreenhouse;
+  const fill = { greenhouse: fillGreenhouse, ashby: fillAshby, lever: fillLever }[platform];
   const report = await fill(page, applicant, file, extra.answers ?? [], extra);
   await page.bringToFront();
   // Leave the reviewer at the top of the form.

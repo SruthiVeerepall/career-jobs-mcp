@@ -2,7 +2,7 @@ import type { Page } from 'puppeteer';
 import { MONTH_NAMES, type Applicant, type YearMonth } from '../resume/applicant.js';
 import type { ApplyAnswer } from './apply-profile.js';
 import { STATE_NAMES, type FillReport } from './common.js';
-import { chooseDerived, chooseOption, classifyDerived, classifyQuestion, derivedText, type StandardAnswers } from './standard-answers.js';
+import { savedAnswer, chooseDerived, chooseOption, classifyDerived, classifyQuestion, derivedText, type StandardAnswers } from './standard-answers.js';
 
 // Fills a Greenhouse application (the job-boards.greenhouse.io React form) from résumé data.
 //
@@ -286,9 +286,9 @@ export async function fillGreenhouse(page: Page, a: Applicant, resumePath: strin
     // 3. Standard questions (authorization, sponsorship, pronouns, EEO) from the one-time setup.
     const key = classifyQuestion(q.label);
     if (key) {
-      if (!std[key]) continue;
+      if (!savedAnswer(key, std)) continue;
       const got = await pickBy(page, q.id, '', (opts) => chooseOption(key, std, opts));
-      if (got) ok(q.label, got); else bad(q.label, String(std[key]), 'no option clearly matches your saved answer');
+      if (got) ok(q.label, got); else bad(q.label, String(savedAnswer(key, std)), 'no option clearly matches your saved answer');
       continue;
     }
     // 4. Facts the résumé already gives: located in the US, country of residence.

@@ -225,6 +225,30 @@ node probe-registry.mjs --dry-run
 On claude.ai your ticks, streak and goal save privately to your account and carry over to the
 next day's page. Opened from disk, they are saved in that browser.
 
+**Run a new search from the board.** The page has **Today**, **3 days**, **Week** and **Month**
+buttons that call this project's `searchJobsForResume` MCP tool with your résumé and replace the
+list with the fresh results. They work only when the published board is opened in the **Claude
+desktop app** with the `career-jobs` server added to its `claude_desktop_config.json`
+(Settings → Developer → Edit Config; on the Microsoft Store install, the file is under
+`%LOCALAPPDATA%\Claude-Data\`), with the cache path set, because the app starts the server
+from `C:\Windows\System32`:
+
+```json
+"mcpServers": {
+  "career-jobs": {
+    "command": "node",
+    "args": ["C:/path/to/career-jobs-mcp/dist/index.js"],
+    "env": { "CACHE_DB_PATH": "C:/path/to/career-jobs-mcp/data/cache.db" }
+  }
+}
+```
+
+The buttons need this because a web page can't start a program on your computer by
+itself. In a browser, VS Code, or the local HTML file the buttons stay greyed out. New results
+show until you reload; they don't rewrite the spreadsheet or the published page. A first search
+can take longer than Claude waits for a reply (about 2 minutes); it keeps running, so pressing
+the button again a minute later is fast.
+
 ```bash
 # Daily: résumé-matched, last 24 hours, spreadsheet AND web page in one run.
 # The page is then published to the Job Quest Board automatically.

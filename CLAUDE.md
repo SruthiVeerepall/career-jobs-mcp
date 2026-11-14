@@ -356,7 +356,7 @@ retry command (`node publish-job-page.mjs <page>`), never failing the export.
 If the user asks you to publish manually instead, publish the `--page` file with the Artifact
 tool **to that same URL** (pass it as `url`, reading it first if this session has not), never
 as a new artifact, so the user keeps one link. Omit `capabilities` so the stored
-`{db: {}, user: {}}` declaration carries forward.
+declaration (`db`, `user`, and the `mcp` entry below) carries forward.
 
 - Applied ticks, the streak and the daily goal live in the viewer's private
   `data/users/<id>/` db collection (`kind: "applied"` docs keyed by a hash of the apply URL,
@@ -364,6 +364,21 @@ as a new artifact, so the user keeps one link. Omit `capabilities` so the stored
   them, and an opening that reappears on the next day's page stays ticked. Changing the key
   hash in the template would orphan every saved tick.
 - The `--page` file has no document skeleton on purpose; the Artifact tool adds one at publish.
+- **Run a new search buttons** (Today / 3 days / Week / Month) call
+  `host:career-jobs` → `searchJobsForResume` with `{resumePath: meta.resumePath,
+  postedWithinDays: 1|3|7|30, format: 'json'}` through the artifact `mcp` capability, then
+  re-render the page from `matches` in place (not saved; reload restores the published list).
+  `export-jobs-xlsx.mjs` embeds `meta.resumePath` for this. The stored declaration is therefore
+  `{db: {}, user: {}, mcp: {servers: [{server: 'host:career-jobs', tools: ['searchJobsForResume']}]}}`
+  — omitting `capabilities` on republish keeps it. Host servers only answer in the Claude
+  **desktop app**, for the artifact's owner, with `career-jobs` in that app's
+  `claude_desktop_config.json` (not Claude Code's config — on the MSIX install it lives at
+  `%LOCALAPPDATA%\Claude-Data\claude_pzs8sxrjxfjjc\`, and Settings has no Developer tab). The
+  entry **must set `env.CACHE_DB_PATH`** to the project's `data/cache.db`: the app launches the
+  server with cwd `C:\Windows\System32`, the default `./data/cache.db` resolves there, and the
+  server died on startup with `EPERM mkdir C:\WINDOWS\System32\data`. Everywhere else `use("mcp")`/the call
+  fails and the buttons stay disabled. A cold search can exceed the ~130s reply budget
+  (`upstream_error`); the server keeps running and caches, so a retry is fast.
 
 ### Adding companies to the registry
 

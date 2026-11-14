@@ -131,6 +131,17 @@ main.wrap{padding-block:22px 116px;display:flex;flex-direction:column;gap:22px}
 .chip:hover{border-color:var(--accent)}
 .chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 
+/* run a new search (career-jobs MCP via the Claude desktop app) */
+.runbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+.runbox .top-row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.runbox h2{font-size:17px}
+.runnote{font-size:13.5px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.runnote .dot{width:9px;height:9px;border-radius:50%;background:var(--faint);flex:0 0 9px}
+.runnote.up .dot{background:var(--good)} .runnote.busy .dot{background:var(--accent);animation:pulse 1.2s ease-in-out infinite} .runnote.bad .dot{background:var(--bad)}
+@keyframes pulse{50%{opacity:.35}}
+.chip:disabled{opacity:.5;cursor:default}
+.chip:disabled:hover{border-color:var(--line-strong)}
+
 /* job rows */
 .list{display:flex;flex-direction:column}
 .rows{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
@@ -243,6 +254,20 @@ main.wrap{padding-block:22px 116px;display:flex;flex-direction:column;gap:22px}
 </div></section>
 
 <main class="wrap">
+  <section class="runbox" id="runbox" aria-label="Run a new search">
+    <div class="top-row">
+      <h2>Run a new search</h2>
+      <div class="row" role="group" aria-label="Search window">
+        <span class="lbl">Posted in</span>
+        <button class="chip" id="run-today" data-run="today" aria-pressed="false" disabled>Today</button>
+        <button class="chip" id="run-3days" data-run="3days" aria-pressed="false" disabled>3 days</button>
+        <button class="chip" id="run-week" data-run="week" aria-pressed="false" disabled>Week</button>
+        <button class="chip" id="run-month" data-run="month" aria-pressed="false" disabled>Month</button>
+      </div>
+    </div>
+    <div class="runnote" id="run-note" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="run-text">Checking whether searches can run here…</span></div>
+  </section>
+
   <section id="picks" aria-label="Top picks">
     <div class="sec-head"><h2>Top picks for you</h2><small id="picks-note">Highest JD match you haven't applied to yet</small></div>
     <div class="picks" id="picks-grid"></div>
@@ -629,6 +654,7 @@ document.addEventListener("change", function(ev){
 });
 document.addEventListener("click", function(ev){
   var b = ev.target.closest("button"); if (!b) return;
+  if (b.dataset.run) { runSearch(b.dataset.run); return; }
   if (b.id === "goal-minus" || b.id === "goal-plus") { goal = Math.max(1, Math.min(40, goal + (b.id === "goal-plus" ? 1 : -1))); saveGoal(); renderProgress(); return; }
   if (b.dataset.src) { f.src = b.dataset.src; document.querySelectorAll("[data-src]").forEach(function(x){ x.setAttribute("aria-pressed", x === b); }); }
   else if (b.dataset.jd) { f.jd = +b.dataset.jd; document.querySelectorAll("[data-jd]").forEach(function(x){ x.setAttribute("aria-pressed", x === b); }); }
@@ -654,6 +680,91 @@ document.addEventListener("click", function(ev){
 });
 var qT;
 document.getElementById("q").addEventListener("input", function(ev){ clearTimeout(qT); qT = setTimeout(function(){ f.q = ev.target.value.trim().toLowerCase(); page = { company: 1, board: 1 }; renderList(); }, 150); });
+
+/* ---- run a new search: the career-jobs MCP tool, through the Claude desktop app ---- */
+// Works only where the Claude app relays calls to the local "career-jobs" MCP server (the
+// desktop app, for the board's owner). Everywhere else the buttons stay off with a note.
+var MCP_SERVER = "host:career-jobs", MCP_TOOL = "searchJobsForResume";
+var RUN_DAYS = { today: 1, "3days": 3, week: 7, month: 30 };
+var RUN_LABEL = { today: "last 24 hours", "3days": "last 3 days", week: "last 7 days", month: "last 30 days" };
+var mcpApi = null, runBusy = false, runTimer = 0;
+function setRun(cls, text){ document.getElementById("run-note").className = "runnote " + cls; document.getElementById("run-text").textContent = text; }
+function setRunButtons(on){ document.querySelectorAll("[data-run]").forEach(function(x){ x.disabled = !on; }); }
+function markWindow(win){ document.querySelectorAll("[data-run]").forEach(function(x){ x.setAttribute("aria-pressed", x.dataset.run === win); }); }
+function currentWindow(){ var w = META.window || ""; return /24 hours/.test(w) ? "today" : /^3 days/.test(w) ? "3days" : /^7 days/.test(w) ? "week" : /^30 days/.test(w) ? "month" : ""; }
+function platformOf(u){
+  var P = [[/greenhouse/, "Greenhouse"], [/lever\.co/, "Lever"], [/ashby/, "Ashby"], [/myworkdayjobs|workday/, "Workday"], [/smartrecruiters/, "SmartRecruiters"], [/icims/, "iCIMS"], [/amazon\.jobs/, "Amazon"], [/apple\.com/, "Apple"], [/linkedin\.com/, "LinkedIn"], [/simplyhired\.com/, "SimplyHired"], [/builtin\.com/, "BuiltIn"], [/remoteok\.com/i, "RemoteOK"], [/remotive\.com/, "Remotive"], [/weworkremotely\.com/, "WeWorkRemotely"], [/jobs\.workable\.com/, "Workable Jobs"], [/himalayas\.app/, "Himalayas"], [/jobicy\.com/, "Jobicy"]];
+  for (var i = 0; i < P.length; i++) if (P[i][0].test(u)) return P[i][1];
+  return "Other";
+}
+/* One searchJobsForResume match -> the row shape the page renders (same as jobs-html.mjs). */
+function fromMatch(m){
+  var hit = (m.jdMatchedSkills || []).length, miss = (m.jdMissingSkills || []).length;
+  return {
+    title: m.title || "", company: m.company || "", via: m.via && m.via !== m.company ? m.via : undefined,
+    group: m.source === "job-board" ? "board" : "company", location: m.locations || "N/A",
+    posted: m.postedDate || "", postedAt: m.postedAt || null, repost: /\(repost\)/.test(m.postedDate || ""),
+    score: m.score || 0, jd: typeof m.jdMatchPercent === "number" ? m.jdMatchPercent : null,
+    jdHit: hit, jdOf: hit + miss, platform: platformOf(m.applyUrl || ""), url: m.applyUrl || ""
+  };
+}
+/* Company sites first, then best JD match (N/A last), more matched skills, title score. */
+function rank(a, b){
+  var ja = typeof a.jd === "number" ? a.jd : -1, jb = typeof b.jd === "number" ? b.jd : -1;
+  return (a.group === "board") - (b.group === "board") || jb - ja || b.jdHit - a.jdHit || b.score - a.score;
+}
+function loadJobs(list, win){
+  JOBS = list.map(fromMatch).sort(rank);
+  JOBS.forEach(function(j, i){ j.k = "j" + hash(j.url || (j.company + "::" + j.title)); j.i = i; });
+  BY_KEY = {}; JOBS.forEach(function(j){ BY_KEY[j.k] = j; });
+  HAS_JD = JOBS.some(function(j){ return typeof j.jd === "number"; });
+  META.window = { today: "24 hours", "3days": "3 days", week: "7 days", month: "30 days" }[win];
+  META.generatedAt = new Date().toISOString();
+  page = { company: 1, board: 1 };
+  document.getElementById("jd-row").hidden = !HAS_JD;
+  renderStatic(); renderList(); renderPicks(); renderProgress();
+}
+function runError(e){
+  var code = e && e.code;
+  if (code === "server_not_connected") return "The career-jobs tool isn't connected in this Claude app. Add it under Settings → Developer, restart the app, and reopen this board.";
+  if (code === "not_in_manifest") return "career-jobs is turned off for this page. Turn it back on from the page's Permissions menu.";
+  if (code === "cancelled") return "Search cancelled: the Claude app's confirmation was closed or declined. Click the button again and choose Allow.";
+  if (code === "tool_error") return "The search tool reported a problem: " + String(e.message || "").slice(0, 200);
+  if (code === "server_unavailable") return "career-jobs didn't answer. Try again in a moment.";
+  if (code === "upstream_error") return "No answer in time. A first search can take longer than Claude waits (about 2 minutes). It keeps running in the background, so try again in a minute; the repeat is much faster.";
+  if (code === "not_granted" || code === "capability_disabled" || code === "capability_removed") return "Searching isn't available in this view. Open the board in the Claude desktop app.";
+  return "The search didn't finish (" + (code || "unknown error") + "). Try again.";
+}
+function runSearch(win){
+  if (runBusy || !RUN_DAYS[win] || !mcpApi) return;
+  if (!META.resumePath) { setRun("bad", "This page doesn't know your résumé yet. Run the daily export once, then use these buttons."); return; }
+  runBusy = true; setRunButtons(false); markWindow(win);
+  var t0 = Date.now();
+  var tickRun = function(){ var s = Math.round((Date.now() - t0) / 1000); setRun("busy", "Searching jobs posted in the " + RUN_LABEL[win] + "… " + Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2)); };
+  tickRun(); clearInterval(runTimer); runTimer = setInterval(tickRun, 1000);
+  mcpApi.callTool(MCP_SERVER, MCP_TOOL, { resumePath: META.resumePath, postedWithinDays: RUN_DAYS[win], format: "json" }, { cache: false })
+    .then(function(res){
+      var p = res && res.payload;
+      if (typeof p === "string") { try { p = JSON.parse(p); } catch(e) { p = null; } }
+      if (!p || !Array.isArray(p.matches)) throw { code: "tool_error", message: "unexpected answer from the search tool" };
+      loadJobs(p.matches, win);
+      setRun("up", p.matches.length + " jobs from the " + RUN_LABEL[win] + ". Shown here until you reload; the daily export still updates the published board.");
+      toast(p.matches.length + " jobs found", true);
+    })
+    .catch(function(e){ setRun("bad", runError(e)); markWindow(currentWindow()); })
+    .then(function(){ runBusy = false; clearInterval(runTimer); setRunButtons(true); });
+}
+function startMcp(){
+  setRunButtons(false);
+  if (!window.claude || !window.claude.use) { setRun("off", "Open this board in the Claude desktop app to run a new search from here."); return; }
+  window.claude.use("mcp").then(function(m){
+    if (!m) { setRun("off", "Open this board in the Claude desktop app to run a new search from here."); return; }
+    mcpApi = m; setRunButtons(true);
+    setRun("up", "Pick a window to search with your résumé. A search takes about 1–4 minutes.");
+  }).catch(function(){ setRun("off", "Open this board in the Claude desktop app to run a new search from here."); });
+}
+markWindow(currentWindow());
+startMcp();
 
 renderStatic(); renderList(); renderPicks(); renderProgress();
 startDb();

@@ -28,6 +28,7 @@
  *   --html          write ONLY the page, as a standalone file to open in a browser
  *   --artifact      write ONLY the page, publish-ready (no document skeleton)
  */
+import path from 'node:path';
 import ExcelJS from 'exceljs';
 import { addCheckboxes } from './xlsx-checkboxes.mjs';
 import { writeJobsHtml } from './jobs-html.mjs';
@@ -282,6 +283,8 @@ async function run() {
     window: WINDOW_LABEL,
     matchedTo: RESUME ? 'Matched to your résumé' : 'Java / Full Stack profile',
     candidate,
+    // The page's "Run a new search" buttons pass this to the career-jobs MCP tool.
+    resumePath: RESUME ? path.resolve(RESUME) : undefined,
   };
   if (HTML) {
     await writeJobsHtml(OUT, jobs, { ...pageMeta, standalone: !process.argv.includes('--artifact') });

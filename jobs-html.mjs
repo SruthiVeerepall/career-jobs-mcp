@@ -45,7 +45,7 @@ export function toPageJobs(jobs) {
 export function renderJobsHtml(jobs, meta = {}) {
   const template = fs.readFileSync(TEMPLATE, 'utf8');
   const payload = {
-    meta: { generatedAt: new Date().toISOString(), window: meta.window, matchedTo: meta.matchedTo, candidate: meta.candidate },
+    meta: { generatedAt: new Date().toISOString(), window: meta.window, matchedTo: meta.matchedTo, candidate: meta.candidate, resumePath: meta.resumePath },
     jobs: toPageJobs(jobs),
   };
   // `<` escaped so no job text can close the <script> it is embedded in.

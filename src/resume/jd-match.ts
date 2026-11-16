@@ -1,4 +1,4 @@
-import type { CandidateProfile } from '../types.js';
+import type { CandidateProfile, ProfileSkill } from '../types.js';
 import { extractSkills } from './build-profile.js';
 import { SKILLS } from './skill-taxonomy.js';
 
@@ -7,7 +7,8 @@ export type JdMatchStatus = 'scored' | 'no-description' | 'no-known-skills';
 export interface JdMatch {
   /**
    * Weighted share (0–100) of the skills the job description names that the résumé also
-   * has. Null when there is nothing to score — see `status`.
+   * has, each scaled by how strongly the résumé shows it (`skillStrength()`). Null when
+   * there is nothing to score — see `status`.
    */
   percent: number | null;
   status: JdMatchStatus;
@@ -30,6 +31,11 @@ export interface JdMatch {
  * "nice to have" line cares more about Java. Each skill's tier weight is multiplied by
  * `emphasis(mentions)` — 1× for one mention, +0.5× per extra mention, capped at 3× so a
  * keyword-stuffed JD cannot let one skill drown out the rest.
+ *
+ * The résumé side is weighted too: a matched skill earns `skillStrength()` of its weight,
+ * not all of it. Python used once in a side project is not the same as Java used across
+ * five years of jobs, so a Python-heavy JD must not score 100% for a Java developer who
+ * merely lists Python.
  */
 export function matchDescription(description: string | undefined, profile: CandidateProfile): JdMatch {
   if (!description || !description.trim()) {
@@ -42,9 +48,12 @@ export function matchDescription(description: string | undefined, profile: Candi
     return { percent: null, status: 'no-known-skills', matchedSkills: [], missingSkills: [] };
   }
 
-  const have = new Set(profile.skills.map((s) => s.name));
+  const have = new Map(profile.skills.map((s) => [s.name, skillStrength(s)]));
   for (const def of SKILLS) {
-    if (def.impliedBy?.some((name) => have.has(name))) have.add(def.name);
+    // An implied skill is as strong as the strongest skill implying it: PostgreSQL used
+    // at work is SQL used at work.
+    const implied = Math.max(0, ...(def.impliedBy ?? []).map((name) => have.get(name) ?? 0));
+    if (implied > (have.get(def.name) ?? 0)) have.set(def.name, implied);
   }
   let total = 0;
   let matched = 0;
@@ -53,14 +62,35 @@ export function matchDescription(description: string | undefined, profile: Candi
   for (const skill of wanted) {
     const weight = skill.weight * emphasis(skill.mentions);
     total += weight;
-    if (have.has(skill.name)) {
-      matched += weight;
+    const strength = have.get(skill.name) ?? 0;
+    if (strength > 0) {
+      matched += weight * strength;
       matchedSkills.push(skill.name);
     } else {
       missingSkills.push(skill.name);
     }
   }
   return { percent: Math.round((matched / total) * 100), status: 'scored', matchedSkills, missingSkills };
+}
+
+/**
+ * How much of a matched skill's weight the résumé earns (0–1), from where and how often
+ * the résumé mentions it:
+ *
+ * - used in the work-experience section 3+ times → 1.0, twice → 0.9, once → 0.8;
+ * - only under Skills, Projects or Education → 0.5 (listed, not shown on the job);
+ * - no experience header to tell them apart → judged by total mentions with the
+ *   work-experience scale (1.0 / 0.9 / 0.8), never penalised as "listed only".
+ */
+export function skillStrength(skill: Pick<ProfileSkill, 'mentions' | 'workMentions'>): number {
+  if (skill.workMentions === undefined) return workScale(skill.mentions);
+  if (skill.workMentions === 0) return skill.mentions > 0 ? LISTED_ONLY : 0;
+  return workScale(skill.workMentions);
+}
+const LISTED_ONLY = 0.5;
+function workScale(mentions: number): number {
+  if (mentions <= 0) return 0;
+  return mentions >= 3 ? 1 : mentions === 2 ? 0.9 : 0.8;
 }
 
 /** Multiplier for how often the JD names a skill: 1 → 1×, 2 → 1.5×, 3 → 2×, ≥5 → 3×. */

@@ -78,8 +78,13 @@ Decisions not to re-litigate:
 - `test/resume-profile.test.mjs` pins the sample résumé's profile (families `fullstack,
   generic-swe, backend, frontend`, band Entry→Senior, "Senior Java Full Stack Developer" = 17).
 
-**JD match** (`src/resume/jd-match.ts`): `% = weight of JD skills the résumé has ÷ weight of all
-JD skills`; weight = tier × emphasis (1×, +0.5× per extra mention, max 3×). No readable
+**JD match** (`src/resume/jd-match.ts`): `% = Σ(weight × résumé strength) of JD skills the résumé
+has ÷ weight of all JD skills`; weight = tier × emphasis (1×, +0.5× per extra mention, max 3×).
+Résumé strength (`skillStrength()`, from `ProfileSkill.workMentions`): used in the experience
+section 3+ times 1.0, twice 0.9, once 0.8; only under Skills/Projects/Education 0.5; no
+experience header → total mentions on the 1.0/0.9/0.8 scale; an implied skill (SQL from
+PostgreSQL) takes its implier's strength. So one Python project doesn't make a Python-heavy JD
+100% for a Java developer (`test/jd-match.test.mjs` pins it). No readable
 description → `null` ("N/A"), never 0. Sorting stays company-first; JD match sorts within each
 group. Descriptions are fetched once, reused by the clearance screen, and cached 14 days in the
 `job_descriptions` table. **LinkedIn descriptions are fetched one at a time** (250ms gap, 429

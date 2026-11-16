@@ -1,15 +1,32 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildProfile } from '../dist/resume/build-profile.js';
-import { byJdMatch, matchDescription } from '../dist/resume/jd-match.js';
+import { byJdMatch, matchDescription, skillStrength } from '../dist/resume/jd-match.js';
 
 const profile = buildProfile(`Jane Doe
 SKILLS
 Java, Spring Boot, Angular, AWS, Kafka, Docker, PostgreSQL
 
 EXPERIENCE
-Java Developer | Acme | Jan 2021 - Present
-- Built Spring Boot services.`);
+Java Developer | Northwind | Jan 2021 - Present
+- Built Java microservices with Spring Boot on AWS, streaming events through Kafka.
+- Moved Java batch jobs to Spring Boot, deployed on AWS ECS with Docker; Kafka consumers.
+- Tuned Java and Spring Boot APIs over PostgreSQL; AWS Lambda jobs fed by Kafka.
+- PostgreSQL schema design; PostgreSQL query tuning.`);
+
+// A Java developer who used Python once, in a side project (the case that used to score 100%).
+const javaDevWithPythonProject = buildProfile(`Jordan Ellis
+SKILLS
+Java, Spring Boot, AWS, Python
+
+EXPERIENCE
+Java Developer | Contoso | Jan 2021 - Present
+- Built Java services with Spring Boot on AWS.
+- Migrated Java batch jobs to Spring Boot.
+- Java and Spring Boot APIs on AWS.
+
+PROJECTS
+- Expense tracker written in Python.`);
 
 test('a JD asking only for the resume\'s skills is a 100% match', () => {
   const jd = matchDescription('We need Java and Spring Boot experience, plus AWS and Kafka.', profile);
@@ -89,4 +106,39 @@ test('emphasis is capped so keyword stuffing cannot dominate', () => {
 
 test('every JD skill found in the resume is still 100%, however often repeated', () => {
   assert.equal(matchDescription('Java, Java, Java, Spring Boot, Kafka, Kafka.', profile).percent, 100);
+});
+
+test('a skill only listed or used in a side project earns partial credit', () => {
+  const python = javaDevWithPythonProject.skills.find((s) => s.name === 'Python');
+  assert.equal(python.workMentions, 0);
+  assert.equal(skillStrength(python), 0.5);
+  const java = javaDevWithPythonProject.skills.find((s) => s.name === 'Java');
+  assert.ok(java.workMentions >= 3);
+  assert.equal(skillStrength(java), 1);
+});
+
+test('a Python-heavy JD is not a 100% match for a Java developer with one Python project', () => {
+  const pythonJd = matchDescription(
+    'Senior Python engineer. Python services, Python APIs, Python data pipelines, Python testing. AWS experience a plus.',
+    javaDevWithPythonProject,
+  );
+  assert.ok(pythonJd.percent < 65, `expected < 65, got ${pythonJd.percent}`);
+  assert.ok(pythonJd.matchedSkills.includes('Python'), 'Python is still matched, only weaker');
+
+  const javaJd = matchDescription(
+    'Java engineer. Java services, Java APIs with Spring Boot, Java testing. Python a plus. AWS.',
+    javaDevWithPythonProject,
+  );
+  assert.ok(javaJd.percent >= 90, `expected >= 90, got ${javaJd.percent}`);
+  assert.ok(javaJd.percent > pythonJd.percent + 25);
+});
+
+test('skill strength scale', () => {
+  assert.equal(skillStrength({ mentions: 5, workMentions: 3 }), 1);
+  assert.equal(skillStrength({ mentions: 3, workMentions: 2 }), 0.9);
+  assert.equal(skillStrength({ mentions: 2, workMentions: 1 }), 0.8);
+  assert.equal(skillStrength({ mentions: 2, workMentions: 0 }), 0.5);
+  // No experience header: judged by total mentions, never as "listed only".
+  assert.equal(skillStrength({ mentions: 1 }), 0.8);
+  assert.equal(skillStrength({ mentions: 4 }), 1);
 });

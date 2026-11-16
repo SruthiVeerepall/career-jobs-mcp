@@ -137,6 +137,8 @@ main.wrap{padding-block:22px 116px;display:flex;flex-direction:column;gap:22px}
 .runbox h2{font-size:17px}
 .runnote{font-size:13.5px;color:var(--muted);display:flex;align-items:center;gap:8px}
 .runnote .dot{width:9px;height:9px;border-radius:50%;background:var(--faint);flex:0 0 9px}
+.run-retry{margin-left:4px;font:inherit;font-size:13px;font-weight:600;padding:3px 10px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;white-space:nowrap}
+.run-retry:disabled{opacity:.5;cursor:default}
 .runnote.up .dot{background:var(--good)} .runnote.busy .dot{background:var(--accent);animation:pulse 1.2s ease-in-out infinite} .runnote.bad .dot{background:var(--bad)}
 @keyframes pulse{50%{opacity:.35}}
 .chip:disabled{opacity:.5;cursor:default}
@@ -274,7 +276,7 @@ a.auto{text-decoration:none}
         <button class="chip" id="run-month" data-run="month" aria-pressed="false" disabled>Month</button>
       </div>
     </div>
-    <div class="runnote" id="run-note" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="run-text">Checking whether searches can run here…</span></div>
+    <div class="runnote" id="run-note" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="run-text">Checking whether searches can run here…</span><button type="button" class="run-retry" id="run-retry" hidden>Update Excel &amp; board</button></div>
   </section>
 
   <section id="picks" aria-label="Top picks">
@@ -767,7 +769,11 @@ var MCP_SERVER = "host:career-jobs", MCP_TOOL = "searchJobsForResume", REFRESH_T
 var RUN_DAYS = { today: 1, "3days": 3, week: 7, month: 30 };
 var RUN_LABEL = { today: "last 24 hours", "3days": "last 3 days", week: "last 7 days", month: "last 30 days" };
 var mcpApi = null, runBusy = false, runTimer = 0;
-function setRun(cls, text){ document.getElementById("run-note").className = "runnote " + cls; document.getElementById("run-text").textContent = text; }
+function setRun(cls, text, retry){
+  document.getElementById("run-note").className = "runnote " + cls;
+  document.getElementById("run-text").textContent = text;
+  var b = document.getElementById("run-retry"); b.hidden = !retry; b.disabled = false;
+}
 function setRunButtons(on){ document.querySelectorAll("[data-run]").forEach(function(x){ x.disabled = !on; }); }
 function markWindow(win){ document.querySelectorAll("[data-run]").forEach(function(x){ x.setAttribute("aria-pressed", x.dataset.run === win); }); }
 function currentWindow(){ var w = META.window || ""; return /24 hours/.test(w) ? "today" : /^3 days/.test(w) ? "3days" : /^7 days/.test(w) ? "week" : /^30 days/.test(w) ? "month" : ""; }
@@ -822,8 +828,14 @@ function runViaLink(win){
   openLink(refreshLinkFor(win));
   setRun("busy", "Refreshing the " + RUN_LABEL[win] + " on your PC: a console window shows progress, then the Excel sheet, this page and the board are all updated. Reload this page when it says done (usually 1–4 minutes). Nothing happens? Run node install-auto-apply.mjs once.");
 }
-/* After the in-page search: rewrite the sheet and the page files and republish the board. */
+/* After the in-page search: rewrite the sheet and the page files and republish the board.
+   refreshJobQuest writes files on the PC, so the Claude app asks before it runs (the search is
+   read-only and doesn't). A closed or declined prompt comes back as "cancelled"; the retry button
+   asks again without repeating the search. */
+var lastRefresh = null;
 function refreshEverywhere(win, found){
+  lastRefresh = { win: win, found: found };
+  setRun("busy", found + " jobs from the " + RUN_LABEL[win] + ". Now updating the Excel sheet and the board: the Claude app asks first, choose Allow.");
   mcpApi.callTool(MCP_SERVER, REFRESH_TOOL, { postedWithinDays: RUN_DAYS[win] }, { cache: false })
     .then(function(res){
       var p = res && res.payload;
@@ -832,11 +844,16 @@ function refreshEverywhere(win, found){
     })
     .catch(function(e){
       var code = e && e.code;
+      if (code === "cancelled") {
+        setRun("bad", found + " jobs shown here. The Excel sheet and the board weren't updated because the Claude app's permission prompt was closed or declined. Click the button and choose Allow.", true);
+        return;
+      }
       var why = code === "not_in_manifest" ? "this page isn't allowed to call refreshJobQuest yet"
         : code === "server_not_connected" ? "career-jobs isn't connected"
         : code === "tool_error" ? String(e.message || "the refresh tool reported a problem").slice(0, 200)
         : (code || "unknown error");
-      setRun("bad", found + " jobs shown here, but the Excel sheet and the board were not updated (" + why + "). Run: node refresh-job-quest.mjs --days " + RUN_DAYS[win]);
+      var retry = code === "server_unavailable" || code === "upstream_error";
+      setRun("bad", found + " jobs shown here, but the Excel sheet and the board were not updated (" + why + "). " + (retry ? "Try the button, or run" : "Run") + ": node refresh-job-quest.mjs --days " + RUN_DAYS[win], retry);
     });
 }
 function runSearch(win){
@@ -873,6 +890,11 @@ function startMcp(){
     renderList(); renderPicks();  // show Auto apply buttons now that the tool can answer
   }).catch(function(){ setRunButtons(true); setRun("off", LINK_NOTE); });
 }
+document.getElementById("run-retry").addEventListener("click", function(){
+  if (!mcpApi || !lastRefresh || runBusy) return;
+  this.disabled = true;
+  refreshEverywhere(lastRefresh.win, lastRefresh.found);
+});
 markWindow(currentWindow());
 startMcp();
 

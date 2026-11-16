@@ -87,8 +87,14 @@ export interface ProfileSkill {
   weight: number;
   /** Surface forms searched for in job titles — the canonical name plus its aliases. */
   terms: string[];
-  /** How many times the resume mentioned it. Not scored; reported for transparency. */
+  /** How many times the resume mentioned it. */
   mentions: number;
+  /**
+   * How many of those mentions are in the work-experience section (not Skills, Projects or
+   * Education). Undefined when the resume has no experience header. Drives the JD match's
+   * per-skill strength (`skillStrength()` in `jd-match.ts`).
+   */
+  workMentions?: number;
 }
 
 /**

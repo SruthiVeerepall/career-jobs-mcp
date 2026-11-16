@@ -18,7 +18,7 @@ You ──► Claude or a script ──► Career Jobs MCP ──► company car
 
 | | |
 |---|---|
-| **Résumé matching** | Reads your résumé (.pdf, .docx, .txt, .md, .html) and works out your skills, years, role types and seniority. Every job gets a **JD Match %**. |
+| **Résumé matching** | Reads your résumé (.pdf, .docx, .txt, .md, .html) and works out your skills, years, role types and seniority. Every job gets a **JD Match %**: how much of what the job description asks for your résumé covers, with full credit for skills used in your jobs and half credit for skills only listed or used in a side project. |
 | **Strict filters** | Posted in the last 3 days by default, US only, junior to Senior, and no security clearance or citizenship requirement (checked in the job description). |
 | **Company sites first** | Jobs from employers' own sites are listed before job-board copies. |
 | **Excel + web page** | Applied? checkboxes, a running total, a daily goal and streak on the Job Quest Board. |

@@ -49,7 +49,7 @@ export function buildProfile(text: string, options: BuildProfileOptions = {}): C
     notes.push('No years of experience found in the resume; assuming mid-to-senior (0–5 yrs). Pass yearsOfExperience to correct this.');
   }
 
-  const skills = extractSkills(text);
+  const skills = withWorkMentions(extractSkills(text), text);
   if (skills.length === 0) {
     notes.push('No known technical skills were recognised in the resume — results will fall back to role-title matching only.');
   }
@@ -174,11 +174,28 @@ const POST_EXPERIENCE_HEADER = /^\s*(education|academics?|certifications?|projec
 
 /** The experience section, or the whole document when no section header is present. */
 function experienceSection(text: string): string {
+  return findExperienceSection(text) ?? text;
+}
+
+/** The experience section, or undefined when the resume has no experience header. */
+function findExperienceSection(text: string): string | undefined {
   const start = text.search(EXPERIENCE_HEADER);
-  if (start === -1) return text;
+  if (start === -1) return undefined;
   const rest = text.slice(start + 1);
   const end = rest.search(POST_EXPERIENCE_HEADER);
   return end === -1 ? rest : rest.slice(0, end);
+}
+
+/**
+ * Record how often each skill appears in the work-experience section, so the JD match can
+ * tell a skill used on the job from one only listed under Skills or used in a side project.
+ * Left undefined when the resume has no experience header (nothing to tell them apart by).
+ */
+function withWorkMentions(skills: ProfileSkill[], text: string): ProfileSkill[] {
+  const section = findExperienceSection(text);
+  if (section === undefined) return skills;
+  const atWork = new Map(extractSkills(section).map((s) => [s.name, s.mentions]));
+  return skills.map((s) => ({ ...s, workMentions: atWork.get(s.name) ?? 0 }));
 }
 
 // ---------------------------------------------------------------------------

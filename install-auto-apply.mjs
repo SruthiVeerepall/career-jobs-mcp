@@ -7,7 +7,7 @@
  *   node install-auto-apply.mjs --uninstall                           # remove the link type
  *
  * Registers the jobquest:// link type for the current Windows user (HKCU, no admin needed):
- * a click runs `node jobquest-link.mjs "<link>"`. An apply link fills the Greenhouse or Ashby form in
+ * a click runs `node jobquest-link.mjs "<link>"`. An apply link fills the Greenhouse, Ashby, Lever or Workable form in
  * Chrome and never submits; a refresh link (jobquest://refresh?days=N) reruns the daily export
  * and updates every output (see refresh-job-quest.mjs). The résumé path is saved in apply-profile.json; links never carry one.
  * Re-run after moving this folder or changing Node, since the registered command holds both paths.

@@ -113,6 +113,7 @@ function platformOf(u) {
   if (/remotive\.com/.test(u)) return 'Remotive';
   if (/weworkremotely\.com/.test(u)) return 'WeWorkRemotely';
   if (/jobs\.workable\.com/.test(u)) return 'Workable Jobs';
+  if (/workable\.com/.test(u)) return 'Workable';
   if (/himalayas\.app/.test(u)) return 'Himalayas';
   if (/jobicy\.com/.test(u)) return 'Jobicy';
   return 'Other';
@@ -349,7 +350,7 @@ async function run() {
     { header: 'JD Match %', key: 'jdMatch', width: 11 },
     { header: 'Platform', key: 'platform', width: 15 },
     { header: 'Apply', key: 'apply', width: 12 },
-    // Greenhouse and Ashby jobs: a jobquest:// link that fills the form in Chrome from the résumé
+    // Auto-apply jobs (Greenhouse, Ashby, Lever, Workable): a jobquest:// link that fills the form in Chrome from the résumé
     // (needs a one-time `node install-auto-apply.mjs --resume <path>`). Never submits.
     { header: 'Auto Apply', key: 'auto', width: 13 },
     { header: 'Apply URL', key: 'url', width: 60 },

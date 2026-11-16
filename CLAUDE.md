@@ -2,7 +2,7 @@
 
 An MCP server (plus CLI scripts) that searches company career sites and job boards, matches
 jobs to a résumé, exports them to Excel and the "Job Quest Board" page, and auto-fills
-Greenhouse, Ashby and Lever applications. Follow these rules on every request without being reminded.
+Greenhouse, Ashby, Lever and Workable applications. Follow these rules on every request without being reminded.
 
 ## Working rules
 
@@ -155,14 +155,16 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
   open in Excel is saved, closed and reopened over COM (`excel-session.mjs`, path passed via
   env, not `$args`).
 
-## Auto Apply (Greenhouse, Ashby, Lever)
+## Auto Apply (Greenhouse, Ashby, Lever, Workable)
 
 - **Never submits.** It fills the form; the user reviews and presses Submit. Keep it that way.
 - **Platforms** are chosen in one place, `applyFormFor()` (`src/apply/platforms.ts`); the CLI, MCP tool,
   links, the sheet's Auto Apply column and the board all ask it. Shared helpers are in
   `src/apply/common.ts`. To add a platform: a `<name>FormUrl()` + `fill<Name>()` pair, one line in
-  `applyFormFor()`, its "form loaded" selector in `FORM_READY` (`auto-apply.ts`), and the URL regex
-  next to `GH_JOB` in `templates/job-quest.html`.
+  `applyFormFor()`, its "form loaded" selector in `FORM_READY` (`auto-apply.ts`), an `OPEN_FORM`
+  step if the form needs a click to appear, the URL regex next to `GH_JOB` in
+  `templates/job-quest.html` (and a test that it agrees with `<name>FormUrl()`), and the
+  platform list in the `autoApplyJob` description (`src/server.ts`, `src/tools/auto-apply-job.ts`).
 - **Greenhouse:** always open the embed form `job-boards.greenhouse.io/embed/job_app?for=<board>&token=<id>`
   (`greenhouseFormUrl()`); many job pages redirect to the company site.
 - Core field ids are stable (`first_name`, `email`, `phone`, `country`, `candidate-location`,
@@ -192,6 +194,26 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
   résumé's state (the list briefly shows "Austin, MN" first), and confirm `selectedLocation`.
   hCaptcha runs only on Submit. Live check (2026-11-14, 8 boards, 0 failures): Zoox, Match
   Group, TrueML, SonarSource, Spotify, Restaurant365, Protolabs, Palantir.
+- **Workable** (`src/apply/workable.ts`): two entry points, one form. Board jobs
+  (`jobs.workable.com/view/<id>`, what the `workable-jobs` scraper returns) open the form in place
+  after **Apply now**; company pages open `apply.workable.com/<account>/j/<code>/apply/`
+  (`workableFormUrl()`, also maps `<account>.workable.com/j/<code>`). `openWorkableForm()` (run
+  from `OPEN_FORM` in `auto-apply.ts`) declines the cookie banner first (it swallows the first
+  click), then presses Apply now. No login; any captcha runs on Submit. Fields are found by
+  role and labelled via `aria-labelledby`: text `input[name]`/`textarea[name]` (`firstname`,
+  `lastname`, `email`, `phone`, `address`, `headline`, `CA_<n>`/`QA_<n>` custom), dropdowns
+  `[data-input-type=select][data-ui=<name>]` (read-only combobox `#input_<name>_input`; options
+  exist only while open; value lands in a hidden `input[name=<name>]`), yes/no
+  `fieldset[role=radiogroup]` (values true/false, text YES/NO), multi `[role=group]`. Option text
+  is either inside the `[role=radio]` or in the span named by the last id of its
+  `aria-labelledby` (custom-attribute radios). Pitfalls: **never press Escape**: with no list open
+  it closes the whole application on the board and drops everything typed (close a dropdown by
+  clicking its box again); `address` is pre-filled from the visitor's IP, so always overwrite it;
+  a label that names GitHub/LinkedIn gets the profile URL only if it asks for a profile/URL
+  (`wantsProfileLink()`: "share your contributions with links (GitHub PRs…)" is left).
+  Education / Experience are optional "+ Add" sections and are not filled.
+  Live check (2026-11-15, headless, 8 forms, values read back from the page, 0 errors): Multi
+  Media, J-Mack, Peregrine, Stafford Gray, Sigma Defense, Man Group, Katmai, Hugging Face.
 - **Not supported:** SmartRecruiters' apply page (`oneclick-ui`) answers automated browsers with
   a DataDome 403 + captcha; do not try to get around it. Workday needs an account per tenant.
 - "Are you authorized to work … **without** sponsorship?" is its own key
@@ -212,7 +234,7 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
     to 3 times (some appear after earlier answers); a checkbox group is one `needsYou` entry.
 - Two routes, one filler: the `autoApplyJob` MCP tool (desktop app; not read-only, so the app
   asks first) and `jobquest://apply?url=…` links (Excel, local page, browser). **A link carries
-  only the job URL** (Greenhouse/Ashby/Lever only); `refresh` links accept only 1/3/7/30. Any website can
+  only the job URL** (Greenhouse/Ashby/Lever/Workable only); `refresh` links accept only 1/3/7/30. Any website can
   fire these links, so never let one name a path or file.
 - Visible Chrome: `getVisibleBrowser()`, profile `data/apply-chrome-profile/` (falls back to a
   temp profile when it's in use). `APPLY_HEADLESS=true` is for tests only.

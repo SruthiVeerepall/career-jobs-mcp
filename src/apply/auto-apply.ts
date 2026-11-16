@@ -7,6 +7,8 @@ import { fillAshby } from './ashby.js';
 import type { FillReport } from './common.js';
 import { fillGreenhouse } from './greenhouse.js';
 import { fillLever } from './lever.js';
+import { fillWorkable, openWorkableForm } from './workable.js';
+import type { Page } from 'puppeteer';
 import { applyFormFor, SUPPORTED_PLATFORMS, type ApplyPlatform } from './platforms.js';
 import { setupHint } from './standard-answers.js';
 
@@ -29,6 +31,12 @@ const FORM_READY: Record<ApplyPlatform, string> = {
   greenhouse: '[id="first_name"]',
   ashby: '#_systemfield_name',
   lever: 'input[name="email"]',
+  workable: 'form input[name="email"]',
+};
+
+/** Steps some platforms need before the form shows (Workable: cookie banner, "Apply now"). */
+const OPEN_FORM: Partial<Record<ApplyPlatform, (page: Page) => Promise<void>>> = {
+  workable: openWorkableForm,
 };
 
 /**
@@ -48,11 +56,12 @@ export async function autoApply({ applyUrl, resumePath }: AutoApplyOptions): Pro
   const browser = await getVisibleBrowser();
   const page = await browser.newPage();
   await page.goto(formUrl, { waitUntil: 'networkidle2', timeout: 60_000 });
+  await OPEN_FORM[platform]?.(page);
   // Ashby renders the form client-side after the page settles.
   const ready = await page.waitForSelector(FORM_READY[platform], { timeout: 15_000 }).catch(() => null);
   if (!ready) throw new Error('No application form on this page; the job has probably closed.');
 
-  const fill = { greenhouse: fillGreenhouse, ashby: fillAshby, lever: fillLever }[platform];
+  const fill = { greenhouse: fillGreenhouse, ashby: fillAshby, lever: fillLever, workable: fillWorkable }[platform];
   const report = await fill(page, applicant, file, extra.answers ?? [], extra);
   await page.bringToFront();
   // Leave the reviewer at the top of the form.

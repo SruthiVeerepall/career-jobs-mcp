@@ -5,7 +5,7 @@ import { applyFormFor, SUPPORTED_PLATFORMS } from './platforms.js';
 // the scheme for the current Windows user; a click runs `node jobquest-link.mjs "<the link>"`.
 //
 // Links carry as little as possible, because any website can fire one:
-//   jobquest://apply?url=<Greenhouse or Ashby job>  — the résumé path comes from apply-profile.json on
+//   jobquest://apply?url=<a job applyFormFor() accepts>  — the résumé path comes from apply-profile.json on
 //     this machine, so a link can never choose which file is uploaded. The filler never submits.
 //   jobquest://refresh?days=1|3|7|30       — reruns the last daily export (job-quest-outputs.json)
 //     for that window. Only those four values are accepted; outputs are never named by a link.
@@ -15,7 +15,7 @@ export const REFRESH_DAYS = [1, 3, 7, 30] as const;
 
 export type JobQuestLink = { action: 'apply'; url: string } | { action: 'refresh'; days: number };
 
-/** Greenhouse / Ashby apply URL -> jobquest://apply?url=…, or null for any other site. */
+/** Apply URL of a supported platform (applyFormFor) -> jobquest://apply?url=…, or null for any other site. */
 export function autoApplyLink(applyUrl: string): string | null {
   if (!applyFormFor(applyUrl)) return null;
   return `${SCHEME}://apply?url=${encodeURIComponent(applyUrl)}`;

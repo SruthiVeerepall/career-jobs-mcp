@@ -1,7 +1,7 @@
 /**
- * auto-apply.mjs: fill a Greenhouse or Ashby job application from your résumé in a visible Chrome.
+ * auto-apply.mjs: fill a Greenhouse, Ashby, Lever or Workable job application from your résumé in a visible Chrome.
  *
- *   node auto-apply.mjs --resume <path> <greenhouse apply url>
+ *   node auto-apply.mjs --resume <path> <job url>
  *   node auto-apply.mjs --resume <path> --show-data      # print what would be filled, no browser
  *   node auto-apply.mjs --link "jobquest://apply?url=…"  # what an "Auto apply" link click runs
  *   node auto-apply.mjs --setup                          # answer the standard questions once
@@ -111,7 +111,7 @@ async function run() {
     if (!resumePath) throw new Error('No résumé set for auto apply links. Run: node install-auto-apply.mjs --resume "<path>"');
   }
   if (!resumePath || (!url && !SHOW)) {
-    console.error('Usage: node auto-apply.mjs --resume <path> <greenhouse apply url>\n       node auto-apply.mjs --resume <path> --show-data\n       node auto-apply.mjs --link "jobquest://apply?url=…"');
+    console.error('Usage: node auto-apply.mjs --resume <path> <job url>\n       node auto-apply.mjs --resume <path> --show-data\n       node auto-apply.mjs --link "jobquest://apply?url=…"');
     process.exitCode = 1;
     return;
   }

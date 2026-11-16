@@ -1,6 +1,6 @@
 import type { ElementHandle, Page } from 'puppeteer';
 
-// Shared by every auto-apply filler (Greenhouse, Ashby, Lever).
+// Shared by every auto-apply filler (Greenhouse, Ashby, Lever, Workable).
 
 export interface FillReport {
   filled: { field: string; value: string }[];

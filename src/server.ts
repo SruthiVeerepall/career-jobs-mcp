@@ -40,7 +40,7 @@ export async function startServer(): Promise<void> {
   // desktop app asks before each call. It fills the form and never submits it.
   server.tool(
     'autoApplyJob',
-    'Open a Greenhouse or Ashby job application in a visible Chrome window and fill it from the résumé: name, email, phone, location, every job held, education, LinkedIn, and the résumé file itself. It never submits; the user reviews the form and presses Submit. Returns what was filled and which required questions still need the user.',
+    'Open a Greenhouse, Ashby, Lever or Workable job application in a visible Chrome window and fill it from the résumé: name, email, phone, location, every job held, education, LinkedIn, and the résumé file itself. It never submits; the user reviews the form and presses Submit. Returns what was filled and which required questions still need the user.',
     autoApplyJobSchema,
     { title: 'Auto-fill a job application', readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     async (args) => ({

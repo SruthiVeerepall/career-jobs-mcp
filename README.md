@@ -3,7 +3,7 @@
 Job search that goes **straight to company career sites** (1,000+ companies on Greenhouse, Lever,
 Ashby, Workday, SmartRecruiters and more), plus job boards such as LinkedIn and BuiltIn. It
 matches every job to **your résumé**, exports the results to Excel and a web page, and can
-**auto-fill Greenhouse, Ashby and Lever applications** for you.
+**auto-fill Greenhouse, Ashby, Lever and Workable applications** for you.
 
 It runs as an [MCP](https://modelcontextprotocol.io/) server inside Claude, or as plain
 command-line scripts.
@@ -22,7 +22,7 @@ You ──► Claude or a script ──► Career Jobs MCP ──► company car
 | **Strict filters** | Posted in the last 3 days by default, US only, junior to Senior, and no security clearance or citizenship requirement (checked in the job description). |
 | **Company sites first** | Jobs from employers' own sites are listed before job-board copies. |
 | **Excel + web page** | Applied? checkboxes, a running total, a daily goal and streak on the Job Quest Board. |
-| **Auto apply** | Fills Greenhouse, Ashby and Lever forms in Chrome from your résumé and your saved answers. **It never submits**: you review and press Submit. |
+| **Auto apply** | Fills Greenhouse, Ashby, Lever and Workable forms in Chrome from your résumé and your saved answers. **It never submits**: you review and press Submit. |
 | **One-click refresh** | Today / 3 days / Week / Month buttons update the sheet, the page and the board together. |
 
 ---
@@ -137,11 +137,12 @@ A `--resume … --page …` run remembers where it wrote (in the git-ignored
 Your Applied? ticks in the sheet are kept. If the sheet is open in Excel, it's saved, closed and
 reopened for you. Clicking another window during a refresh queues it.
 
-## Auto apply (Greenhouse, Ashby and Lever)
+## Auto apply (Greenhouse, Ashby, Lever and Workable)
 
-Fills a Greenhouse, Ashby or Lever application in a visible Chrome window: name, email, phone, location, every
+Fills a Greenhouse, Ashby, Lever or Workable application in a visible Chrome window: name, email, phone, location, every
 job you've held, education, LinkedIn, your résumé file, and the common questions you answered
-once. **It never presses Submit.**
+once. **It never presses Submit.** (Workable forms have no work-history or education fields to fill;
+its optional "+ Add" Education / Experience sections are left alone.)
 
 ```bash
 node auto-apply.mjs --setup                          # answer the common questions once
@@ -154,7 +155,7 @@ node auto-apply.mjs --resume <path> --show-data      # see what would be filled
 | Flag | Effect |
 |---|---|
 | `--resume <path>` | Résumé to read and attach |
-| `<url>` | A Greenhouse job link (`job-boards.greenhouse.io/<board>/jobs/<id>`) an Ashby one (`jobs.ashbyhq.com/<company>/<job id>`) or a Lever one (`jobs.lever.co/<company>/<job id>`) |
+| `<url>` | A Greenhouse job link (`job-boards.greenhouse.io/<board>/jobs/<id>`), an Ashby one (`jobs.ashbyhq.com/<company>/<job id>`), a Lever one (`jobs.lever.co/<company>/<job id>`) or a Workable one (`jobs.workable.com/view/<id>` from the Workable job board, or `apply.workable.com/<company>/j/<code>` from a company's careers page) |
 | `--show-data` | Print the parsed contact, jobs and education, then stop |
 | `--setup` / `--set key=value` | Save your one-time answers |
 | `--link <jobquest://…>` | What a link click runs |
@@ -208,7 +209,7 @@ Engineer roles at Stripe and Netflix"*.
 |---|---|
 | `searchJobsForResume` | Résumé in, ranked apply links out (`resumePath` or `resumeText`, `postedWithinDays`, `limit`, `format`) |
 | `parseResume` | Show what was read from a résumé, without searching |
-| `autoApplyJob` | Fill a Greenhouse, Ashby or Lever application in Chrome (`applyUrl`, `resumePath`); never submits |
+| `autoApplyJob` | Fill a Greenhouse, Ashby, Lever or Workable application in Chrome (`applyUrl`, `resumePath`); never submits |
 | `refreshJobQuest` | Rerun the daily export for 1, 3, 7 or 30 days and update every output |
 | `searchCompanyJobs` | Search one company (`companyName`, `jobTitle`, `postedSince`…) |
 | `searchMultipleCompanies` | Search a list of companies at once |
@@ -250,7 +251,7 @@ src/
   server.ts, index.ts     MCP server and its tools (src/tools/)
   scrapers/               company registry, orchestrator, one scraper per platform/board
   resume/                 résumé → profile, title matching, JD match, applicant data
-  apply/                  Greenhouse, Ashby and Lever auto-fill, saved answers, jobquest:// links
+  apply/                  Greenhouse, Ashby, Lever and Workable auto-fill, saved answers, jobquest:// links
   utils/                  filters, dates, clearance screen, browser, cache helpers
 templates/job-quest.html  the Job Quest Board page
 find-jobs-for-resume.mjs  résumé search (CLI)
@@ -275,7 +276,7 @@ npm run dev     # recompile on save
 
 - A 24-hour window is mostly job-board results, because companies publish in batches. Use 3 days or a week for more company jobs.
 - Jobs with no posting date are left out on purpose.
-- Auto apply supports Greenhouse, Ashby and Lever. Workday needs an account to apply, and SmartRecruiters blocks automated browsers with a bot check, so neither is supported.
+- Auto apply supports Greenhouse, Ashby, Lever and Workable. Workday needs an account to apply, and SmartRecruiters blocks automated browsers with a bot check, so neither is supported.
 - Browser-based sites (Apple, Amazon, Tesla) are slower and break more often than API-based ones.
 - Indeed, ZipRecruiter and Glassdoor block automated access and aren't included.
 - Be respectful: keep the rate limit on.

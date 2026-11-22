@@ -1,5 +1,6 @@
 /**
- * auto-apply.mjs: fill a Greenhouse, Ashby, Lever or Workable job application from your résumé in a visible Chrome.
+ * auto-apply.mjs: fill a Greenhouse, Ashby, Lever, Workable or Workday job application from your résumé in a visible Chrome.
+ * A job board page (LinkedIn, BuiltIn, SimplyHired…) works too: it is looked up on the employer's own job site (no board sign-in).
  *
  *   node auto-apply.mjs --resume <path> <job url>
  *   node auto-apply.mjs --resume <path> --show-data      # print what would be filled, no browser
@@ -10,6 +11,10 @@
  * Fills name, email, phone, location, every job, education, LinkedIn (from apply-profile.json)
  * and attaches the résumé. It NEVER submits: review the form and press Submit yourself. The
  * script waits until you close the Chrome window.
+ *
+ * Workday: sign in to (or create) that company's Workday account in the Chrome window; each
+ * step then fills as it opens. Check it and press "Save and Continue" yourself. It stops at the
+ * Review step and never presses Submit.
  *
  * --link is started by Windows when a jobquest:// link is clicked (Excel, a local page, a
  * browser); see install-auto-apply.mjs. The résumé then comes from apply-profile.json
@@ -121,8 +126,34 @@ async function run() {
     return;
   }
   console.log(`Auto apply: ${url}\nRésumé: ${resumePath}\nOpening Chrome and filling the form…`);
-  const r = await autoApply({ applyUrl: url, resumePath });
+  const r = await autoApply({
+    applyUrl: url, resumePath, onStep: printReport,
+    onStepsDone: (why) => { if (why === 'review') console.log('\nReview step reached. Check everything, press Submit yourself, then close the Chrome window.'); },
+  });
+  if (r.via?.outcome === 'matched') console.log(`\nFound this ${r.via.board} job on the employer's own site: ${r.via.employerUrl}`);
+  else if (r.via?.employerUrl) console.log(`\n${r.via.board}: the Apply button led to ${r.via.employerUrl}`);
+  if (r.via?.outcome === 'no-match') {
+    // Nothing was opened: say why and keep the window up long enough to read it.
+    console.log(`\n${r.notFilled}`);
+    await holdWindow();
+    return;
+  }
+  if (r.notFilled) {
+    console.log(`\n${r.notFilled}\nClose the Chrome window when done.`);
+    const browser = await getVisibleBrowser();
+    await new Promise((done) => browser.once('disconnected', done));
+    return;
+  }
   console.log(`\nForm: ${r.formUrl}`);
+  if (r.followsSteps) {
+    if (r.waitingForSignIn) console.log('\nWorkday: sign in or create your account for this company in the Chrome window. Each step fills as it opens.');
+    if (r.step) printReport(r);
+    if (r.setupHint) console.log(`\n${r.setupHint}`);
+    console.log('\nWorkday: check each step and press "Save and Continue" yourself; the next step fills itself. Nothing is submitted. Close the Chrome window when done.');
+    const browser = await getVisibleBrowser();
+    await new Promise((done) => browser.once('disconnected', done));
+    return;
+  }
   console.log(`Résumé attached: ${r.resumeUploaded ? 'yes' : 'no'}`);
   console.log(`\nFilled (${r.filled.length}):`);
   for (const f of r.filled) console.log(`  ✓ ${f.field}: ${f.value}`);
@@ -138,6 +169,22 @@ async function run() {
   console.log('\nNothing was submitted. Review the form in Chrome, press Submit, then close the Chrome window.');
   const browser = await getVisibleBrowser();
   await new Promise((done) => browser.once('disconnected', done));
+}
+
+/** One Workday step: what went in, what didn't, what is left. */
+function printReport(r) {
+  console.log(`\n── Workday step: ${r.step} ──`);
+  if (r.resumeUploaded) console.log('Résumé attached: yes');
+  console.log(`Filled (${r.filled.length}):`);
+  for (const f of r.filled) console.log(`  ✓ ${f.field}: ${f.value}`);
+  if (r.failed.length) {
+    console.log(`Could not fill (${r.failed.length}):`);
+    for (const f of r.failed) console.log(`  ✗ ${f.field}: ${f.value} (${f.reason})`);
+  }
+  if (r.needsYou.length) {
+    console.log(`Still required, answer these yourself (${r.needsYou.length}):`);
+    for (const q of r.needsYou) console.log(`  • ${q}`);
+  }
 }
 
 run()

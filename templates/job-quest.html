@@ -461,7 +461,8 @@ function card(j){
     + '</div>' + autoNote(j) + '</div>'
     + '<div class="side">' + jdMeter(j) + autoBtn(j, "ar-") + (url ? '<a class="go" href="' + esc(url) + '" target="_blank" rel="noopener">Apply ↗</a>' : '') + '</div></article>';
 }
-/* Auto apply: Greenhouse, Ashby, Lever and Workable forms. Two routes to the same filler:
+/* Auto apply: Greenhouse, Ashby, Lever, Workable and Workday forms (Workday: the user signs in,
+   then each step fills as it opens). Two routes to the same filler:
    - in the Claude desktop app, the career-jobs MCP tool (reports back what it filled);
    - anywhere else (a local file, any browser), a jobquest:// link that Windows hands to
      auto-apply.mjs. One-time setup on the PC: node install-auto-apply.mjs --resume <path>. */
@@ -471,10 +472,18 @@ var AUTO_ICON = '<svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="tr
 var ASHBY_JOB = /^https:\/\/jobs(?:\.eu)?\.ashbyhq\.com\/[^\/?#]+\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 var LEVER_JOB = /^https:\/\/jobs(?:\.eu)?\.lever\.co\/[^\/?#]+\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 var WORKABLE_JOB = /^https:\/\/(?:jobs\.workable\.com\/view\/[A-Za-z0-9-]{8,40}|apply\.workable\.com\/[^\/?#]+\/j\/[A-Za-z0-9]{6,16}|[a-z0-9-]+\.workable\.com\/j\/[A-Za-z0-9]{6,16})(?:[\/?#]|$)/i;
-function isGh(j){ var u = j.url || ""; return GH_JOB.test(u) || ASHBY_JOB.test(u) || LEVER_JOB.test(u) || WORKABLE_JOB.test(u); }  // any auto-apply form (Greenhouse, Ashby, Lever, Workable)
+var WORKDAY_JOB = /^https:\/\/[a-z0-9][a-z0-9-]*\.wd\d{1,3}\.myworkdayjobs\.com\/(?:[a-z]{2}(?:-[a-z]{2})?\/)?[^\/?#]+\/(?:job|details)\/(?:[^\/?#]+\/){0,2}[^\/?#]*_[A-Za-z0-9-]+(?:\/apply[^?#]*)?(?:[?#]|\/?$)/i;
+// Job board pages whose Apply button auto apply follows to the employer's form (boardJobFor()).
+var BOARD_JOB = /^https:\/\/(?:(?:www\.|[a-z]{2}\.)?linkedin\.com\/jobs\/view\/(?:[^\/?#]*-)?\d{6,}|(?:www\.)?builtin\.com\/job\/[^\/?#]+\/\d+|www\.simplyhired\.com\/job\/[A-Za-z0-9_-]{10,}|himalayas\.app\/companies\/[^\/?#]+\/jobs\/[^\/?#]+|weworkremotely\.com\/remote-jobs\/[^\/?#]+|jobicy\.com\/jobs\/\d+[^\/?#]*|remoteok\.com\/remote-jobs\/[^\/?#]+|remotive\.com\/remote-jobs\/[^\/?#]+\/[^\/?#]+)(?:[\/?#]|$)/i;
+function isForm(u){ return GH_JOB.test(u) || ASHBY_JOB.test(u) || LEVER_JOB.test(u) || WORKABLE_JOB.test(u) || WORKDAY_JOB.test(u); }  // a form auto apply fills (Greenhouse, Ashby, Lever, Workable, Workday)
+// Where Auto apply goes. The export sets j.auto: the form, a board job's posting found on the
+// employer's own site, or "" (none found; the board shows the employer link only after sign-in).
+// Jobs from an instant search carry no j.auto: a board job is then looked up when clicked.
+function autoUrl(j){ var u = typeof j.auto === "string" ? j.auto : (j.url || ""); return isForm(u) || BOARD_JOB.test(u) ? u : ""; }
+function isGh(j){ return !!autoUrl(j); }
 function viaApp(){ return !!(mcpApi && META.resumePath); }
 function canAuto(j){ return isGh(j) && viaApp(); }
-function autoLinkFor(j){ return "jobquest://apply?url=" + encodeURIComponent(j.url); }
+function autoLinkFor(j){ return "jobquest://apply?url=" + encodeURIComponent(autoUrl(j)); }
 function autoBtn(j, prefix){
   if (!isGh(j)) return "";
   if (!viaApp()) {
@@ -493,6 +502,9 @@ function autoNote(j){
   var st = autoState[j.k];
   if (!st || st.busy) return "";
   if (st.err) return '<div class="autonote bad">' + esc(st.err) + '</div>';
+  if (st.other) return '<div class="autonote">' + esc(st.other) + '</div>';
+  if (st.steps) return '<div class="autonote">' + (st.signIn ? 'Sign in to this company\'s Workday account in Chrome. ' : 'Filled ' + st.filled + ' fields on the first Workday step. ')
+    + 'Each step fills as it opens: check it and press Save and Continue, then Submit on Review, then tick Applied.</div>';
   return '<div class="autonote">Filled ' + st.filled + ' fields in Chrome' + (st.needs ? ' · ' + st.needs + ' question' + (st.needs === 1 ? '' : 's') + ' left for you' : '') + '. Review it there and press Submit, then tick Applied.' + (st.hint ? ' ' + esc(st.hint) + '.' : '') + '</div>';
 }
 function autoError(e){
@@ -507,14 +519,17 @@ function autoApply(k){
   var j = BY_KEY[k]; if (!j || !canAuto(j) || (autoState[k] && autoState[k].busy)) return;
   autoState[k] = { busy: true }; renderList(); renderPicks();
   toast("Opening the application in Chrome…");
-  mcpApi.callTool(MCP_SERVER, "autoApplyJob", { applyUrl: j.url, resumePath: META.resumePath }, { cache: false })
+  mcpApi.callTool(MCP_SERVER, "autoApplyJob", { applyUrl: autoUrl(j), resumePath: META.resumePath }, { cache: false })
     .then(function(res){
       var p = res && res.payload;
       if (typeof p === "string") { try { p = JSON.parse(p); } catch(e) { p = null; } }
       if (!p || typeof p.filledCount !== "number") throw { code: "tool_error", message: "unexpected answer from the auto-apply tool" };
       var needs = (p.needsYou || []).length;
-      autoState[k] = { ok: true, filled: p.filledCount, needs: needs, hint: p.setupHint || "" };
-      toast("Filled " + p.filledCount + " fields in Chrome" + (needs ? ", " + needs + " left for you" : "") + ". Review and press Submit there.", true);
+      // A board job whose Apply button led somewhere auto apply doesn't fill: the page is open in Chrome.
+      if (p.notFilled) { autoState[k] = { ok: true, other: p.notFilled }; toast(p.notFilled, true); return; }
+      autoState[k] = { ok: true, filled: p.filledCount, needs: needs, hint: p.setupHint || "", steps: !!p.followsSteps, signIn: !!p.waitingForSignIn };
+      if (p.followsSteps) toast(p.waitingForSignIn ? "Sign in to Workday in Chrome; each step then fills itself." : "Filled the first Workday step. Press Save and Continue there; the next step fills itself.", true);
+      else toast("Filled " + p.filledCount + " fields in Chrome" + (needs ? ", " + needs + " left for you" : "") + ". Review and press Submit there.", true);
     })
     .catch(function(e){
       // The app can't reach career-jobs here: hand the job to the jobquest:// link instead.
@@ -886,7 +901,7 @@ function startMcp(){
     setRunButtons(true);
     if (!m) { setRun("off", LINK_NOTE); return; }
     mcpApi = m; setRunButtons(true);
-    setRun("up", "Pick a window to search with your résumé (about 1–4 minutes). The results show here, and the Excel sheet and the board update too. Greenhouse, Ashby, Lever and Workable jobs also get an Auto apply button.");
+    setRun("up", "Pick a window to search with your résumé (about 1–4 minutes). The results show here, and the Excel sheet and the board update too. Greenhouse, Ashby, Lever, Workable and Workday jobs also get an Auto apply button.");
     renderList(); renderPicks();  // show Auto apply buttons now that the tool can answer
   }).catch(function(){ setRunButtons(true); setRun("off", LINK_NOTE); });
 }

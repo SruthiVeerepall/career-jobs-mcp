@@ -21,6 +21,8 @@ export interface ApplicantJob {
   start?: YearMonth;
   end?: YearMonth;
   current: boolean;
+  /** What the résumé says under the job, as "• " bullet lines (≤ 4,000 characters). */
+  description?: string;
 }
 
 export interface ApplicantEducation {
@@ -131,23 +133,48 @@ export function splitCompanyTitle(header: string): { company: string; title: str
   return { company, title };
 }
 
+/** Workday's Role Description and similar boxes cap around 4,000 characters. */
+const MAX_DESCRIPTION = 4000;
+const BULLET = /^[•\-*▪●◦‣∙·–]\s*/;
+
+/** The lines under a job, as "• " bullets, cut at a whole bullet to fit MAX_DESCRIPTION. */
+function describe(lines: string[]): string | undefined {
+  const out: string[] = [];
+  let size = 0;
+  for (const raw of lines) {
+    if (/^location\s*:/i.test(raw)) continue;
+    const text = clean(raw.replace(BULLET, ''));
+    if (!text) continue;
+    const line = `• ${text}`;
+    if (size + line.length + 1 > MAX_DESCRIPTION) break;
+    out.push(line);
+    size += line.length + 1;
+  }
+  return out.length ? out.join('\n') : undefined;
+}
+
 function parseExperience(lines: string[]): ApplicantJob[] {
-  const jobs: ApplicantJob[] = [];
+  const found: { job: ApplicantJob; header: number; body: number }[] = [];
   lines.forEach((line, i) => {
-    if (line.length > 160 || /^[•\-*▪●◦]/.test(line)) return;
+    if (line.length > 160 || BULLET.test(line)) return;
     const r = parseRange(line);
     if (!r) return;
     // Header on the date line, or (when the line is only dates) on the line above.
     let header = clean(`${r.before} ${r.after}`);
-    if (!header && i > 0) header = lines[i - 1];
+    let headerAt = i;
+    if (!header && i > 0) { header = lines[i - 1]; headerAt = i - 1; }
     const ct = splitCompanyTitle(header);
     if (!ct) return;
     const job: ApplicantJob = { ...ct, start: r.start, end: r.end, current: r.current };
     const loc = lines.slice(i + 1, i + 3).map((l) => l.match(/^location\s*:\s*(.+)$/i)?.[1]).find(Boolean);
     if (loc) job.location = loc.trim();
-    jobs.push(job);
+    found.push({ job, header: headerAt, body: i + 1 });
   });
-  return jobs;
+  // Role description: everything between a job's dates and the next job's header.
+  return found.map(({ job, body }, k) => {
+    const description = describe(lines.slice(body, k + 1 < found.length ? found[k + 1].header : lines.length));
+    return description ? { ...job, description } : job;
+  });
 }
 
 const DEGREE_LEVELS: [RegExp, string][] = [

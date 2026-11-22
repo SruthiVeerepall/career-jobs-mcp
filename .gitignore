@@ -19,6 +19,7 @@ validated-*.json
 companies-final.txt
 apply-profile.json
 data/apply-chrome-profile/
+data/workday-debug/
 job-quest-outputs.json
 data/refresh.lock
 data/refresh.pending

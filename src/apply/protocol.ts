@@ -1,11 +1,12 @@
 import { applyFormFor, SUPPORTED_PLATFORMS } from './platforms.js';
+import { BOARD_NAMES, boardJobFor } from './board-link.js';
 
 // The jobquest:// link type: lets an Excel cell, a local HTML page, or any browser start auto
 // apply or a refresh without the Claude desktop app. `node install-auto-apply.mjs` registers
 // the scheme for the current Windows user; a click runs `node jobquest-link.mjs "<the link>"`.
 //
 // Links carry as little as possible, because any website can fire one:
-//   jobquest://apply?url=<a job applyFormFor() accepts>  — the résumé path comes from apply-profile.json on
+//   jobquest://apply?url=<a job acceptsAutoApply() accepts>  — the résumé path comes from apply-profile.json on
 //     this machine, so a link can never choose which file is uploaded. The filler never submits.
 //   jobquest://refresh?days=1|3|7|30       — reruns the last daily export (job-quest-outputs.json)
 //     for that window. Only those four values are accepted; outputs are never named by a link.
@@ -15,9 +16,17 @@ export const REFRESH_DAYS = [1, 3, 7, 30] as const;
 
 export type JobQuestLink = { action: 'apply'; url: string } | { action: 'refresh'; days: number };
 
-/** Apply URL of a supported platform (applyFormFor) -> jobquest://apply?url=…, or null for any other site. */
+/**
+ * Jobs auto apply can start from: a form it fills (applyFormFor), or a job board page whose
+ * Apply button is followed in Chrome to the employer's form (boardJobFor: LinkedIn, BuiltIn…).
+ */
+export function acceptsAutoApply(applyUrl: string): boolean {
+  return !!applyFormFor(applyUrl) || !!boardJobFor(applyUrl);
+}
+
+/** Apply URL auto apply accepts (acceptsAutoApply) -> jobquest://apply?url=…, or null for any other site. */
 export function autoApplyLink(applyUrl: string): string | null {
-  if (!applyFormFor(applyUrl)) return null;
+  if (!acceptsAutoApply(applyUrl)) return null;
   return `${SCHEME}://apply?url=${encodeURIComponent(applyUrl)}`;
 }
 
@@ -36,7 +45,7 @@ export function parseJobQuestLink(link: string): JobQuestLink {
   const action = (u.hostname || u.pathname).replace(/^\/+|\/+$/g, '');
   if (action === 'apply') {
     const url = u.searchParams.get('url');
-    if (!url || !applyFormFor(url)) throw new Error(`Auto apply supports ${SUPPORTED_PLATFORMS} jobs only. Got: ${url ?? '(no url)'}`);
+    if (!url || !acceptsAutoApply(url)) throw new Error(`Auto apply supports ${SUPPORTED_PLATFORMS} jobs and ${BOARD_NAMES} job pages only. Got: ${url ?? '(no url)'}`);
     return { action, url };
   }
   if (action === 'refresh') {

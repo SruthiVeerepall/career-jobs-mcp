@@ -2,7 +2,7 @@
 
 An MCP server (plus CLI scripts) that searches company career sites and job boards, matches
 jobs to a résumé, exports them to Excel and the "Job Quest Board" page, and auto-fills
-Greenhouse, Ashby, Lever and Workable applications. Follow these rules on every request without being reminded.
+Greenhouse, Ashby, Lever, Workable and Workday applications. Follow these rules on every request without being reminded.
 
 ## Working rules
 
@@ -126,7 +126,7 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
 | `… --html` / `--artifact` | Write only the page (standalone / publish-ready) |
 | `node refresh-job-quest.mjs --days 1\|3\|7\|30` | Rerun the last `--resume --page` export for a new window, updating sheet, pages and board. `--detach`, `--status` |
 | `node publish-job-page.mjs <page>` | Publish a page to the board (retry after a failed auto-publish) |
-| `node auto-apply.mjs --resume <path> <job url>` | Fill one application in a visible Chrome; never submits. `--show-data`, `--link <jobquest://…>` |
+| `node auto-apply.mjs --resume <path> <job url>` | Fill one application in a visible Chrome; never submits (Workday: waits for sign-in, then fills each step as it opens). A board job URL (LinkedIn, BuiltIn…) is looked up on the employer's own job site first (never signs in to the board). `--show-data`, `--link <jobquest://…>` |
 | `node auto-apply.mjs --setup` / `--set key=value` | Save one-time answers (LinkedIn, authorization, sponsorship, pronouns, EEO) |
 | `node install-auto-apply.mjs --resume <path>` | Register `jobquest://` links (Windows, HKCU) → `jobquest-link.mjs`. `--status`, `--uninstall`. Re-run after moving the repo or Node |
 | `node probe-registry.mjs` (`--dry-run`, `--platform X`) | Health-check the registry; removes only definitive 404s |
@@ -160,7 +160,7 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
   open in Excel is saved, closed and reopened over COM (`excel-session.mjs`, path passed via
   env, not `$args`).
 
-## Auto Apply (Greenhouse, Ashby, Lever, Workable)
+## Auto Apply (Greenhouse, Ashby, Lever, Workable, Workday; board jobs leading to them)
 
 - **Never submits.** It fills the form; the user reviews and presses Submit. Keep it that way.
 - **Platforms** are chosen in one place, `applyFormFor()` (`src/apply/platforms.ts`); the CLI, MCP tool,
@@ -219,8 +219,86 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
   Education / Experience are optional "+ Add" sections and are not filled.
   Live check (2026-11-15, headless, 8 forms, values read back from the page, 0 errors): Multi
   Media, J-Mack, Peregrine, Stafford Gray, Sigma Defense, Man Group, Katmai, Hugging Face.
+- **Workday** (`src/apply/workday.ts`): open `<job url>/apply/applyManually` (`workdayFormUrl()`;
+  `openWorkdayForm()` declines cookies and falls back to Apply → Apply Manually). Every tenant
+  has its own account: the flow opens on *Create Account / Sign In* (`signInContent`) and the
+  **user** signs in. Never type credentials, never create accounts, never touch
+  `input[data-automation-id=beecatcher]` (honeypot named `website`). It is a wizard, so
+  `autoApply()` fills the step on screen (if already signed in) and returns; `followWorkday()`
+  then polls `workdayState()` and fills each new step once (keyed by the
+  `progressBarActiveStep` text) until Review, tab close or 90 min. The user presses Save and
+  Continue; the filler presses neither that nor Submit. Results carry `followsSteps` /
+  `waitingForSignIn`. Fields: `div[data-automation-id="formField-<id>"]` + `<label>`/`<legend>`
+  (`*` = required); dropdowns `button[aria-haspopup=listbox]` with `[role=option]` only while
+  open ("Select One" = empty); prompts (type, Enter, `promptOption`, picked = `selectedItem`);
+  dates `dateSectionMonth-input`/`dateSectionYear-input`. Country before address (it
+  re-renders); "United States of America"; phone as national digits, device type Mobile.
+  **Every** résumé job and school gets an entry (`entryFor()`): an entry already holding that
+  company / school (a parsed résumé, the last application) is completed, empty fields only;
+  else an untouched blank entry; else Add / Add Another. An entry's section is its
+  `aria-labelledby` group label ("Work Experience 2"), else the nearest section heading.
+  **Never count a `<legend>` or a heading inside a formField as a section**: date fields are
+  fieldsets with legend "From"/"To", and counting them hid "Add Another" after job 1.
+  Prompts (school, field of study, skills) are multi-selects whose results list **stays open
+  after a pick**, over the fields below, swallowing the next click: `promptPick()` presses
+  Escape after every pick (BlackRock: Degree, Field of Study and years were missed after the
+  school). The test mock keeps its list open the same way.
+  Workday's fixed footer (`pageFooter`, Back / Save and Continue) covers buttons that count as
+  "in view": `clickAdd()` centres the Add button, and `entryFor()` retries with a DOM click when
+  no entry appears (a mouse click on the footer left Education with no entry).
+  The résumé upload may not be a formField (`file-upload-input-ref`); wait for it to land plus
+  3s for Workday's parse before matching entries. `chooseDegree()`: exact degree, else the one
+  generic option, else science/arts by field of study ("Master of Computer Science" →
+  "Master of Science (MS)"); MBA is never a plain Master's; a tie stays blank.
+  `readFields()` clears old `data-jq-field` tags first (hidden fields kept stale tags).
+  Role Description = the résumé lines under that job (`ApplicantJob.description`, "• " bullets,
+  ≤ 4,000 chars, from `parseExperience()`). Date parts and prompt searches sit under display
+  overlays: `focusBox()` (click, then JS focus) and type with the keyboard; `setDate()` checks
+  the input or `dateSection<Part>-display`. Every field goes through `attempt()` / try-catch, so
+  one failure is reported and the step goes on (one bad date box used to abort the step: no
+  Add Another, no dates, no Education). Schools / fields of study from a prompt list accept an
+  option that starts with the résumé's name ("… - Main Campus").
+  Each step's markup (values stripped) is saved to `data/workday-debug/<step> before.html`
+  before filling and `<step>.html` after (git-ignored): read them first when a tenant's field
+  is missed.
+  Self Identify's disability boxes are keyed by field id. Terms / consent boxes, "previously
+  worked here", How did you hear, address line and signature date are left (`needsYou`).
+  Live check (2026-11-20, headless): URL mapping on 2,997 cached jobs; 6 tenants (Workday,
+  Zendesk, YETI, Zebra, Wells Fargo, Wegmans) reach sign-in. Steps after sign-in are tested on
+  a Workday-shaped mock in `test/workday.test.mjs` only; no account was used.
+- **Board jobs: never sign in to a board** (user decision: account-lock risk, and a fresh
+  sign-in per window). `boardJobFor()` (`src/apply/board-link.ts`) accepts job pages on
+  LinkedIn, BuiltIn, SimplyHired, Himalayas, We Work Remotely, Jobicy, RemoteOK, Remotive (exact
+  https hosts; `BOARD_JOB` in `templates/job-quest.html` must agree, tested).
+  **Employer match** (`src/apply/employer-match.ts`): the board job's company, title and
+  location find the same posting on the employer's own board. Registered company
+  (`registeredEmployer()`, Greenhouse / Lever / Ashby / Workday only): its board, no guessing.
+  Otherwise one guessed Greenhouse / Lever / Ashby name (`boardNameGuesses()`), remembered per
+  company 7 days (`employer_boards`). `pickPosting()`: same `titleKey()`, a form `applyFormFor()`
+  accepts, locations not disagreeing (`placesAgree()`; a shared state is enough at a registered
+  company, a guess needs `yes`, because a guessed name can be another company's board); a loose
+  title (no "(Remote)" / " - City") only when unique. Greenhouse/Lever/Ashby are read with one
+  light API call each (`listPublicBoard()`; Greenhouse's `absolute_url` is often the company's
+  own page, which is no form, so build `job-boards.greenhouse.io/<board>/jobs/<id>`); Workday
+  uses its scraper (server-side title search). Results per board URL: `employer_links`, 14 days
+  (2 for no match). The export runs `matchBoardJobs()` on its board jobs and sets `j.auto` (the
+  form, the employer posting, a Remotive/WWR board URL, or ''); the sheet's Auto Apply column
+  and the page's `autoUrl(j)` use it, so an unmatched board job shows no ⚡. `autoApply()` on a
+  board URL calls `employerUrlFor()` (cached link, else the cached board job's details); no
+  match on a sign-in board → `via.outcome: 'no-match'` + `notFilled`, **nothing opened**.
+  Live (2026-11-22): 13 of 60 recent board jobs matched (Workday, Lever, Ashby, Greenhouse; same
+  title, checked by hand), 11s; then 0s from cache. Click test: a LinkedIn job → CLEAR's
+  Greenhouse form, 12 fields filled, LinkedIn never opened.
+  **Following the Apply button** (`followBoardApply()`) is used only for boards that reach the
+  employer without an account (`followsWithoutAccount()`: Remotive, We Work Remotely). It never
+  presses a board's own apply (Easy Apply, Indeed), types credentials, or clicks board dialogs.
+  Live, signed out: LinkedIn's public page has no employer link (Apply opens a sign-in dialog or
+  an authwall; `public_jobs_apply-link-onsite` = Easy Apply, `…-offsite` = company site);
+  BuiltIn `?handler=ApplyRedirect` → `?applyRequired=true`; Jobicy and Himalayas gate Apply
+  behind sign-up; SimplyHired / Himalayas / WWR serve Cloudflare; RemoteOK `/l/<id>` bounced
+  back; Remotive reached employer sites.
 - **Not supported:** SmartRecruiters' apply page (`oneclick-ui`) answers automated browsers with
-  a DataDome 403 + captcha; do not try to get around it. Workday needs an account per tenant.
+  a DataDome 403 + captcha; do not try to get around it.
 - "Are you authorized to work … **without** sponsorship?" is its own key
   (`authorizedWithoutSponsorship`, Yes only when workAuthorized=yes AND sponsorship=no). Read as a
   sponsorship question it was answered No. Use `savedAnswer(key, std)`, not `std[key]`.
@@ -230,6 +308,10 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
     (each EEO answer may be `decline`). Questions are matched by **label** over every visible
     field (EEO sections, numeric-id surveys and custom questions differ by board).
     `chooseOption()` returns null on no match **or a tie**, leaving the field blank.
+    Wordings without the key word count too: "legal authorization to work" (workAuthorized),
+    "need to obtain… a visa or work permit" (sponsorship). Veteran: "I am a veteran, but not a
+    protected veteran" is a veteran, never a "no" (it tied with "I am not a veteran").
+    `test/standard-answers.test.mjs` pins BlackRock's live labels.
   - `answers[]`: label *contains* `question`; wins over `standard`.
   - Résumé facts: legal name, `City, ST`, "located in the US", country of residence, current
     employer and title (latest job). Citizenship,
@@ -239,7 +321,8 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
     to 3 times (some appear after earlier answers); a checkbox group is one `needsYou` entry.
 - Two routes, one filler: the `autoApplyJob` MCP tool (desktop app; not read-only, so the app
   asks first) and `jobquest://apply?url=…` links (Excel, local page, browser). **A link carries
-  only the job URL** (Greenhouse/Ashby/Lever/Workable only); `refresh` links accept only 1/3/7/30. Any website can
+  only the job URL** (`acceptsAutoApply()`: Greenhouse/Ashby/Lever/Workable/Workday forms and
+  `boardJobFor()` board pages only); `refresh` links accept only 1/3/7/30. Any website can
   fire these links, so never let one name a path or file.
 - Visible Chrome: `getVisibleBrowser()`, profile `data/apply-chrome-profile/` (falls back to a
   temp profile when it's in use). `APPLY_HEADLESS=true` is for tests only.

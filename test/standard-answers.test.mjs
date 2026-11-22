@@ -85,3 +85,24 @@ test('résumé facts answer location, residence and legal-name questions', async
   assert.equal(chooseDerived('locatedInUS', { ...f, inUS: false }, ['Yes', 'No']), null);
   assert.equal(classifyQuestion('If offered employment by Amazon, would you be legally eligible to begin employment immediately?'), 'workAuthorized');
 });
+
+// Workday tenants, seen live 2026-11-22 (BlackRock's Application Questions left blank).
+test('Workday: authorization and sponsorship asked without "authorized" or "sponsor"', () => {
+  const auth = 'Prior to hire date, BlackRock will conduct a verification check to validate employees have legal authorization to undertake the role applied for, and to work in compliance with immigration laws in the country work location. Do you have legal authorization to work in the country work location (where the role is based)?';
+  const visa = 'Will you need to obtain, renew, extend or transfer a visa or work permit in order to commence work/maintain legal authorization to work at BlackRock in the country work location now or in the future? e.g. I can work now with my student visa, but will need support in obtaining a work visa next year';
+  assert.equal(classifyQuestion(auth), 'workAuthorized');
+  assert.equal(classifyQuestion(visa), 'sponsorship');
+  assert.equal(chooseOption(classifyQuestion(visa), { sponsorship: 'no' }, ['Yes', 'No']), 'No');
+  assert.equal(classifyQuestion('Do you have a Personal Relationship with a current BlackRock employee or contingent worker?'), null);
+  assert.equal(classifyQuestion('Do you currently hold a visa?'), null, 'holding one is not needing one');
+});
+
+test('Workday veteran lists: "a veteran, but not a protected veteran" is never a no', () => {
+  const vet = ['I am not a veteran', 'I identify as one or more of the classifications of protected veteran', 'I am a veteran, but not a protected veteran', 'I do not wish to self-identify'];
+  assert.equal(chooseOption('veteran', { veteran: 'no' }, vet), 'I am not a veteran');
+  assert.equal(chooseOption('veteran', { veteran: 'yes' }, vet), vet[1]);
+  assert.equal(chooseOption('veteran', { veteran: 'decline' }, vet), vet[3]);
+  const plain = ['Yes, I identify as a veteran', 'No, I do not identify as a veteran', 'I choose not to self-identify'];
+  assert.equal(chooseOption('veteran', { veteran: 'no' }, plain), plain[1]);
+  assert.equal(chooseOption('veteran', { veteran: 'no' }, ['I identify as a veteran, just not a protected veteran', 'I am not a protected veteran']), 'I am not a protected veteran');
+});

@@ -27,6 +27,11 @@ const MAX_WINDOW_FRACTION = 0.05;
 
 /** Fetched job descriptions are kept this long; longer than any search window. */
 const DESCRIPTION_TTL_DAYS = 14;
+/** A board job's employer posting, once found, is kept this long; "none found" a shorter time. */
+const EMPLOYER_HIT_TTL_DAYS = 14;
+const EMPLOYER_MISS_TTL_DAYS = 2;
+/** A guessed employer board (or "none found") per company. */
+const EMPLOYER_BOARD_TTL_DAYS = 7;
 
 class CacheManager {
   private db: Database.Database;
@@ -62,10 +67,69 @@ class CacheManager {
         fetched_at INTEGER NOT NULL,
         text TEXT NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS employer_links (
+        board_url TEXT PRIMARY KEY,
+        checked_at INTEGER NOT NULL,
+        employer_url TEXT
+      );
+      CREATE TABLE IF NOT EXISTS employer_boards (
+        company_key TEXT PRIMARY KEY,
+        checked_at INTEGER NOT NULL,
+        platform TEXT,
+        ident TEXT
+      );
     `);
+    this.db.prepare('DELETE FROM employer_boards WHERE checked_at < ?').run(Date.now() - EMPLOYER_BOARD_TTL_DAYS * 86_400_000);
     this.db
       .prepare('DELETE FROM job_descriptions WHERE fetched_at < ?')
       .run(Date.now() - DESCRIPTION_TTL_DAYS * 86_400_000);
+    this.db
+      .prepare('DELETE FROM employer_links WHERE checked_at < ? OR (employer_url IS NULL AND checked_at < ?)')
+      .run(Date.now() - EMPLOYER_HIT_TTL_DAYS * 86_400_000, Date.now() - EMPLOYER_MISS_TTL_DAYS * 86_400_000);
+  }
+
+  /**
+   * A board job's posting on the employer's own site, from an earlier lookup: the URL, null
+   * when the lookup found none (kept a shorter time, the employer may post it later), or
+   * undefined when it was never looked up.
+   */
+  getEmployerLink(boardUrl: string): string | null | undefined {
+    const row = this.db.prepare('SELECT employer_url FROM employer_links WHERE board_url = ?').get(boardUrl) as
+      | { employer_url: string | null }
+      | undefined;
+    return row ? row.employer_url : undefined;
+  }
+
+  /**
+   * An unregistered company's guessed public board (Greenhouse / Lever / Ashby name), null when
+   * no guess found one, undefined when never guessed.
+   */
+  getEmployerBoard(companyKey: string): { platform: string; ident: string } | null | undefined {
+    const row = this.db.prepare('SELECT platform, ident FROM employer_boards WHERE company_key = ?').get(companyKey) as
+      | { platform: string | null; ident: string | null }
+      | undefined;
+    if (!row) return undefined;
+    return row.platform && row.ident ? { platform: row.platform, ident: row.ident } : null;
+  }
+
+  setEmployerBoard(companyKey: string, board: { platform: string; ident: string } | null): void {
+    this.db
+      .prepare('INSERT OR REPLACE INTO employer_boards (company_key, checked_at, platform, ident) VALUES (?, ?, ?, ?)')
+      .run(companyKey, Date.now(), board?.platform ?? null, board?.ident ?? null);
+  }
+
+  setEmployerLink(boardUrl: string, employerUrl: string | null): void {
+    this.db
+      .prepare('INSERT OR REPLACE INTO employer_links (board_url, checked_at, employer_url) VALUES (?, ?, ?)')
+      .run(boardUrl, Date.now(), employerUrl);
+  }
+
+  /** A cached job by its apply URL (a board job clicked from an older sheet), newest first. */
+  getJobByApplyUrl(applyUrl: string): JobListing | null {
+    const row = this.db
+      .prepare("SELECT data_json FROM jobs WHERE json_extract(data_json, '$.applyUrl') = ? ORDER BY scraped_at DESC LIMIT 1")
+      .get(applyUrl) as { data_json: string } | undefined;
+    return row ? (JSON.parse(row.data_json) as JobListing) : null;
   }
 
   /**

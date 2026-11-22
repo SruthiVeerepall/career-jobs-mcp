@@ -45,6 +45,9 @@ import { OVER_5YR, CLEARANCE, isUSJob, matchesProfile, resumeScore } from './dis
 import { parsePostedDate } from './dist/utils/posted-date.js';
 import { searchJobsForResume } from './dist/resume/search.js';
 import { autoApplyLink, refreshLink } from './dist/apply/protocol.js';
+import { applyFormFor } from './dist/apply/platforms.js';
+import { boardJobFor, followsWithoutAccount } from './dist/apply/board-link.js';
+import { matchBoardJobs } from './dist/apply/employer-match.js';
 import { closeInExcel, isLocked, openInExcel, readAppliedUrls } from './excel-session.mjs';
 import { saveOutputs } from './job-quest-outputs.mjs';
 import { byJdMatch } from './dist/resume/jd-match.js';
@@ -298,6 +301,16 @@ async function collectFromRegistryProfile() {
 async function run() {
   const { jobs, elapsed, candidate } = RESUME ? await collectFromResume() : await collectFromRegistryProfile();
 
+  // Board jobs (LinkedIn, BuiltIn…): find each on the employer's own job site, so ⚡ Auto apply
+  // opens that form directly. The boards show the employer's link only to signed-in members.
+  const boardJobs = jobs.filter((j) => j.url && !applyFormFor(j.url) && boardJobFor(j.url));
+  const employerOf = boardJobs.length ? (console.log(`\nLooking up ${boardJobs.length} job board listings on the employers' own job sites…`), await matchBoardJobs(boardJobs)) : new Map();
+  for (const j of jobs) {
+    const board = j.url ? boardJobFor(j.url) : null;
+    j.auto = !j.url ? '' : applyFormFor(j.url) ? j.url : employerOf.get(j.url) ?? (board && followsWithoutAccount(board.board) ? j.url : '');
+  }
+  if (boardJobs.length) console.log(`  ${employerOf.size} of ${boardJobs.length} found on the employer's site (⚡ Auto apply goes there)`);
+
   console.log(`\nFound ${jobs.length} jobs in ${elapsed}s. Writing ${OUT}...`);
 
   const pageMeta = {
@@ -318,7 +331,7 @@ async function run() {
 
   // ---- Build the workbook -------------------------------------------------
   const autoLink = (u) => (u ? autoApplyLink(u) : null);
-  const autoCount = jobs.filter(j => autoLink(j.url)).length;
+  const autoCount = jobs.filter(j => autoLink(j.auto)).length;
 
   // Open in Excel? Have Excel save (so recent ticks are on disk) and close it, so it can be
   // rewritten; it is reopened after the write. Then carry the old file's ticks over.
@@ -350,7 +363,7 @@ async function run() {
     { header: 'JD Match %', key: 'jdMatch', width: 11 },
     { header: 'Platform', key: 'platform', width: 15 },
     { header: 'Apply', key: 'apply', width: 12 },
-    // Auto-apply jobs (Greenhouse, Ashby, Lever, Workable): a jobquest:// link that fills the form in Chrome from the résumé
+    // Auto-apply jobs (Greenhouse, Ashby, Lever, Workable, Workday, and board jobs leading to one): a jobquest:// link that fills the form in Chrome from the résumé
     // (needs a one-time `node install-auto-apply.mjs --resume <path>`). Never submits.
     { header: 'Auto Apply', key: 'auto', width: 13 },
     { header: 'Apply URL', key: 'url', width: 60 },
@@ -388,7 +401,7 @@ async function run() {
       jdMatch: hasJd ? j.jdMatchPercent / 100 : (RESUME ? 'N/A' : ''),
       platform: j.platform,
       apply: j.url ? { text: 'Apply ↗', hyperlink: j.url } : '',
-      auto: autoLink(j.url) ? { text: '⚡ Auto apply', hyperlink: autoLink(j.url) } : '',
+      auto: autoLink(j.auto) ? { text: '⚡ Auto apply', hyperlink: autoLink(j.auto) } : '',
       url: j.url,
     });
     row.getCell('applied').alignment = { horizontal: 'center' };
@@ -404,7 +417,7 @@ async function run() {
       jc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: jdFill(j.jdMatchPercent) } };
     }
     if (j.url) row.getCell('apply').font = { color: { argb: 'FF4F46E5' }, underline: true };
-    if (autoLink(j.url)) row.getCell('auto').font = { color: { argb: 'FF4E7D2E' }, underline: true, bold: true };
+    if (autoLink(j.auto)) row.getCell('auto').font = { color: { argb: 'FF4E7D2E' }, underline: true, bold: true };
   });
 
   const lastRow = jobs.length + 1;
@@ -476,7 +489,8 @@ async function run() {
     console.log(`  JD match: ${jd70} strong (≥70%), ${jd40} partial (40–69%) — best fit first within each group`);
   }
   console.log(`  ${fromCompanies} from company career sites (listed first), ${jobs.length - fromCompanies} from job boards`);
-  if (autoCount) console.log(`  ${autoCount} Greenhouse/Ashby jobs have an "Auto apply" link (one-time setup: node install-auto-apply.mjs --resume <path>)`);
+  if (autoCount) console.log(`  ${autoCount} jobs have an "Auto apply" link (Greenhouse/Ashby/Lever/Workable/Workday forms, and job board pages whose Apply button leads to one)`
+    + ` (one-time setup: node install-auto-apply.mjs --resume <path>)`);
   console.log(`  Tick the "Applied?" checkbox to mark a job done; the row greys out and row ${totalRowNum} counts your applications.`);
 
   if (PAGE) {

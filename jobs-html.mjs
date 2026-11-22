@@ -38,6 +38,8 @@ export function toPageJobs(jobs) {
       jdOf: (j.jdMatchedSkills?.length ?? 0) + (j.jdMissingSkills?.length ?? 0),
       platform: j.platform,
       url: j.url || '',
+      // Where ⚡ Auto apply goes: the form itself, a board job's posting on the employer's site, or ''.
+      auto: j.auto || '',
     };
   });
 }

@@ -23,7 +23,7 @@ test('one platform lookup serves every entry point', () => {
   const link = autoApplyLink(`https://jobs.ashbyhq.com/ramp/${ID}/application`);
   assert.ok(link.startsWith('jobquest://apply?url='));
   assert.equal(parseAutoApplyLink(link), `https://jobs.ashbyhq.com/ramp/${ID}/application`);
-  assert.throws(() => parseAutoApplyLink('jobquest://apply?url=' + encodeURIComponent('https://jobs.smartrecruiters.com/Acme/1')), /Greenhouse, Ashby, Lever and Workable/);
+  assert.throws(() => parseAutoApplyLink('jobquest://apply?url=' + encodeURIComponent('https://jobs.smartrecruiters.com/Acme/1')), /Greenhouse, Ashby, Lever, Workable and Workday/);
 });
 
 test('current employer and title come from the latest job on the résumé', () => {

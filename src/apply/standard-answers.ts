@@ -58,7 +58,10 @@ export function classifyQuestion(label: string): QuestionKey | null {
   const l = label.toLowerCase();
   if (/(?:authori[sz]ed|eligible|able|permitted) to work\b.*\b(?:without|with no|not (?:needing|requiring))\b.{0,50}?sponsor/.test(l)) return 'authorizedWithoutSponsorship';
   if (/sponsor/.test(l)) return 'sponsorship';
-  if (/authori[sz]ed to work|work authori[sz]|eligible to work|right to work|legally (?:able|permitted) to work|legally eligible to (?:begin|start|accept)/.test(l)) return 'workAuthorized';
+  // Sponsorship asked without the word: "Will you need to obtain, renew, extend or transfer a
+  // visa or work permit in order to commence work…" (BlackRock).
+  if (/\b(?:need|require|obtain|renew|extend|transfer)\b.{0,80}\b(?:visa|work permit|immigration (?:support|assistance))\b/.test(l)) return 'sponsorship';
+  if (/authori[sz]ed to work|authori[sz]ation to work|work authori[sz]|eligible to work|right to work|legally (?:able|permitted) to work|legally eligible to (?:begin|start|accept)/.test(l)) return 'workAuthorized';
   if (/pronoun/.test(l)) return 'pronouns';
   if (/lgbt/.test(l)) return 'lgbtq';
   if (/veteran/.test(l)) return 'veteran';
@@ -125,8 +128,16 @@ export function chooseOption(key: QuestionKey, a: StandardAnswers, options: stri
     case 'veteran': return best(options, (o) => {
       if (a.veteran === 'decline') return DECLINE.test(o) ? 10 : 0;
       if (DECLINE.test(o)) return 0;
-      const not = /\bnot\b|^no\b/.test(o);
-      return a.veteran === 'no' ? (not ? 10 : 0) : (!not && /veteran|^yes\b/.test(o) ? 10 : 0);
+      // Workday lists often hold both "I am not a veteran" and "I am a veteran, but not a
+      // protected veteran". Both say "not", which tied and left the box blank; the second is
+      // a veteran, so it is never a "no".
+      const veteranNotProtected = /\b(?:am|identify as) an? veteran\b.{0,30}\b(?:but|just|however)\b.{0,20}\bnot\b/.test(o);
+      if (veteranNotProtected) return 0;
+      const notVeteran = /^no\b|\bnot an? veteran\b|\bnever served\b|\bno (?:prior )?military service\b/.test(o);
+      const notProtected = /\bnot an? protected veteran\b/.test(o);
+      if (a.veteran === 'no') return notVeteran ? 10 : notProtected ? 8 : 0;
+      if (/\bnot\b/.test(o)) return 0;
+      return /classifications? of (?:an? )?protected veteran|\ban? protected veteran\b|^yes\b/.test(o) ? 10 : /veteran/.test(o) ? 8 : 0;
     });
   }
   return null;

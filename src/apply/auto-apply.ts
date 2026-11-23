@@ -8,13 +8,14 @@ import type { FillReport } from './common.js';
 import { fillGreenhouse } from './greenhouse.js';
 import { fillLever } from './lever.js';
 import { fillWorkable, openWorkableForm } from './workable.js';
-import { fillWorkdayStep, followWorkday, openWorkdayForm, saveWorkdaySnapshot, workdayState, type WorkdayStepReport } from './workday.js';
+import { fillWorkdayStep, followWorkday, openWorkdayForm, saveWorkdayReport, saveWorkdaySnapshot, workdayState, type WorkdayStepReport } from './workday.js';
 import { logger } from '../utils/logger.js';
 import type { Page } from 'puppeteer';
 import { applyFormFor, SUPPORTED_PLATFORMS, type ApplyPlatform } from './platforms.js';
 import { setupHint } from './standard-answers.js';
 import { BOARD_NAMES, boardJobFor, boardMessage, followBoardApply, followsWithoutAccount, type BoardOutcome, type JobBoard } from './board-link.js';
 import { employerUrlFor } from './employer-match.js';
+import { EIGHTFOLD_READY, eightfoldWantsSignIn, fillEightfold, waitForEightfoldForm } from './eightfold.js';
 
 export interface AutoApplyOptions {
   applyUrl: string;
@@ -52,6 +53,7 @@ const FORM_READY: Record<ApplyPlatform, string> = {
   lever: 'input[name="email"]',
   workable: 'form input[name="email"]',
   workday: '[data-automation-id="applyFlowPage"]',
+  eightfold: EIGHTFOLD_READY,
 };
 
 /** Steps some platforms need before the form shows (Workable: cookie banner, "Apply now"). */
@@ -110,13 +112,27 @@ export async function autoApply({ applyUrl, resumePath, onStep, onStepsDone }: A
   await OPEN_FORM[platform]?.(page);
   // Ashby renders the form client-side after the page settles.
   const ready = await page.waitForSelector(FORM_READY[platform], { timeout: 15_000 }).catch(() => null);
+  if (!ready && platform === 'eightfold' && await eightfoldWantsSignIn(page, formUrl)) {
+    // Microsoft / Qualcomm: the form shows after the candidate signs in to the company's own
+    // site. Wait for that in the background and fill the form when it appears.
+    void (async () => {
+      const shown = await waitForEightfoldForm(page);
+      if (!shown) { onStepsDone?.(page.isClosed() ? 'closed' : 'timeout'); return; }
+      const report = await fillEightfold(page, applicant, file, extra.answers ?? [], extra);
+      await page.bringToFront().catch(() => {});
+      (onStep ?? ((r: WorkdayStepReport) => logger.info(`Eightfold application: filled ${r.filled.length}, ${r.needsYou.length} left for you`)))({ step: 'Application', ...report });
+      onStepsDone?.('review');
+    })().catch((err) => logger.warn('Eightfold sign-in wait stopped', err));
+    await page.bringToFront();
+    return { platform, formUrl, applicant, submitted: false, ...(via ? { via } : {}), filled: [], failed: [], needsYou: [], resumeUploaded: false, followsSteps: true, waitingForSignIn: true };
+  }
   if (!ready) throw new Error('No application form on this page; the job has probably closed.');
 
   if (platform === 'workday') {
     return { platform, formUrl, applicant, submitted: false, ...(via ? { via } : {}), ...(await startWorkday(page, applicant, file, extra, onStep, onStepsDone)) };
   }
 
-  const fill = { greenhouse: fillGreenhouse, ashby: fillAshby, lever: fillLever, workable: fillWorkable }[platform];
+  const fill = { greenhouse: fillGreenhouse, ashby: fillAshby, lever: fillLever, workable: fillWorkable, eightfold: fillEightfold }[platform];
   const report = await fill(page, applicant, file, extra.answers ?? [], extra);
   await page.bringToFront();
   // Leave the reviewer at the top of the form.
@@ -143,7 +159,10 @@ async function startWorkday(
   const fillStep = async () => {
     await snapshot(' before');
     try {
-      return await fillWorkdayStep(page, applicant, file, extra.answers ?? [], extra);
+      const report = await fillWorkdayStep(page, applicant, file, extra.answers ?? [], extra);
+      const { step } = await workdayState(page).catch(() => ({ step: '' }));
+      saveWorkdayReport(step, report);
+      return report;
     } finally {
       await snapshot('');
     }

@@ -106,3 +106,17 @@ test('Workday veteran lists: "a veteran, but not a protected veteran" is never a
   assert.equal(chooseOption('veteran', { veteran: 'no' }, plain), plain[1]);
   assert.equal(chooseOption('veteran', { veteran: 'no' }, ['I identify as a veteran, just not a protected veteran', 'I am not a protected veteran']), 'I am not a protected veteran');
 });
+
+// Eightfold tenants, seen live 2026-11-22.
+test('Eightfold veteran lists: Netflix "neither" and Lockheed Martin "not protected / prefer not"', () => {
+  const nflx = ['I AM A US VETERAN IN A NON-PROTECTED STATUS', 'I AM A US VETERAN IN A PROTECTED STATUS', 'I AM NEITHER A PROTECTED OR NON-PROTECTED US VETERAN', 'I CHOOSE NOT TO DISCLOSE'];
+  assert.equal(chooseOption('veteran', { veteran: 'no' }, nflx), nflx[2]);
+  assert.equal(chooseOption('veteran', { veteran: 'yes' }, nflx), nflx[1]);
+  assert.equal(chooseOption('veteran', { veteran: 'decline' }, nflx), nflx[3]);
+  const lmt = ['I identify as one or more of the Classifications of Protected Veteran Listed above', 'I am not a protected Veteran / I prefer not to answer'];
+  assert.equal(chooseOption('veteran', { veteran: 'no' }, lmt), lmt[1]);
+  assert.equal(chooseOption('veteran', { veteran: 'yes' }, lmt), lmt[0]);
+  assert.equal(classifyQuestion('Sex'), 'gender');
+  assert.equal(classifyQuestion('Please indicate the ethnic group with which you identify.'), 'race');
+  assert.equal(classifyQuestion('Have you ever been convicted of a sex offense?'), null);
+});

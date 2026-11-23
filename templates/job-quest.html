@@ -473,9 +473,10 @@ var ASHBY_JOB = /^https:\/\/jobs(?:\.eu)?\.ashbyhq\.com\/[^\/?#]+\/[0-9a-f]{8}-[
 var LEVER_JOB = /^https:\/\/jobs(?:\.eu)?\.lever\.co\/[^\/?#]+\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 var WORKABLE_JOB = /^https:\/\/(?:jobs\.workable\.com\/view\/[A-Za-z0-9-]{8,40}|apply\.workable\.com\/[^\/?#]+\/j\/[A-Za-z0-9]{6,16}|[a-z0-9-]+\.workable\.com\/j\/[A-Za-z0-9]{6,16})(?:[\/?#]|$)/i;
 var WORKDAY_JOB = /^https:\/\/[a-z0-9][a-z0-9-]*\.wd\d{1,3}\.myworkdayjobs\.com\/(?:[a-z]{2}(?:-[a-z]{2})?\/)?[^\/?#]+\/(?:job|details)\/(?:[^\/?#]+\/){0,2}[^\/?#]*_[A-Za-z0-9-]+(?:\/apply[^?#]*)?(?:[?#]|\/?$)/i;
+var EIGHTFOLD_JOB = /^https:\/\/(?:[a-z0-9-]+\.eightfold\.ai|explore\.jobs\.netflix\.net|careers\.qualcomm\.com|apply\.careers\.microsoft\.com)\/careers\/(?:job\/\d{6,20}\/?(?:[?#]|$)|apply\/?\?(?:[^#]*&)?pid=\d{6,20}(?:[&#]|$))/i;
 // Job board pages whose Apply button auto apply follows to the employer's form (boardJobFor()).
 var BOARD_JOB = /^https:\/\/(?:(?:www\.|[a-z]{2}\.)?linkedin\.com\/jobs\/view\/(?:[^\/?#]*-)?\d{6,}|(?:www\.)?builtin\.com\/job\/[^\/?#]+\/\d+|www\.simplyhired\.com\/job\/[A-Za-z0-9_-]{10,}|himalayas\.app\/companies\/[^\/?#]+\/jobs\/[^\/?#]+|weworkremotely\.com\/remote-jobs\/[^\/?#]+|jobicy\.com\/jobs\/\d+[^\/?#]*|remoteok\.com\/remote-jobs\/[^\/?#]+|remotive\.com\/remote-jobs\/[^\/?#]+\/[^\/?#]+)(?:[\/?#]|$)/i;
-function isForm(u){ return GH_JOB.test(u) || ASHBY_JOB.test(u) || LEVER_JOB.test(u) || WORKABLE_JOB.test(u) || WORKDAY_JOB.test(u); }  // a form auto apply fills (Greenhouse, Ashby, Lever, Workable, Workday)
+function isForm(u){ return GH_JOB.test(u) || ASHBY_JOB.test(u) || LEVER_JOB.test(u) || WORKABLE_JOB.test(u) || WORKDAY_JOB.test(u) || EIGHTFOLD_JOB.test(u); }  // a form auto apply fills (Greenhouse, Ashby, Lever, Workable, Workday, Eightfold)
 // Where Auto apply goes. The export sets j.auto: the form, a board job's posting found on the
 // employer's own site, or "" (none found; the board shows the employer link only after sign-in).
 // Jobs from an instant search carry no j.auto: a board job is then looked up when clicked.
@@ -503,6 +504,7 @@ function autoNote(j){
   if (!st || st.busy) return "";
   if (st.err) return '<div class="autonote bad">' + esc(st.err) + '</div>';
   if (st.other) return '<div class="autonote">' + esc(st.other) + '</div>';
+  if (st.steps && st.platform === "eightfold") return '<div class="autonote">Sign in on this company\'s careers site in Chrome; the application fills itself when it opens. Review it there and press Submit, then tick Applied.</div>';
   if (st.steps) return '<div class="autonote">' + (st.signIn ? 'Sign in to this company\'s Workday account in Chrome. ' : 'Filled ' + st.filled + ' fields on the first Workday step. ')
     + 'Each step fills as it opens: check it and press Save and Continue, then Submit on Review, then tick Applied.</div>';
   return '<div class="autonote">Filled ' + st.filled + ' fields in Chrome' + (st.needs ? ' · ' + st.needs + ' question' + (st.needs === 1 ? '' : 's') + ' left for you' : '') + '. Review it there and press Submit, then tick Applied.' + (st.hint ? ' ' + esc(st.hint) + '.' : '') + '</div>';
@@ -527,8 +529,9 @@ function autoApply(k){
       var needs = (p.needsYou || []).length;
       // A board job whose Apply button led somewhere auto apply doesn't fill: the page is open in Chrome.
       if (p.notFilled) { autoState[k] = { ok: true, other: p.notFilled }; toast(p.notFilled, true); return; }
-      autoState[k] = { ok: true, filled: p.filledCount, needs: needs, hint: p.setupHint || "", steps: !!p.followsSteps, signIn: !!p.waitingForSignIn };
-      if (p.followsSteps) toast(p.waitingForSignIn ? "Sign in to Workday in Chrome; each step then fills itself." : "Filled the first Workday step. Press Save and Continue there; the next step fills itself.", true);
+      autoState[k] = { ok: true, filled: p.filledCount, needs: needs, hint: p.setupHint || "", steps: !!p.followsSteps, signIn: !!p.waitingForSignIn, platform: p.platform || "" };
+      if (p.followsSteps && p.platform === "eightfold") toast("Sign in on the company's careers site in Chrome; the application then fills itself.", true);
+      else if (p.followsSteps) toast(p.waitingForSignIn ? "Sign in to Workday in Chrome; each step then fills itself." : "Filled the first Workday step. Press Save and Continue there; the next step fills itself.", true);
       else toast("Filled " + p.filledCount + " fields in Chrome" + (needs ? ", " + needs + " left for you" : "") + ". Review and press Submit there.", true);
     })
     .catch(function(e){

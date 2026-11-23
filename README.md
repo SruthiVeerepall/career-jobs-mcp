@@ -3,7 +3,7 @@
 Job search that goes **straight to company career sites** (1,000+ companies on Greenhouse, Lever,
 Ashby, Workday, SmartRecruiters and more), plus job boards such as LinkedIn and BuiltIn. It
 matches every job to **your résumé**, exports the results to Excel and a web page, and can
-**auto-fill Greenhouse, Ashby, Lever, Workable and Workday applications** for you.
+**auto-fill Greenhouse, Ashby, Lever, Workable, Workday and Eightfold applications** for you.
 
 It runs as an [MCP](https://modelcontextprotocol.io/) server inside Claude, or as plain
 command-line scripts.
@@ -22,7 +22,7 @@ You ──► Claude or a script ──► Career Jobs MCP ──► company car
 | **Strict filters** | Posted in the last 3 days by default, US only, junior to Senior, and no security clearance or citizenship requirement (checked in the job description). |
 | **Company sites first** | Jobs from employers' own sites are listed before job-board copies. |
 | **Excel + web page** | Applied? checkboxes, a running total, a daily goal and streak on the Job Quest Board. |
-| **Auto apply** | Fills Greenhouse, Ashby, Lever, Workable and Workday forms in Chrome from your résumé and your saved answers, including board jobs (LinkedIn, BuiltIn…) found on the employer's own job site (no board sign-in). **It never submits**: you review and press Submit. |
+| **Auto apply** | Fills Greenhouse, Ashby, Lever, Workable, Workday and Eightfold forms in Chrome from your résumé and your saved answers, including board jobs (LinkedIn, BuiltIn…) found on the employer's own job site (no board sign-in). **It never submits**: you review and press Submit. |
 | **One-click refresh** | Today / 3 days / Week / Month buttons update the sheet, the page and the board together. |
 
 ---
@@ -137,9 +137,9 @@ A `--resume … --page …` run remembers where it wrote (in the git-ignored
 Your Applied? ticks in the sheet are kept. If the sheet is open in Excel, it's saved, closed and
 reopened for you. Clicking another window during a refresh queues it.
 
-## Auto apply (Greenhouse, Ashby, Lever, Workable and Workday)
+## Auto apply (Greenhouse, Ashby, Lever, Workable, Workday and Eightfold)
 
-Fills a Greenhouse, Ashby, Lever, Workable or Workday application in a visible Chrome window: name, email, phone, location, every
+Fills a Greenhouse, Ashby, Lever, Workable, Workday or Eightfold application in a visible Chrome window: name, email, phone, location, every
 job you've held, education, LinkedIn, your résumé file, and the common questions you answered
 once. **It never presses Submit.** (Workable forms have no work-history or education fields to fill;
 its optional "+ Add" Education / Experience sections are left alone.)
@@ -155,8 +155,9 @@ end dates, "I currently work here", and the role description (the bullets under 
 your résumé); school, degree, field of study and years. If Workday already made some (it
 parsed your résumé, or kept your last application), those are completed instead of
 duplicated, and only their empty fields are filled. Each filled step's layout is saved to
-`data/workday-debug/` on your PC (no typed values), so a field a company lays out differently
-can be fixed.
+`data/workday-debug/` on your PC (no typed values), with `<step>.report.json` listing what was
+filled, what wasn't and the options Workday offered, so a field a company lays out differently
+can be fixed. The folder is git-ignored and never leaves your PC.
 
 ```bash
 node auto-apply.mjs --setup                          # answer the common questions once
@@ -169,10 +170,22 @@ node auto-apply.mjs --resume <path> --show-data      # see what would be filled
 | Flag | Effect |
 |---|---|
 | `--resume <path>` | Résumé to read and attach |
-| `<url>` | A job board page (LinkedIn, BuiltIn…, see below), or a Greenhouse job link (`job-boards.greenhouse.io/<board>/jobs/<id>`), an Ashby one (`jobs.ashbyhq.com/<company>/<job id>`), a Lever one (`jobs.lever.co/<company>/<job id>`) or a Workable one (`jobs.workable.com/view/<id>` from the Workable job board, or `apply.workable.com/<company>/j/<code>` from a company's careers page), or a Workday one (`<company>.wd<N>.myworkdayjobs.com/…/job/…/<title>_<req id>`) |
+| `<url>` | A job board page (LinkedIn, BuiltIn…, see below), or a Greenhouse job link (`job-boards.greenhouse.io/<board>/jobs/<id>`), an Ashby one (`jobs.ashbyhq.com/<company>/<job id>`), a Lever one (`jobs.lever.co/<company>/<job id>`) or a Workable one (`jobs.workable.com/view/<id>` from the Workable job board, or `apply.workable.com/<company>/j/<code>` from a company's careers page), or a Workday one (`<company>.wd<N>.myworkdayjobs.com/…/job/…/<title>_<req id>`), or an Eightfold one (`<company>.eightfold.ai/careers/job/<id>`, `explore.jobs.netflix.net`, `careers.qualcomm.com`, `apply.careers.microsoft.com`) |
 | `--show-data` | Print the parsed contact, jobs and education, then stop |
 | `--setup` / `--set key=value` | Save your one-time answers |
 | `--link <jobquest://…>` | What a link click runs |
+
+**Eightfold** (Lockheed Martin, Netflix, Microsoft, Qualcomm): the job's application form
+(`<site>/careers/apply?pid=<id>`) is filled in one go: résumé, name, email, phone (+1 code),
+country, state, city, LinkedIn, and authorization, sponsorship, veteran, disability, gender and
+race from your saved answers. Sexual orientation, transgender experience, clearance questions,
+"How did you hear", signatures and consent boxes are left for you. Lockheed Martin and Netflix
+need no account. Microsoft and Qualcomm ask you to sign in on their careers site first: the
+window waits, and the form fills itself once it opens. Auto apply never types a password.
+
+**Greenhouse jobs on a company's own careers site** (`stripe.com/jobs/…?gh_jid=…`, Toast, Block,
+Carvana, JFrog…) get ⚡ too: the export turns them into the company's Greenhouse job, whose form
+is filled as above.
 
 `install-auto-apply.mjs` also takes `--status` and `--uninstall`. Re-run it if you move the
 folder or reinstall Node.
@@ -245,7 +258,7 @@ Engineer roles at Stripe and Netflix"*.
 |---|---|
 | `searchJobsForResume` | Résumé in, ranked apply links out (`resumePath` or `resumeText`, `postedWithinDays`, `limit`, `format`) |
 | `parseResume` | Show what was read from a résumé, without searching |
-| `autoApplyJob` | Fill a Greenhouse, Ashby, Lever, Workable or Workday application in Chrome (`applyUrl`, `resumePath`); never submits. A board job page is first looked up on the employer's own job site (`via`; `notFilled` says why when there is no match). Workday: returns `waitingForSignIn` / `followsSteps` and fills each step as it opens |
+| `autoApplyJob` | Fill a Greenhouse, Ashby, Lever, Workable, Workday or Eightfold application in Chrome (`applyUrl`, `resumePath`); never submits. A board job page is first looked up on the employer's own job site (`via`; `notFilled` says why when there is no match). Workday: returns `waitingForSignIn` / `followsSteps` and fills each step as it opens |
 | `refreshJobQuest` | Rerun the daily export for 1, 3, 7 or 30 days and update every output |
 | `searchCompanyJobs` | Search one company (`companyName`, `jobTitle`, `postedSince`…) |
 | `searchMultipleCompanies` | Search a list of companies at once |
@@ -287,7 +300,7 @@ src/
   server.ts, index.ts     MCP server and its tools (src/tools/)
   scrapers/               company registry, orchestrator, one scraper per platform/board
   resume/                 résumé → profile, title matching, JD match, applicant data
-  apply/                  Greenhouse, Ashby, Lever, Workable and Workday auto-fill, board job → employer posting (employer-match.ts, board-link.ts), saved answers, jobquest:// links
+  apply/                  Greenhouse, Ashby, Lever, Workable, Workday and Eightfold auto-fill, board job → employer posting (employer-match.ts, board-link.ts), saved answers, jobquest:// links
   utils/                  filters, dates, clearance screen, browser, cache helpers
 templates/job-quest.html  the Job Quest Board page
 find-jobs-for-resume.mjs  résumé search (CLI)
@@ -312,7 +325,7 @@ npm run dev     # recompile on save
 
 - A 24-hour window is mostly job-board results, because companies publish in batches. Use 3 days or a week for more company jobs.
 - Jobs with no posting date are left out on purpose.
-- Auto apply supports Greenhouse, Ashby, Lever, Workable and Workday. On Workday you sign in to each company's account yourself and press Save and Continue on each step. SmartRecruiters blocks automated browsers with a bot check, so it isn't supported.
+- Auto apply supports Greenhouse, Ashby, Lever, Workable, Workday and Eightfold. Eightfold at Microsoft and Qualcomm asks you to sign in on the company's site first. On Workday you sign in to each company's account yourself and press Save and Continue on each step. SmartRecruiters blocks automated browsers with a bot check, so it isn't supported.
 - Board jobs get Auto apply only when the same job is found on the employer's own Greenhouse, Lever, Ashby or Workday board (about 1 in 5 in a check). Boards are never signed in to, and Easy Apply is never automated.
 - Browser-based sites (Apple, Amazon, Tesla) are slower and break more often than API-based ones.
 - Indeed, ZipRecruiter and Glassdoor block automated access and aren't included.

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { autoApply } from '../apply/auto-apply.js';
 
 export const autoApplyJobSchema = {
-  applyUrl: z.string().describe('The job\'s apply URL. Greenhouse (job-boards.greenhouse.io/<board>/jobs/<id>), Ashby (jobs.ashbyhq.com/<org>/<job id>), Lever (jobs.lever.co/<company>/<posting id>), Workable (jobs.workable.com/view/<id> or apply.workable.com/<company>/j/<code>) or Workday (<company>.wd<N>.myworkdayjobs.com/…/job/…_<req id>). Also a job board page (linkedin.com/jobs/view/<id>, builtin.com/job/…, simplyhired.com/job/…, himalayas.app, weworkremotely.com, jobicy.com, remoteok.com, remotive.com): it is looked up on the employer\'s own job site'),
+  applyUrl: z.string().describe('The job\'s apply URL. Greenhouse (job-boards.greenhouse.io/<board>/jobs/<id>), Ashby (jobs.ashbyhq.com/<org>/<job id>), Lever (jobs.lever.co/<company>/<posting id>), Workable (jobs.workable.com/view/<id> or apply.workable.com/<company>/j/<code>), Workday (<company>.wd<N>.myworkdayjobs.com/…/job/…_<req id>) or Eightfold (<company>.eightfold.ai/careers/job/<id>, explore.jobs.netflix.net, careers.qualcomm.com, apply.careers.microsoft.com). Also a job board page (linkedin.com/jobs/view/<id>, builtin.com/job/…, simplyhired.com/job/…, himalayas.app, weworkremotely.com, jobicy.com, remoteok.com, remotive.com): it is looked up on the employer\'s own job site'),
   resumePath: z.string().describe('Absolute path to the résumé (.pdf/.docx). Its data fills the form and the file itself is uploaded.'),
 };
 
@@ -15,6 +15,7 @@ export async function autoApplyJob(args: AutoApplyJobArgs) {
     : r.via?.employerUrl ? `Followed ${r.via.board}'s Apply button to ${r.via.employerUrl}. ` : '';
   return {
     submitted: r.submitted,
+    platform: r.platform,
     formUrl: r.formUrl,
     via: r.via ?? null,
     notFilled: r.notFilled ?? null,
@@ -34,6 +35,9 @@ export async function autoApplyJob(args: AutoApplyJobArgs) {
 }
 
 function workdayMessage(r: Awaited<ReturnType<typeof autoApply>>): string {
+  if (r.platform === 'eightfold') {
+    return 'Opened the application in Chrome. This company asks you to sign in on its careers site first; once you do, the application fills itself. Review it and press Submit yourself. Nothing is submitted.';
+  }
   const now = r.waitingForSignIn
     ? 'Opened the Workday application in Chrome. Sign in or create your account for this company there; each step then fills as it opens. '
     : `Filled ${r.filled.length} fields on the Workday step "${r.step ?? ''}"${r.resumeUploaded ? ' and attached your résumé' : ''}. `

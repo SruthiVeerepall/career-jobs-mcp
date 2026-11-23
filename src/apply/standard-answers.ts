@@ -67,8 +67,10 @@ export function classifyQuestion(label: string): QuestionKey | null {
   if (/veteran/.test(l)) return 'veteran';
   if (/disabilit/.test(l)) return 'disability';
   if (/hispanic|latin[oax]/.test(l) && !/\brace\b/.test(l)) return 'hispanic';
-  if (/\brace\b|ethnicit/.test(l)) return 'race';
+  if (/\brace\b|ethnicit|\bethnic group\b/.test(l)) return 'race';
   if (/\bgender\b/.test(l) && !/transgender/.test(l)) return 'gender';
+  // Lockheed Martin's EEO question is just "Sex".
+  if (/^\s*(?:what is your )?sex\s*\??\s*$/.test(l)) return 'gender';
   return null;
 }
 
@@ -126,18 +128,21 @@ export function chooseOption(key: QuestionKey, a: StandardAnswers, options: stri
     case 'hispanic': case 'disability': case 'lgbtq':
       return best(options, yesNoDecline(v as YesNoDecline));
     case 'veteran': return best(options, (o) => {
-      if (a.veteran === 'decline') return DECLINE.test(o) ? 10 : 0;
-      if (DECLINE.test(o)) return 0;
       // Workday lists often hold both "I am not a veteran" and "I am a veteran, but not a
       // protected veteran". Both say "not", which tied and left the box blank; the second is
-      // a veteran, so it is never a "no".
-      const veteranNotProtected = /\b(?:am|identify as) an? veteran\b.{0,30}\b(?:but|just|however)\b.{0,20}\bnot\b/.test(o);
-      if (veteranNotProtected) return 0;
-      const notVeteran = /^no\b|\bnot an? veteran\b|\bnever served\b|\bno (?:prior )?military service\b/.test(o);
-      const notProtected = /\bnot an? protected veteran\b/.test(o);
-      if (a.veteran === 'no') return notVeteran ? 10 : notProtected ? 8 : 0;
-      if (/\bnot\b/.test(o)) return 0;
-      return /classifications? of (?:an? )?protected veteran|\ban? protected veteran\b|^yes\b/.test(o) ? 10 : /veteran/.test(o) ? 8 : 0;
+      // a veteran, so it is never a "no". Netflix: "I am a US veteran in a non-protected status"
+      // (a veteran) vs "I am neither a protected or non-protected US veteran" (the "no").
+      const neither = /\bneither\b.{0,40}\bveteran\b/.test(o);
+      const isVeteran = !neither && /\b(?:am|identify as) an? (?:u ?s )?veteran\b/.test(o)
+        && !/^no\b|\bdo not\b|\bdon t\b|\bnot an? (?:u ?s )?veteran\b/.test(o);
+      const notVeteran = neither || /^no\b|\bnot an? (?:u ?s )?veteran\b|\bnever served\b|\bno (?:prior )?military service\b/.test(o);
+      const notProtected = !isVeteran && /\bnot an? protected veteran\b/.test(o);
+      if (a.veteran === 'decline') return DECLINE.test(o) ? (notVeteran || notProtected ? 5 : 10) : 0;
+      // Lockheed Martin joins the two: "I am not a protected Veteran / I prefer not to answer".
+      if (DECLINE.test(o) && !(a.veteran === 'no' && (notVeteran || notProtected))) return 0;
+      if (a.veteran === 'no') return isVeteran ? 0 : notVeteran ? 10 : notProtected ? 8 : 0;
+      if (/\bnot\b|\bneither\b|non ?protected/.test(o)) return 0;
+      return /classifications? of (?:an? )?protected veteran|\ban? (?:u ?s )?veteran in a protected\b|\ban? protected veteran\b|^yes\b/.test(o) ? 10 : /veteran/.test(o) ? 8 : 0;
     });
   }
   return null;

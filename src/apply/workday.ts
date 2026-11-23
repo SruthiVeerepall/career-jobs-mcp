@@ -236,64 +236,101 @@ async function focusBox(page: Page, el: import('puppeteer').ElementHandle): Prom
   await el.evaluate((e) => (e as HTMLElement).focus());
 }
 
-const OPEN_OPTIONS = '[role="listbox"] [role="option"]';
+// A picked prompt value is shown as a pill that is ALSO a role=option (with a promptOption
+// inside) in a role=listbox (`selectedItemList`). Counted as an open list's options, the school
+// pill made every later wait return at once, before the real list had drawn: Degree read only
+// "Wright State University-Lake Campus" and gave up, Field of Study found no "Computer Science"
+// (Citi, 2026-11-22). So options and results are only those outside the picked pills.
+const PILL = '[data-automation-id="selectedItemList"], [data-automation-id="selectedItem"]';
+const visibleItems = (page: Page, kind: 'option' | 'result') => page.evaluate((pill, k) => {
+  const sel = k === 'option' ? '[role="listbox"] [role="option"]' : '[data-automation-id="promptOption"]';
+  return [...document.querySelectorAll(sel)]
+    .filter((o) => !o.closest(pill) && (o as HTMLElement).getClientRects().length > 0)
+    .map((o) => (o as HTMLElement).innerText.replace(/\s+/g, ' ').trim()).filter(Boolean);
+}, PILL, kind).catch(() => [] as string[]);
+const clickItem = (page: Page, kind: 'option' | 'result', text: string) => page.evaluate((pill, k, t) => {
+  const sel = k === 'option' ? '[role="listbox"] [role="option"]' : '[data-automation-id="promptOption"]';
+  const o = [...document.querySelectorAll(sel)].find((x) => !x.closest(pill) && (x as HTMLElement).getClientRects().length > 0
+    && (x as HTMLElement).innerText.replace(/\s+/g, ' ').trim() === t) as HTMLElement | undefined;
+  if (!o) return false;
+  o.scrollIntoView({ block: 'center' });
+  o.click();
+  return true;
+}, PILL, kind, text).catch(() => false);
+
+/** Wait until an open list shows items (not picked pills); [] after `ms`. */
+async function waitForItems(page: Page, kind: 'option' | 'result', ms: number): Promise<string[]> {
+  const deadline = Date.now() + ms;
+  let items = await visibleItems(page, kind);
+  while (!items.length && Date.now() < deadline) { await sleep(150); items = await visibleItems(page, kind); }
+  // Results can arrive in two batches (the first page, then the rest): let them settle.
+  if (items.length) { await sleep(250); items = await visibleItems(page, kind); }
+  return items;
+}
+
+/**
+ * Close any open dropdown or prompt list. Prompts are multi-selects whose list stays open
+ * after a pick, over the fields below it (BlackRock); a click elsewhere only closes it. Escape
+ * closes it and keeps the pick; checked, and retried once with a click on the step heading.
+ */
+async function closeLists(page: Page): Promise<void> {
+  for (let t = 0; t < 2; t++) {
+    if (!(await visibleItems(page, 'option')).length && !(await visibleItems(page, 'result')).length) break;
+    await page.keyboard.press('Escape');
+    await sleep(200);
+    if (!(await visibleItems(page, 'option')).length && !(await visibleItems(page, 'result')).length) break;
+    await page.evaluate(() => (document.querySelector('[data-automation-id="applyFlowPage"] h2, [data-automation-id="applyFlowPage"] h3') as HTMLElement | null)?.click()).catch(() => {});
+    await sleep(200);
+  }
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur?.()).catch(() => {});
+}
 
 /** Open dropdown `i`, let `choose` pick from its options, click it. Returns the pick, or null. */
 async function selectOption(page: Page, i: number, choose: (options: string[]) => string | null): Promise<{ pick: string | null; options: string[]; ok: boolean }> {
   const btn = await page.$(`${at(i)} button[aria-haspopup="listbox"]`);
   if (!btn) return { pick: null, options: [], ok: false };
+  await closeLists(page);
   await btn.click();
-  await page.waitForSelector(OPEN_OPTIONS, { visible: true, timeout: 4000 }).catch(() => null);
-  const options = await page.$$eval(OPEN_OPTIONS, (os) => os.map((o) => (o as HTMLElement).innerText.replace(/\s+/g, ' ').trim()).filter(Boolean));
+  const options = await waitForItems(page, 'option', 4000);
   const pick = choose(options);
-  if (!pick) { await page.keyboard.press('Escape'); await sleep(150); return { pick: null, options, ok: false }; }
-  const clicked = await page.evaluate((sel, text) => {
-    const o = [...document.querySelectorAll(sel)].find((x) => (x as HTMLElement).innerText.replace(/\s+/g, ' ').trim() === text) as HTMLElement | undefined;
-    if (!o) return false;
-    o.scrollIntoView({ block: 'center' });
-    o.click();
-    return true;
-  }, OPEN_OPTIONS, pick);
-  if (!clicked) { await page.keyboard.press('Escape'); return { pick, options, ok: false }; }
+  if (!pick) { await closeLists(page); return { pick: null, options, ok: false }; }
+  const clicked = await clickItem(page, 'option', pick);
+  if (!clicked) { await closeLists(page); return { pick, options, ok: false }; }
   await sleep(400);
+  await closeLists(page);
   const shown = await btn.evaluate((b) => (b as HTMLElement).innerText.replace(/\s+/g, ' ').trim()).catch(() => '');
   return { pick, options, ok: shown === pick || shown.includes(pick) };
 }
 
-/** Type `text` into type-ahead `i`, press Enter, pick the result that matches exactly. */
-async function promptPick(page: Page, i: number, text: string, accept: (option: string) => boolean = (o) => norm(o) === norm(text)): Promise<string | null> {
+/**
+ * Type `text` into type-ahead `i`, press Enter, pick a result. An exact match always wins over
+ * one `accept` allows ("Wright State University" over "Wright State University-Lake Campus").
+ * `seen` receives the results shown, for the report when nothing fits.
+ */
+async function promptPick(page: Page, i: number, text: string, accept: (option: string) => boolean = (o) => norm(o) === norm(text), seen?: string[], onShown?: (shown: string[]) => void): Promise<string | null> {
   const input = await page.$(`${at(i)} input:not([type=hidden])`);
   if (!input) return null;
+  await closeLists(page);
   await focusBox(page, input);
   await page.keyboard.type(text, { delay: 6 });
   await page.keyboard.press('Enter');
-  const results = '[data-automation-id="promptOption"]';
-  await page.waitForSelector(results, { visible: true, timeout: 5000 }).catch(() => null);
-  const shown = await page.$$eval(results, (os) => os.filter((o) => (o as HTMLElement).offsetParent !== null).map((o) => (o as HTMLElement).innerText.replace(/\s+/g, ' ').trim())).catch(() => [] as string[]);
-  const want = shown.find(accept) ?? null;
-  const hit = want && await page.evaluate((sel, t) => {
-    const o = [...document.querySelectorAll(sel)].find((x) => (x as HTMLElement).offsetParent !== null && (x as HTMLElement).innerText.replace(/\s+/g, ' ').trim() === t) as HTMLElement | undefined;
-    o?.click();
-    return o ? t : null;
-  }, results, want).catch(() => null);
+  const shown = await waitForItems(page, 'result', 5000);
+  seen?.push(...shown);
+  onShown?.(shown);
+  const want = shown.find((o) => norm(o) === norm(text)) ?? shown.find(accept) ?? null;
+  const hit = want && (await clickItem(page, 'result', want)) ? want : null;
   if (!hit) {
-    await page.keyboard.press('Escape');
-    // Leave no half-typed search behind.
+    await closeLists(page);
+    // Leave no half-typed search behind, and no list reopened by the click into the box.
     await focusBox(page, input).catch(() => {});
     await page.keyboard.down('Control'); await page.keyboard.press('KeyA'); await page.keyboard.up('Control');
     await page.keyboard.press('Backspace');
+    await closeLists(page);
     return null;
   }
   await sleep(400);
-  const picked = !!(await page.$(`${at(i)} [data-automation-id="selectedItem"]`));
-  // Prompts are multi-selects: Workday keeps the results list open after a pick, over the
-  // fields below it, and a click elsewhere only closes it. Left open, it swallowed the next
-  // clicks, so after the school was picked the Degree, Field of Study and years were all
-  // missed (BlackRock, 2026-11-22). Escape closes it and keeps the pick.
-  await page.keyboard.press('Escape');
-  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur?.()).catch(() => {});
-  await sleep(200);
-  return picked && (await page.$(`${at(i)} [data-automation-id="selectedItem"]`)) ? hit : null;
+  await closeLists(page);
+  return (await page.$(`${at(i)} [data-automation-id="selectedItem"]`)) ? hit : null;
 }
 
 /** Tick the radio / checkbox labelled `text` in field `i` (DOM click) and confirm it stuck. */
@@ -536,6 +573,37 @@ export function chooseDegree(edu: Pick<ApplicantEducation, 'degree' | 'degreeLev
   return byField.length === 1 ? byField[0] : null;
 }
 
+/**
+ * The field-of-study option for a résumé discipline: exact, else one starting with it
+ * ("Computer Science - General"), else the only one naming it with "&" for "and" or as a whole
+ * phrase ("Computer Science & Engineering"). Two candidates: null, left for the candidate.
+ */
+export function chooseFieldOfStudy(discipline: string, options: string[]): string | null {
+  const d = norm(discipline.replace(/&/g, ' and '));
+  if (!d) return null;
+  const key = (o: string) => norm(o.replace(/&/g, ' and '));
+  const exact = options.filter((o) => key(o) === d);
+  if (exact.length) return exact[0];
+  const starts = options.filter((o) => key(o).startsWith(`${d} `));
+  if (starts.length === 1) return starts[0];
+  if (starts.length > 1) return null;
+  const within = options.filter((o) => ` ${key(o)} `.includes(` ${d} `));
+  return within.length === 1 ? within[0] : null;
+}
+
+/** A prompt fill reported like attempt(), with the results Workday showed when none fit. */
+async function promptAttempt(page: Page, r: Report, field: string, i: number, text: string, accept: (o: string, all: string[]) => boolean, reason: string): Promise<void> {
+  const seen: string[] = [];
+  try {
+    let all: string[] = [];
+    const hit = await promptPick(page, i, text, (o) => accept(o, all), seen, (shown) => { all = shown; });
+    if (hit) r.ok(field, hit);
+    else r.bad(field, text, `${reason} (results: ${[...new Set(seen)].slice(0, 8).join(', ') || 'none shown'})`);
+  } catch (err) {
+    r.bad(field, text, (err as Error).message.split('\n')[0]);
+  }
+}
+
 /** One Education entry per résumé school: existing entries are completed, missing ones added. */
 async function fillEducation(page: Page, schools: ApplicantEducation[], r: Report): Promise<void> {
   const used = new Set<number>();
@@ -551,7 +619,7 @@ async function fillEducation(page: Page, schools: ApplicantEducation[], r: Repor
       if (/school|university|institution|college/.test(l)) {
         // Workday's school list may add a campus ("… - Main Campus"): a name that starts with ours counts.
         if (f.kind === 'text') await attempt(r, name, edu.school, () => typeText(page, f.i, edu.school));
-        else if (f.kind === 'multi') await attempt(r, name, edu.school, async () => !!(await promptPick(page, f.i, edu.school, (o) => norm(o) === norm(edu.school) || norm(o).startsWith(`${norm(edu.school)} `))), 'no matching school in the list');
+        else if (f.kind === 'multi') await promptAttempt(page, r, name, f.i, edu.school, (o) => norm(o).startsWith(`${norm(edu.school)} `), 'no matching school in the list');
         else if (f.kind === 'select') await attempt(r, name, edu.school, async () => (await selectOption(page, f.i, (os) => os.find((o) => norm(o) === norm(edu.school)) ?? null)).ok, 'no matching school in the list');
       } else if (/degree/.test(l) && f.kind === 'select') {
         const want = edu.degree ?? edu.degreeLevel ?? '';
@@ -565,9 +633,13 @@ async function fillEducation(page: Page, schools: ApplicantEducation[], r: Repor
         }
       } else if (/field ?of ?study|major|discipline|area of study/.test(l) && edu.discipline) {
         const d = edu.discipline;
-        if (f.kind === 'multi') await attempt(r, name, d, async () => !!(await promptPick(page, f.i, d, (o) => norm(o) === norm(d) || norm(o).startsWith(`${norm(d)} `))), 'no matching option in the list');
+        if (f.kind === 'multi') await promptAttempt(page, r, name, f.i, d, (o, all) => o === chooseFieldOfStudy(d, all), 'no matching option in the list');
         else if (f.kind === 'text') await attempt(r, name, d, () => typeText(page, f.i, d));
-        else if (f.kind === 'select') await attempt(r, name, d, async () => (await selectOption(page, f.i, (os) => os.find((o) => norm(o) === norm(d)) ?? null)).ok, 'no option clearly matches');
+        else if (f.kind === 'select') {
+          const res = await selectOption(page, f.i, (os) => chooseFieldOfStudy(d, os)).catch((err) => ({ pick: null, options: [] as string[], ok: false, err }));
+          if (res.ok && res.pick) r.ok(name, res.pick);
+          else r.bad(name, d, `no option clearly matches (options: ${res.options.slice(0, 8).join(', ') || 'none shown'})`);
+        }
       } else if (f.kind === 'date' || (f.kind === 'text' && /year|\bfrom\b|\bto\b|graduat/.test(l))) {
         const d = /first|\bfrom\b|start/.test(l) ? edu.start : /last|\bto\b|\bend\b|graduat/.test(l) ? edu.end : undefined;
         if (!d) continue;
@@ -753,16 +825,37 @@ export async function saveWorkdaySnapshot(page: Page, step: string): Promise<str
   const html = await page.evaluate(() => {
     const root = document.querySelector('[data-automation-id="applyFlowPage"]');
     if (!root) return null;
-    const copy = root.cloneNode(true) as Element;
-    copy.querySelectorAll('script, style, svg, img').forEach((x) => x.remove());
-    copy.querySelectorAll('[value]').forEach((x) => x.removeAttribute('value'));
-    return copy.outerHTML;
+    // Dropdown and prompt lists are drawn outside the form (body-level popups): keep the open ones.
+    const popups = [...document.body.children].filter((el) => !el.contains(root) && el.tagName !== 'SCRIPT'
+      && (el as HTMLElement).getClientRects().length > 0 && !!el.querySelector('[role="option"], [data-automation-id="promptOption"]'));
+    const out = [root, ...popups].map((el) => {
+      const copy = el.cloneNode(true) as Element;
+      copy.querySelectorAll('script, style, svg, img').forEach((x) => x.remove());
+      copy.querySelectorAll('[value]').forEach((x) => x.removeAttribute('value'));
+      return copy.outerHTML;
+    });
+    return out.join('\n<!-- open list (drawn outside the form) -->\n');
   }).catch(() => null);
   if (!html) return null;
   mkdirSync(WORKDAY_DEBUG_DIR, { recursive: true });
   const file = path.join(WORKDAY_DEBUG_DIR, `${(step || 'step').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'step'}.html`);
   writeFileSync(file, `<!-- ${new URL(page.url()).hostname} ${new Date().toISOString()} -->\n${html}\n`);
   return file;
+}
+
+/**
+ * Save a step's fill report (what went in, what failed and why, with the options Workday
+ * showed) next to its snapshot: data/workday-debug/<step>.report.json. On this PC only.
+ */
+export function saveWorkdayReport(step: string, report: FillReport): string | null {
+  try {
+    mkdirSync(WORKDAY_DEBUG_DIR, { recursive: true });
+    const file = path.join(WORKDAY_DEBUG_DIR, `${(step || 'step').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'step'}.report.json`);
+    writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), filled: report.filled, failed: report.failed, needsYou: report.needsYou, resumeUploaded: report.resumeUploaded }, null, 2));
+    return file;
+  } catch {
+    return null;
+  }
 }
 
 export interface WorkdayStepReport extends FillReport { step: string }

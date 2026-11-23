@@ -1,7 +1,7 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { workdayFormUrl, workdayState, fillWorkdayStep, chooseDegree, nationalNumber, _private } from '../dist/apply/workday.js';
+import { workdayFormUrl, workdayState, fillWorkdayStep, chooseDegree, chooseFieldOfStudy, nationalNumber, _private } from '../dist/apply/workday.js';
 import { applyFormFor } from '../dist/apply/platforms.js';
 import { autoApplyLink, parseAutoApplyLink } from '../dist/apply/protocol.js';
 import { getBrowser, closeSharedBrowser } from '../dist/utils/browser.js';
@@ -88,14 +88,18 @@ function dropdown(id, label, options) {
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('button[aria-haspopup=listbox]');
   if (btn) {
-    document.querySelectorAll('[role=listbox]').forEach((l) => l.remove());
-    const ul = document.createElement('ul'); ul.setAttribute('role', 'listbox');
-    for (const o of btn.dataset.opts.split('|')) {
-      const li = document.createElement('li'); li.setAttribute('role', 'option'); li.textContent = o;
-      li.onclick = (ev) => { ev.stopPropagation(); btn.textContent = o; ul.remove(); };
-      ul.appendChild(li);
-    }
-    document.body.appendChild(ul);
+    document.querySelectorAll('[data-mock=dropdownList]').forEach((l) => l.remove());
+    // As on Workday, the list draws a moment after the click (a picked prompt's pill, also a
+    // role=option, is already on the page: reading options at once got only that pill).
+    setTimeout(() => {
+      const ul = document.createElement('ul'); ul.setAttribute('role', 'listbox'); ul.setAttribute('data-mock', 'dropdownList');
+      for (const o of btn.dataset.opts.split('|')) {
+        const li = document.createElement('li'); li.setAttribute('role', 'option'); li.textContent = o;
+        li.onclick = (ev) => { ev.stopPropagation(); btn.textContent = o; ul.remove(); };
+        ul.appendChild(li);
+      }
+      document.body.appendChild(ul);
+    }, 250);
   }
   const add = e.target.closest('[data-automation-id=add-button]');
   if (add) {
@@ -120,7 +124,7 @@ document.addEventListener('click', (e) => {
         + date('startDate', 'From*', true) + date('endDate', 'To*', true)
         + '<div data-automation-id="formField-roleDescription"><label>Role Description</label><textarea></textarea></div>'
       : '<h4 id="' + kind + n + '">Education ' + n + '</h4>'
-        + prompt('school', 'School or University*', ['Lakeview State University - Main Campus', 'Lakeview Community College', 'Riverside Institute of Technology'])
+        + prompt('school', 'School or University*', ['Lakeview State University - Main Campus', 'Lakeview Community College', 'Riverside Institute of Technology - Online', 'Riverside Institute of Technology'])
         + dropdown('degree', 'Degree*', ['Associate of Science (AS)', 'Bachelor of Arts (BA)', 'Bachelor of Science (BS)', 'Master of Arts (MA)', 'Master of Science (MS)', 'Master of Business Administration (MBA)'])
         + prompt('fieldOfStudy', 'Field of Study', ['Computer Science', 'Computer Engineering', 'Information Systems'])
         + date('firstYearAttended', 'From', false) + date('lastYearAttended', 'To (Actual or Expected)', false);
@@ -133,7 +137,7 @@ document.addEventListener('change', (e) => {
   if (e.target.id && e.target.id.startsWith('cw')) e.target.closest('[data-entry]').querySelector('[data-automation-id=formField-endDate]').style.display = e.target.checked ? 'none' : '';
 });
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') document.querySelectorAll('[role=listbox], [data-mock=promptList]').forEach((l) => l.remove());
+  if (e.key === 'Escape') document.querySelectorAll('[data-mock=dropdownList], [data-mock=promptList]').forEach((l) => l.remove());
   const box = e.target.closest && e.target.closest('[data-automation-id=multiselectInputContainer]');
   if (box && e.key === 'Enter') {
     document.querySelectorAll('[data-mock=promptList]').forEach((l) => l.remove());
@@ -149,12 +153,17 @@ document.addEventListener('keydown', (e) => {
     for (const o of (box.dataset.opts || 'Computer Science|Computer Engineering|Information Systems').split('|').filter((x) => x.toLowerCase().includes(q))) {
       const d = document.createElement('div'); d.setAttribute('data-automation-id', 'promptOption'); d.textContent = o;
       d.onclick = () => {
-        const s = document.createElement('div'); s.setAttribute('data-automation-id', 'selectedItem'); s.textContent = o;
+        // As on Workday: the pick becomes a pill, a role=option in a role=listbox, with a
+        // promptOption inside (Citi's markup).
+        const s = document.createElement('ul'); s.setAttribute('role', 'listbox'); s.setAttribute('data-automation-id', 'selectedItemList');
+        s.innerHTML = '<li><div role="option" data-automation-id="selectedItem"><p data-automation-id="promptOption"></p></div></li>';
+        s.querySelector('p').textContent = o;
         box.after(s); e.target.value = '';
       };
       list.appendChild(d);
     }
-    document.body.appendChild(list);
+    // Results arrive a moment after Enter, as on Workday.
+    setTimeout(() => document.body.appendChild(list), 250);
   }
 });
 document.querySelectorAll('[data-dropdown]').forEach((el) => { const [id, label, opts] = el.dataset.dropdown.split('::'); el.outerHTML = dropdown(id, label, opts.split(';')); });
@@ -252,7 +261,7 @@ test('My Experience: every job and every school, with dates, current job, degree
     assert.equal(got['Work Experience 3: Company'], 'Fabrikam');
     assert.equal(got['Work Experience 3: From'], '01/2018');
     assert.equal(got['Work Experience 3: To'], '05/2020');
-    assert.equal(got['Education 1: School or University'], 'Lakeview State University');
+    assert.equal(got['Education 1: School or University'], 'Lakeview State University - Main Campus');
     assert.equal(got['Education 1: Degree'], 'Master of Science (MS)');
     assert.equal(got['Education 1: Field of Study'], 'Computer Science');
     assert.equal(got['Education 1: From'], '2018');
@@ -353,4 +362,13 @@ Master of Computer Science`);
   assert.equal(a.experience.length, 2);
   assert.equal(a.experience[0].description, '• Built Java and Spring Boot services for online banking.\n• Moved batch jobs to AWS Lambda.');
   assert.equal(a.experience[1].description, '• Wrote REST APIs with Spring MVC.');
+});
+
+test('field of study: exact, else the one option starting with or naming the discipline; two candidates stay blank', () => {
+  assert.equal(chooseFieldOfStudy('Computer Science', ['Computer Engineering', 'Computer Science', 'Information Systems']), 'Computer Science');
+  assert.equal(chooseFieldOfStudy('Computer Science', ['Computer Science - General', 'Computer Engineering']), 'Computer Science - General');
+  assert.equal(chooseFieldOfStudy('Computer Science', ['Computer Science & Engineering', 'Computer Engineering']), 'Computer Science & Engineering');
+  assert.equal(chooseFieldOfStudy('Computer Science', ['Applied Computer Science', 'Physics']), 'Applied Computer Science');
+  assert.equal(chooseFieldOfStudy('Computer Science', ['Computer Science - General', 'Computer Science - Software']), null);
+  assert.equal(chooseFieldOfStudy('Computer Science', ['Computer Engineering', 'Information Technology']), null);
 });

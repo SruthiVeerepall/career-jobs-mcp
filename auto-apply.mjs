@@ -1,5 +1,5 @@
 /**
- * auto-apply.mjs: fill a Greenhouse, Ashby, Lever, Workable or Workday job application from your résumé in a visible Chrome.
+ * auto-apply.mjs: fill a Greenhouse, Ashby, Lever, Workable, Workday or Eightfold job application from your résumé in a visible Chrome.
  * A job board page (LinkedIn, BuiltIn, SimplyHired…) works too: it is looked up on the employer's own job site (no board sign-in).
  *
  *   node auto-apply.mjs --resume <path> <job url>
@@ -128,7 +128,7 @@ async function run() {
   console.log(`Auto apply: ${url}\nRésumé: ${resumePath}\nOpening Chrome and filling the form…`);
   const r = await autoApply({
     applyUrl: url, resumePath, onStep: printReport,
-    onStepsDone: (why) => { if (why === 'review') console.log('\nReview step reached. Check everything, press Submit yourself, then close the Chrome window.'); },
+    onStepsDone: (why) => { if (why === 'review') console.log('\nReview it all in Chrome, press Submit yourself, then close the Chrome window.'); },
   });
   if (r.via?.outcome === 'matched') console.log(`\nFound this ${r.via.board} job on the employer's own site: ${r.via.employerUrl}`);
   else if (r.via?.employerUrl) console.log(`\n${r.via.board}: the Apply button led to ${r.via.employerUrl}`);
@@ -145,6 +145,13 @@ async function run() {
     return;
   }
   console.log(`\nForm: ${r.formUrl}`);
+  if (r.followsSteps && r.platform === 'eightfold') {
+    // Microsoft / Qualcomm: the application shows after you sign in on the company's site.
+    console.log('\nSign in on this company\'s careers site in the Chrome window. The application fills itself as soon as it opens; review it and press Submit yourself. Close the Chrome window when done.');
+    const browser = await getVisibleBrowser();
+    await new Promise((done) => browser.once('disconnected', done));
+    return;
+  }
   if (r.followsSteps) {
     if (r.waitingForSignIn) console.log('\nWorkday: sign in or create your account for this company in the Chrome window. Each step fills as it opens.');
     if (r.step) printReport(r);
@@ -171,9 +178,9 @@ async function run() {
   await new Promise((done) => browser.once('disconnected', done));
 }
 
-/** One Workday step: what went in, what didn't, what is left. */
+/** One Workday step (or an Eightfold application after sign-in): what went in, what didn't, what is left. */
 function printReport(r) {
-  console.log(`\n── Workday step: ${r.step} ──`);
+  console.log(`\n── ${r.step === 'Application' ? 'Application' : `Workday step: ${r.step}`} ──`);
   if (r.resumeUploaded) console.log('Résumé attached: yes');
   console.log(`Filled (${r.filled.length}):`);
   for (const f of r.filled) console.log(`  ✓ ${f.field}: ${f.value}`);

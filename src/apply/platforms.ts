@@ -1,4 +1,5 @@
 import { ashbyFormUrl } from './ashby.js';
+import { eightfoldFormUrl } from './eightfold.js';
 import { greenhouseFormUrl } from './greenhouse.js';
 import { leverFormUrl } from './lever.js';
 import { workableFormUrl } from './workable.js';
@@ -8,8 +9,8 @@ import { workdayFormUrl } from './workday.js';
 // links, the Excel "Auto Apply" column, the Job Quest Board) asks here, so adding a platform
 // means adding it once.
 
-export type ApplyPlatform = 'greenhouse' | 'ashby' | 'lever' | 'workable' | 'workday';
-export const SUPPORTED_PLATFORMS = 'Greenhouse, Ashby, Lever, Workable and Workday';
+export type ApplyPlatform = 'greenhouse' | 'ashby' | 'lever' | 'workable' | 'workday' | 'eightfold';
+export const SUPPORTED_PLATFORMS = 'Greenhouse, Ashby, Lever, Workable, Workday and Eightfold';
 
 /** Job URL -> its platform and the bare application form to open, or null if unsupported. */
 export function applyFormFor(applyUrl: string): { platform: ApplyPlatform; formUrl: string } | null {
@@ -23,6 +24,8 @@ export function applyFormFor(applyUrl: string): { platform: ApplyPlatform; formU
   if (workable) return { platform: 'workable', formUrl: workable };
   const workday = workdayFormUrl(applyUrl);
   if (workday) return { platform: 'workday', formUrl: workday };
+  const eightfold = eightfoldFormUrl(applyUrl);
+  if (eightfold) return { platform: 'eightfold', formUrl: eightfold };
   return null;
 }
 

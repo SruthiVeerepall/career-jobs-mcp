@@ -47,7 +47,7 @@ import { searchJobsForResume } from './dist/resume/search.js';
 import { autoApplyLink, refreshLink } from './dist/apply/protocol.js';
 import { applyFormFor } from './dist/apply/platforms.js';
 import { boardJobFor, followsWithoutAccount } from './dist/apply/board-link.js';
-import { matchBoardJobs } from './dist/apply/employer-match.js';
+import { greenhouseJobFor, matchBoardJobs } from './dist/apply/employer-match.js';
 import { closeInExcel, isLocked, openInExcel, readAppliedUrls } from './excel-session.mjs';
 import { saveOutputs } from './job-quest-outputs.mjs';
 import { byJdMatch } from './dist/resume/jd-match.js';
@@ -307,7 +307,9 @@ async function run() {
   const employerOf = boardJobs.length ? (console.log(`\nLooking up ${boardJobs.length} job board listings on the employers' own job sites…`), await matchBoardJobs(boardJobs)) : new Map();
   for (const j of jobs) {
     const board = j.url ? boardJobFor(j.url) : null;
-    j.auto = !j.url ? '' : applyFormFor(j.url) ? j.url : employerOf.get(j.url) ?? (board && followsWithoutAccount(board.board) ? j.url : '');
+    // A Greenhouse company's own careers-page link (…?gh_jid=N) -> its Greenhouse job.
+    j.auto = !j.url ? '' : applyFormFor(j.url) ? j.url : greenhouseJobFor(j.url, j.company)
+      ?? employerOf.get(j.url) ?? (board && followsWithoutAccount(board.board) ? j.url : '');
   }
   if (boardJobs.length) console.log(`  ${employerOf.size} of ${boardJobs.length} found on the employer's site (⚡ Auto apply goes there)`);
 
@@ -489,7 +491,7 @@ async function run() {
     console.log(`  JD match: ${jd70} strong (≥70%), ${jd40} partial (40–69%) — best fit first within each group`);
   }
   console.log(`  ${fromCompanies} from company career sites (listed first), ${jobs.length - fromCompanies} from job boards`);
-  if (autoCount) console.log(`  ${autoCount} jobs have an "Auto apply" link (Greenhouse/Ashby/Lever/Workable/Workday forms, and job board pages whose Apply button leads to one)`
+  if (autoCount) console.log(`  ${autoCount} jobs have an "Auto apply" link (Greenhouse/Ashby/Lever/Workable/Workday/Eightfold forms, and job board pages whose Apply button leads to one)`
     + ` (one-time setup: node install-auto-apply.mjs --resume <path>)`);
   console.log(`  Tick the "Applied?" checkbox to mark a job done; the row greys out and row ${totalRowNum} counts your applications.`);
 

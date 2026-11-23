@@ -2,7 +2,7 @@
 
 An MCP server (plus CLI scripts) that searches company career sites and job boards, matches
 jobs to a résumé, exports them to Excel and the "Job Quest Board" page, and auto-fills
-Greenhouse, Ashby, Lever, Workable and Workday applications. Follow these rules on every request without being reminded.
+Greenhouse, Ashby, Lever, Workable, Workday and Eightfold applications. Follow these rules on every request without being reminded.
 
 ## Working rules
 
@@ -160,7 +160,7 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
   open in Excel is saved, closed and reopened over COM (`excel-session.mjs`, path passed via
   env, not `$args`).
 
-## Auto Apply (Greenhouse, Ashby, Lever, Workable, Workday; board jobs leading to them)
+## Auto Apply (Greenhouse, Ashby, Lever, Workable, Workday, Eightfold; board jobs leading to them)
 
 - **Never submits.** It fills the form; the user reviews and presses Submit. Keep it that way.
 - **Platforms** are chosen in one place, `applyFormFor()` (`src/apply/platforms.ts`); the CLI, MCP tool,
@@ -240,9 +240,13 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
   **Never count a `<legend>` or a heading inside a formField as a section**: date fields are
   fieldsets with legend "From"/"To", and counting them hid "Add Another" after job 1.
   Prompts (school, field of study, skills) are multi-selects whose results list **stays open
-  after a pick**, over the fields below, swallowing the next click: `promptPick()` presses
-  Escape after every pick (BlackRock: Degree, Field of Study and years were missed after the
-  school). The test mock keeps its list open the same way.
+  after a pick**, over the fields below, swallowing the next click: `closeLists()` runs before
+  and after every pick and dropdown (Escape, checked, then a click on the step heading).
+  A picked value's **pill is itself a `role=option` in a `role=listbox`** (`selectedItemList`,
+  with a `promptOption` inside), so options / results are read only outside `PILL`
+  (`visibleItems()`), and waited for (`waitForItems()`): counting the school pill made Degree
+  read no degrees and Field of Study no results (Citi, 2026-11-22). The test mock draws pills
+  that way, keeps its list open and draws lists 250ms late; it fails without the fix.
   Workday's fixed footer (`pageFooter`, Back / Save and Continue) covers buttons that count as
   "in view": `clickAdd()` centres the Add button, and `entryFor()` retries with a DOM click when
   no entry appears (a mouse click on the footer left Education with no entry).
@@ -256,11 +260,13 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
   overlays: `focusBox()` (click, then JS focus) and type with the keyboard; `setDate()` checks
   the input or `dateSection<Part>-display`. Every field goes through `attempt()` / try-catch, so
   one failure is reported and the step goes on (one bad date box used to abort the step: no
-  Add Another, no dates, no Education). Schools / fields of study from a prompt list accept an
-  option that starts with the résumé's name ("… - Main Campus").
-  Each step's markup (values stripped) is saved to `data/workday-debug/<step> before.html`
-  before filling and `<step>.html` after (git-ignored): read them first when a tenant's field
-  is missed.
+  Add Another, no dates, no Education). Schools from a prompt list: the exact name, else one
+  starting with it ("… - Main Campus"; an exact name beats "…-Lake Campus"). Field of study:
+  `chooseFieldOfStudy()` (exact, else the one option starting with or naming it; two: blank).
+  Each step's markup (values stripped; open lists drawn outside the form included) is saved to
+  `data/workday-debug/<step> before.html` before filling and `<step>.html` after, and its fill
+  report (filled / failed with the options or results seen / needsYou) to
+  `<step>.report.json` (all git-ignored): read them first when a tenant's field is missed.
   Self Identify's disability boxes are keyed by field id. Terms / consent boxes, "previously
   worked here", How did you hear, address line and signature date are left (`needsYou`).
   Live check (2026-11-20, headless): URL mapping on 2,997 cached jobs; 6 tenants (Workday,
@@ -297,6 +303,30 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
   BuiltIn `?handler=ApplyRedirect` → `?applyRequired=true`; Jobicy and Himalayas gate Apply
   behind sign-up; SimplyHired / Himalayas / WWR serve Cloudflare; RemoteOK `/l/<id>` bounced
   back; Remotive reached employer sites.
+- **Eightfold** (`src/apply/eightfold.ts`): open `https://<site>/careers/apply?pid=<id>`
+  (`eightfoldFormUrl()`; hosts allowlisted: `*.eightfold.ai`, `explore.jobs.netflix.net`,
+  `careers.qualcomm.com`, `apply.careers.microsoft.com`, because a jobquest:// link can carry one;
+  `EIGHTFOLD_JOB` in the template must agree, tested). Ready = `[id^="Contact_Information_"]`.
+  Every question is `<label id="<Q>_label" for="<Q>">` / `<legend id="<Q>_legend">` + the element
+  with id `<Q>` (the box, a wrapper, or a `role=group` of checkboxes); `readQuestions()` tags them
+  `data-jq-q`. Selectors put the element first (`input[data-jq-q="0"]`; `[data-jq-q="0"]input` is
+  invalid and failed every field once). Dropdowns: `input[role=combobox][aria-controls=list-N]`,
+  click, `button[role=option]` in `#list-N` (can open empty: wait, click again), value read back.
+  Phone code: combobox `aria-label="Country code"` → "(+1) United States". Contact fields
+  `Contact_Information_<firstname|lastname|email|phone|city>`; "State" appears after Country.
+  Self-ID groups: gender and race only (one box); `NEVER` covers sexual orientation,
+  transgender, clearance, signatures, consent, "how did you hear". A box naming LinkedIn gets the
+  LinkedIn URL. Microsoft (Microsoft sign-in) and Qualcomm (email sign-in) show no form until the
+  user signs in: `eightfoldWantsSignIn()` (vs a closed job), `waitingForSignIn` + background
+  `waitForEightfoldForm()` (30 min), then `fillEightfold()`. Pre-ticked "Save my answers"
+  (Lockheed) and Netflix's cookie box are site defaults, not ours.
+  Live check (2026-11-22, headless, values read back, 0 failures): Netflix 14 filled, Lockheed
+  Martin 9 (16 left: clearance, military, signature…); Microsoft and Qualcomm → waitingForSignIn.
+- **Greenhouse jobs on a company's own careers page** (`absolute_url` = `stripe.com/…?gh_jid=N`):
+  `greenhouseJobFor()` (`employer-match.ts`) → `job-boards.greenhouse.io/<registry board>/jobs/N`,
+  used for `j.auto` in the export (4,011 such jobs in 14 days; open ones' forms load: Helsing,
+  JFrog, Block, Carvana, Stripe, Toast). The listed `applyUrl` is unchanged (Applied ticks are
+  keyed by it).
 - **Not supported:** SmartRecruiters' apply page (`oneclick-ui`) answers automated browsers with
   a DataDome 403 + captcha; do not try to get around it.
 - "Are you authorized to work … **without** sponsorship?" is its own key
@@ -321,7 +351,7 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
     to 3 times (some appear after earlier answers); a checkbox group is one `needsYou` entry.
 - Two routes, one filler: the `autoApplyJob` MCP tool (desktop app; not read-only, so the app
   asks first) and `jobquest://apply?url=…` links (Excel, local page, browser). **A link carries
-  only the job URL** (`acceptsAutoApply()`: Greenhouse/Ashby/Lever/Workable/Workday forms and
+  only the job URL** (`acceptsAutoApply()`: Greenhouse/Ashby/Lever/Workable/Workday/Eightfold forms and
   `boardJobFor()` board pages only); `refresh` links accept only 1/3/7/30. Any website can
   fire these links, so never let one name a path or file.
 - Visible Chrome: `getVisibleBrowser()`, profile `data/apply-chrome-profile/` (falls back to a

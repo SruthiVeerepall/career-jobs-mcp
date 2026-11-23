@@ -85,7 +85,7 @@ test("the board page sends Auto apply to the export's employer link, and hides i
   const grab = (name) => html.match(new RegExp(`var ${name} = (\\/.+\\/i);`))[1];
   const fns = html.match(/function isForm[\s\S]*?function isGh\(j\)\{[^\n]*\}/)[0];
   const { autoUrl, isGh } = new Function(
-    ['GH_JOB', 'ASHBY_JOB', 'LEVER_JOB', 'WORKABLE_JOB', 'WORKDAY_JOB', 'BOARD_JOB'].map((n) => `var ${n} = ${grab(n)};`).join('\n')
+    ['GH_JOB', 'ASHBY_JOB', 'LEVER_JOB', 'WORKABLE_JOB', 'WORKDAY_JOB', 'EIGHTFOLD_JOB', 'BOARD_JOB'].map((n) => `var ${n} = ${grab(n)};`).join('\n')
     + fns + '\nreturn { autoUrl, isGh };')();
   const li = 'https://www.linkedin.com/jobs/view/4493100463/';
   assert.equal(autoUrl({ url: li, auto: GH(7) }), GH(7), 'matched: straight to the employer form');
@@ -93,4 +93,14 @@ test("the board page sends Auto apply to the export's employer link, and hides i
   assert.equal(autoUrl({ url: li }), li, 'instant search (no auto field): looked up on click');
   assert.equal(autoUrl({ url: GH(8), auto: GH(8) }), GH(8));
   assert.equal(isGh({ url: 'https://evil.example/x', auto: 'https://evil.example/x' }), false);
+});
+
+test("a Greenhouse company's own careers-page link (…?gh_jid=N) maps to its Greenhouse job", async () => {
+  const { greenhouseJobFor } = await import('../dist/apply/employer-match.js');
+  const src = fs.readFileSync(new URL('../src/scrapers/company-registry.ts', import.meta.url), 'utf8');
+  const [, name, slug, ident] = src.match(/\{ name: "([^"]+)", slug: '([^']+)', careerUrl: "[^"]*", platform: 'greenhouse', platformIdentifier: "([^"]+)" \}/);
+  assert.equal(greenhouseJobFor(`https://careers.example.com/jobs/5008299101?gh_jid=5008299101`, name), `https://job-boards.greenhouse.io/${ident}/jobs/5008299101`, slug);
+  assert.equal(greenhouseJobFor('https://careers.example.com/apply?gh_jid=8367097&utm=x', name), `https://job-boards.greenhouse.io/${ident}/jobs/8367097`);
+  assert.equal(greenhouseJobFor('https://careers.example.com/jobs/5008299101', name), null, 'no gh_jid');
+  assert.equal(greenhouseJobFor('https://careers.example.com/jobs?gh_jid=5008299101', 'Not A Registered Company Ltd'), null);
 });

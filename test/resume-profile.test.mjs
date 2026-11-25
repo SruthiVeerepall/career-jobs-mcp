@@ -111,7 +111,7 @@ test('judgeTitle applies family, seniority, and clearance rules', () => {
     'DevOps Engineer',               // unclaimed family
     'QA Automation Engineer',        // unclaimed family
     'Software Engineering Intern',   // below floor
-    'Product Manager',               // not an IC engineering role
+    'Product Manager',               // unclaimed family (product)
     'Java Developer (Top Secret Clearance Required)',
   ];
   for (const title of drop) {

@@ -1,6 +1,8 @@
 import type { CandidateProfile, ProfileSkill } from '../types.js';
 import { extractSkills } from './build-profile.js';
-import { SKILLS } from './skill-taxonomy.js';
+import { NON_ENGINEERING_FAMILIES, SKILLS, skillPattern, type RoleFamily, type SkillDef } from './skill-taxonomy.js';
+
+const DEF_BY_NAME = new Map<string, SkillDef>(SKILLS.map((d) => [d.name, d]));
 
 export type JdMatchStatus = 'scored' | 'no-description' | 'no-known-skills';
 
@@ -36,24 +38,30 @@ export interface JdMatch {
  * not all of it. Python used once in a side project is not the same as Java used across
  * five years of jobs, so a Python-heavy JD must not score 100% for a Java developer who
  * merely lists Python.
+ *
+ * `employer` (the hiring company's name) drops skills that are just that name.
  */
-export function matchDescription(description: string | undefined, profile: CandidateProfile): JdMatch {
+export function matchDescription(
+  description: string | undefined,
+  profile: CandidateProfile,
+  employer?: string,
+): JdMatch {
   if (!description || !description.trim()) {
     return { percent: null, status: 'no-description', matchedSkills: [], missingSkills: [] };
   }
-  const wanted = extractSkills(description).sort(
-    (a, b) => b.weight * emphasis(b.mentions) - a.weight * emphasis(a.mentions),
-  );
-  if (wanted.length === 0) {
-    return { percent: null, status: 'no-known-skills', matchedSkills: [], missingSkills: [] };
-  }
-
   const have = new Map(profile.skills.map((s) => [s.name, skillStrength(s)]));
   for (const def of SKILLS) {
     // An implied skill is as strong as the strongest skill implying it: PostgreSQL used
     // at work is SQL used at work.
     const implied = Math.max(0, ...(def.impliedBy ?? []).map((name) => have.get(name) ?? 0));
     if (implied > (have.get(def.name) ?? 0)) have.set(def.name, implied);
+  }
+
+  const wanted = extractSkills(description)
+    .filter((s) => !namesEmployer(s, employer) && !offRole(s.name, profile, have))
+    .sort((a, b) => b.weight * emphasis(b.mentions) - a.weight * emphasis(a.mentions));
+  if (wanted.length === 0) {
+    return { percent: null, status: 'no-known-skills', matchedSkills: [], missingSkills: [] };
   }
   let total = 0;
   let matched = 0;
@@ -71,6 +79,29 @@ export function matchDescription(description: string | undefined, profile: Candi
     }
   }
   return { percent: Math.round((matched / total) * 100), status: 'scored', matchedSkills, missingSkills };
+}
+
+/**
+ * A skill that only identifies a non-engineering role (SEO, Salesforce, requirements
+ * gathering, wireframing) and that the résumé neither has nor claims the role of. An
+ * engineering JD names these as context ("write user stories", "integrate with
+ * Salesforce"), and counting them cost a developer 3 points on average across 2,891 cached
+ * JDs. For an analyst, PM or designer résumé, which claims those families, they count.
+ */
+function offRole(name: string, profile: CandidateProfile, have: Map<string, number>): boolean {
+  const families = DEF_BY_NAME.get(name)?.families ?? [];
+  if (families.length === 0 || (have.get(name) ?? 0) > 0) return false;
+  return families.every((f) => NON_ENGINEERING_FAMILIES.has(f) && !profile.families.includes(f as RoleFamily));
+}
+
+/**
+ * A skill that is the employer's own name is not a requirement: Snowflake's, Databricks'
+ * or Zendesk's JDs name the company throughout, and counting it would mark every candidate
+ * who never used that product as missing a core skill.
+ */
+function namesEmployer(skill: Pick<ProfileSkill, 'terms'>, employer: string | undefined): boolean {
+  if (!employer) return false;
+  return skill.terms.some((term) => skillPattern(term).test(employer));
 }
 
 /**

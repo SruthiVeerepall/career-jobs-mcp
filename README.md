@@ -18,8 +18,8 @@ You ──► Claude or a script ──► Career Jobs MCP ──► company car
 
 | | |
 |---|---|
-| **Résumé matching** | Reads your résumé (.pdf, .docx, .txt, .md, .html) and works out your skills, years, role types and seniority. Every job gets a **JD Match %**: how much of what the job description asks for your résumé covers, with full credit for skills used in your jobs and half credit for skills only listed or used in a side project. |
-| **Strict filters** | Posted in the last 3 days by default, US only, junior to Senior, and no security clearance or citizenship requirement (checked in the job description). |
+| **Résumé matching** | Reads your résumé (.pdf, .docx, .txt, .md, .html) and works out your skills, years, role types and seniority. Any kind of résumé works: a developer gets engineering jobs, while a data analyst, product manager, designer, project manager, recruiter or accountant gets jobs in their own role, picked from the titles they have held. Every job gets a **JD Match %**: how much of what the job description asks for your résumé covers, with full credit for skills used in your jobs and half credit for skills only listed or used in a side project. |
+| **Strict filters** | Posted in the last 3 days by default, US only, junior to Senior (a "Manager" that names the role, as in Product Manager, is not counted as seniority), and no security clearance or citizenship requirement (checked in the job description). |
 | **Company sites first** | Jobs from employers' own sites are listed before job-board copies. |
 | **Excel + web page** | Applied? checkboxes, a running total, a daily goal and streak on the Job Quest Board. |
 | **Auto apply** | Fills Greenhouse, Ashby, Lever, Workable, Workday and Eightfold forms in Chrome from your résumé and your saved answers, including board jobs (LinkedIn, BuiltIn…) found on the employer's own job site (no board sign-in). **It never submits**: you review and press Submit. |

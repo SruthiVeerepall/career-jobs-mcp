@@ -1,6 +1,7 @@
 import type { CandidateProfile, ProfileSkill } from '../types.js';
 import {
   FAMILY_TITLE_RULES,
+  NON_ENGINEERING_FAMILIES,
   SKILLS,
   TIER_WEIGHT,
   ceilingForYears,
@@ -230,7 +231,7 @@ export function extractSkills(text: string): ProfileSkill[] {
 // titles
 // ---------------------------------------------------------------------------
 
-const ROLE_NOUN = /\b(developer|engineer|engineering|architect|analyst|scientist|programmer|consultant|specialist|administrator|intern|sde|swe|manager|director|lead)\b/i;
+const ROLE_NOUN = /\b(developer|engineer|engineering|architect|analyst|scientist|programmer|consultant|specialist|administrator|intern|sde|swe|manager|director|lead|designer|researcher|writer|editor|owner|master|coach|coordinator|representative|executive|recruiter|sourcer|generalist|partner|marketer|strategist|accountant|auditor|controller|bookkeeper|associate|agent)\b/i;
 const TITLE_SPLIT = /\s*(?:\||,|·|—|-\s|\bat\b|•|\t)\s*/i;
 
 /**
@@ -363,6 +364,18 @@ const FAMILY_SEARCH_TERM: Record<RoleFamily, string> = {
   security: 'Security Engineer',
   embedded: 'Embedded Engineer',
   'generic-swe': 'Software Engineer',
+  'data-analytics': 'Data Analyst',
+  'business-analysis': 'Business Analyst',
+  product: 'Product Manager',
+  'project-management': 'Project Manager',
+  design: 'Product Designer',
+  'technical-writing': 'Technical Writer',
+  solutions: 'Solutions Consultant',
+  sales: 'Account Executive',
+  marketing: 'Marketing Manager',
+  'customer-support': 'Customer Success Manager',
+  recruiting: 'Recruiter',
+  finance: 'Financial Analyst',
 };
 
 /** Each extra term is another network round on every board, so the list is capped. */
@@ -395,8 +408,15 @@ export function buildSearchTerms(
   // hides every non-senior posting that is otherwise in band.
   for (const title of titles) add(stripSeniority(title));
 
+  // "<skill> Developer" only for engineering résumés: a data analyst whose strongest skill is
+  // Python wants "Data Analyst" queried, not "Python Developer".
+  const engineering = families.some((f) => !NON_ENGINEERING_FAMILIES.has(f as RoleFamily));
+  // And only when that title is a role the résumé claims: a data engineer's "Python
+  // Developer" is a backend job the family gate drops, so querying it wastes a board round.
   const topSkill = skills.find((s) => s.weight >= TIER_WEIGHT.core);
-  if (topSkill) add(`${topSkill.name} Developer`);
+  const skillTitle = topSkill && `${topSkill.name} Developer`;
+  const skillFamily = skillTitle ? familyOfTitle(skillTitle) : null;
+  if (skillTitle && engineering && (!skillFamily || families.includes(skillFamily))) add(skillTitle);
 
   for (const family of families) add(FAMILY_SEARCH_TERM[family as RoleFamily]);
 

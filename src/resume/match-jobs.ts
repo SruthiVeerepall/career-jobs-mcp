@@ -2,10 +2,10 @@ import type { CandidateProfile, JobListing, ResumeJobMatch, ScrapeResult } from 
 import { CLEARANCE, isUSJob, stripSeasonalTerms } from '../utils/job-filters.js';
 import { parsePostedDate } from '../utils/posted-date.js';
 import {
-  NON_ENGINEERING_TITLE,
   familyOfTitle,
   levelLabel,
   skillPattern,
+  stackSkillsInTitle,
   titleRank,
 } from './skill-taxonomy.js';
 
@@ -58,14 +58,20 @@ export function judgeTitle(title: string, profile: CandidateProfile): TitleVerdi
   const levelRank = titleRank(title);
   const base = { score, matchedSkills, family: family ?? 'unclassified', level: levelLabel(levelRank), levelRank };
 
-  if (NON_ENGINEERING_TITLE.test(title)) {
-    return { ...base, matched: false, reason: 'not an engineering IC role' };
-  }
+  // No role is blocked outright: a product, analyst or design job is judged like any other,
+  // by whether the résumé claims its family (below).
   if (CLEARANCE.test(title)) {
     return { ...base, matched: false, reason: 'requires security clearance / citizenship' };
   }
   if (family && !profile.families.includes(family)) {
     return { ...base, matched: false, reason: `role family "${family}" is not in the resume` };
+  }
+  // The backend family spans every language, so without this a Python developer got
+  // "Java Developer" and a Java developer got ".NET Developer". A title that names a stack
+  // must name one the résumé has ("Java / Python Developer" is fine for either).
+  const stacks = stackSkillsInTitle(title);
+  if (stacks.length > 0 && !stacks.some((s) => hasSkill(profile, s.name, s.impliedBy))) {
+    return { ...base, matched: false, reason: `title asks for ${stacks.map((s) => s.name).join(' / ')}, not in the resume` };
   }
   if (levelRank > profile.maxLevelRank) {
     return { ...base, matched: false, reason: `above the ${profile.maxLevel} ceiling for ${profile.yearsOfExperience ?? '?'} yrs experience` };
@@ -80,6 +86,11 @@ export function judgeTitle(title: string, profile: CandidateProfile): TitleVerdi
     return { ...base, matched: true, reason: `skill score ${score} ≥ threshold ${profile.matchThreshold}` };
   }
   return { ...base, matched: false, reason: `no known role family and score ${score} < threshold ${profile.matchThreshold}` };
+}
+
+/** The résumé has the skill, or one that implies it (C# for .NET). */
+function hasSkill(profile: CandidateProfile, name: string, impliedBy: string[] = []): boolean {
+  return profile.skills.some((s) => s.name === name || impliedBy.includes(s.name));
 }
 
 /** Score as a percentage, where the threshold is by definition a 60% match. */

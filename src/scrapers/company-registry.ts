@@ -264,7 +264,7 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Neon", slug: 'neon', careerUrl: "https://neon.tech/careers", platform: 'lever', platformIdentifier: "neon" },
 { name: "Sonatype", slug: 'sonatype', careerUrl: "https://www.sonatype.com/company/careers", platform: 'lever', platformIdentifier: "sonatype" },
 { name: "Outreach", slug: 'outreach', careerUrl: "https://www.outreach.io/company/careers", platform: 'lever', platformIdentifier: "outreach" },
-{ name: "Secureframe", slug: 'secureframe', careerUrl: "https://secureframe.com/careers", platform: 'lever', platformIdentifier: "secureframe" },
+{ name: "Secureframe", slug: 'secureframe', careerUrl: "https://secureframe.com/careers", platform: 'ashby', platformIdentifier: "secureframe" },
 { name: "Greenlight", slug: 'greenlight', careerUrl: "https://greenlight.com/careers", platform: 'lever', platformIdentifier: "greenlight" },
 { name: "Anchorage Digital", slug: 'anchorage-digital', careerUrl: "https://www.anchorage.com/careers", platform: 'lever', platformIdentifier: "anchorage" },
 { name: "Confluent", slug: 'confluent', careerUrl: "https://www.confluent.io/careers", platform: 'ashby', platformIdentifier: "confluent" },
@@ -292,7 +292,7 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "AIG", slug: 'aig', careerUrl: "https://www.aig.com/careers", platform: 'workday', platformIdentifier: "aig|wd1|aig" },
 { name: "T. Rowe Price", slug: 't-rowe-price', careerUrl: "https://www.troweprice.com/corporate/us/en/careers.html", platform: 'workday', platformIdentifier: "troweprice|wd5|TRowePrice" },
 { name: "State Street", slug: 'state-street', careerUrl: "https://careers.statestreet.com", platform: 'workday', platformIdentifier: "statestreet|wd1|Global" },
-{ name: "LendingClub", slug: 'lendingclub', careerUrl: "https://www.lendingclub.com/company/careers", platform: 'workday', platformIdentifier: "lendingclub|wd1|External" },
+{ name: "LendingClub", slug: 'lendingclub', careerUrl: "https://www.lendingclub.com/company/careers", platform: 'workday', platformIdentifier: "happen|wd1|External" },
 { name: "Smartsheet", slug: 'smartsheet', careerUrl: "https://www.smartsheet.com/careers", platform: 'greenhouse', platformIdentifier: "smartsheet" },
 { name: "Klaviyo", slug: 'klaviyo', careerUrl: "https://www.klaviyo.com/careers", platform: 'greenhouse', platformIdentifier: "klaviyo" },
 { name: "Intercom", slug: 'intercom', careerUrl: "https://www.intercom.com/careers", platform: 'greenhouse', platformIdentifier: "intercom" },
@@ -360,7 +360,7 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "MasterClass", slug: 'masterclass', careerUrl: "https://www.masterclass.com/jobs", platform: 'greenhouse', platformIdentifier: "masterclass" },
 { name: "Outschool", slug: 'outschool', careerUrl: "https://outschool.com/careers", platform: 'ashby', platformIdentifier: "outschool" },
 { name: "HackerRank", slug: 'hackerrank', careerUrl: "https://www.hackerrank.com/careers", platform: 'greenhouse', platformIdentifier: "hackerrank" },
-{ name: "ThoughtWorks", slug: 'thoughtworks', careerUrl: "https://www.thoughtworks.com/careers", platform: 'greenhouse', platformIdentifier: "thoughtworks" },
+{ name: "ThoughtWorks", slug: 'thoughtworks', careerUrl: "https://www.thoughtworks.com/careers", platform: 'ashby', platformIdentifier: "thoughtworks" },
 { name: "Remote", slug: 'remote', careerUrl: "https://remote.com/careers", platform: 'greenhouse', platformIdentifier: "remote" },
 { name: "Astranis", slug: 'astranis', careerUrl: "https://www.astranis.com/careers", platform: 'greenhouse', platformIdentifier: "astranis" },
 { name: "Relativity Space", slug: 'relativity-space', careerUrl: "https://relativityspace.com/careers", platform: 'greenhouse', platformIdentifier: "relativity" },
@@ -462,8 +462,8 @@ const PRECONFIGURED: CompanyConfig[] = [
 { name: "Bird", slug: 'bird', careerUrl: "https://www.bird.co/careers", platform: 'greenhouse', platformIdentifier: "bird" },
 { name: "Archer Aviation", slug: 'archer-aviation', careerUrl: "https://www.archer.com/careers", platform: 'greenhouse', platformIdentifier: "archer" },
 { name: "Uber Freight", slug: 'uber-freight', careerUrl: "https://www.uberfreight.com/careers", platform: 'greenhouse', platformIdentifier: "uberfreight" },
-{ name: "ClassPass", slug: 'classpass', careerUrl: "https://classpass.com/careers", platform: 'greenhouse', platformIdentifier: "classpass" },
-{ name: "Mindbody", slug: 'mindbody', careerUrl: "https://company.mindbodyonline.com/careers", platform: 'greenhouse', platformIdentifier: "mindbody" },
+{ name: "ClassPass", slug: 'classpass', careerUrl: "https://classpass.com/careers", platform: 'ashby', platformIdentifier: "classpass" },
+{ name: "Mindbody", slug: 'mindbody', careerUrl: "https://company.mindbodyonline.com/careers", platform: 'ashby', platformIdentifier: "mindbody" },
 { name: "Future Fitness", slug: 'future-fitness', careerUrl: "https://future.co/careers", platform: 'greenhouse', platformIdentifier: "future" },
 { name: "MyFitnessPal", slug: 'myfitnesspal', careerUrl: "https://www.myfitnesspal.com/careers", platform: 'greenhouse', platformIdentifier: "myfitnesspal" },
 { name: "GOAT", slug: 'goat', careerUrl: "https://www.goat.com/jobs", platform: 'greenhouse', platformIdentifier: "goatgroup" },
@@ -806,7 +806,7 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: "UiPath", slug: 'uipath', careerUrl: "https://www.uipath.com/careers", platform: 'ashby', platformIdentifier: "uipath" },
   { name: "Olo", slug: 'olo', careerUrl: "https://www.olo.com/people-culture#careers", platform: 'lever', platformIdentifier: "olo" },
   { name: "Braze", slug: 'braze', careerUrl: "https://www.braze.com/company/careers", platform: 'greenhouse', platformIdentifier: "braze" },
-  { name: "Iterable", slug: 'iterable', careerUrl: "https://iterable.com/careers/", platform: 'greenhouse', platformIdentifier: "iterable" },
+  { name: "Iterable", slug: 'iterable', careerUrl: "https://iterable.com/careers/", platform: 'ashby', platformIdentifier: "iterable" },
   { name: "Sprout Social", slug: 'sprout-social', careerUrl: "https://sproutsocial.com/careers/", platform: 'greenhouse', platformIdentifier: "sproutsocial" },
   { name: "Clari", slug: 'clari', careerUrl: "https://www.clari.com/careers/", platform: 'lever', platformIdentifier: "clari" },
   { name: "Highspot", slug: 'highspot', careerUrl: "https://www.highspot.com/careers/", platform: 'lever', platformIdentifier: "highspot" },
@@ -914,7 +914,7 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: 'Alchemy', slug: 'alchemy', careerUrl: 'https://www.alchemy.com/careers', platform: 'ashby', platformIdentifier: 'alchemy' },
   { name: 'Envoy', slug: 'envoy', careerUrl: 'https://envoy.com/careers', platform: 'ashby', platformIdentifier: 'envoy' },
   { name: 'Mintlify', slug: 'mintlify', careerUrl: 'https://mintlify.com/careers', platform: 'ashby', platformIdentifier: 'mintlify' },
-  { name: 'Browserbase', slug: 'browserbase', careerUrl: 'https://www.browserbase.com/careers', platform: 'ashby', platformIdentifier: 'browserbase' },
+  { name: 'Browserbase', slug: 'browserbase', careerUrl: 'https://www.browserbase.com/careers', platform: 'greenhouse', platformIdentifier: 'browserbaseinc' },
   { name: 'OpenEvidence', slug: 'openevidence', careerUrl: 'https://www.openevidence.com/careers', platform: 'ashby', platformIdentifier: 'openevidence' },
   { name: 'Chroma', slug: 'chroma', careerUrl: 'https://www.trychroma.com/careers', platform: 'ashby', platformIdentifier: 'trychroma' },
   // batch9 additions (2026-07-18) — US IT/software, health insurance, and trading firms.
@@ -1135,7 +1135,7 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: "Misfits Market", slug: 'misfits-market', careerUrl: "https://www.misfitsmarket.com/careers", platform: 'greenhouse', platformIdentifier: "misfitsmarket" },
   { name: "HelloFresh", slug: 'hellofresh', careerUrl: "https://www.hellofresh.com/careers", platform: 'greenhouse', platformIdentifier: "hellofresh" },
   { name: "Built Technologies", slug: 'built-technologies', careerUrl: "https://www.getbuilt.com/careers", platform: 'greenhouse', platformIdentifier: "getbuilt" },
-  { name: "BuildOps", slug: 'buildops', careerUrl: "https://buildops.com/careers", platform: 'greenhouse', platformIdentifier: "buildops" },
+  { name: "BuildOps", slug: 'buildops', careerUrl: "https://buildops.com/careers", platform: 'ashby', platformIdentifier: "buildops" },
   { name: "OpenSpace", slug: 'openspace', careerUrl: "https://www.openspace.ai/careers", platform: 'greenhouse', platformIdentifier: "openspace" },
   { name: "Orchard", slug: 'orchard', careerUrl: "https://orchard.com/careers", platform: 'greenhouse', platformIdentifier: "orchard" },
   { name: "Flexe", slug: 'flexe', careerUrl: "https://www.flexe.com/careers", platform: 'greenhouse', platformIdentifier: "flexe" },
@@ -1606,6 +1606,26 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: "Tandem Diabetes Care", slug: 'tandem-diabetes-care', careerUrl: "https://www.tandemdiabetes.com/careers", platform: 'workday', platformIdentifier: "tandemdiabetes|wd12|tandemdiabetes" },
   { name: "Firefly Aerospace", slug: 'firefly-aerospace', careerUrl: "https://fireflyspace.com/careers", platform: 'workday', platformIdentifier: "fireflyspace|wd115|Firefly" },
   { name: "Bitsight", slug: 'bitsight', careerUrl: "https://www.bitsight.com/careers", platform: 'workday', platformIdentifier: "bitsight|wd1|Bitsight" },
+
+
+  // ── Auto-discovered (verified via ATS API) ─────────────────────────────
+  // ── Greenhouse ─────────────────────────────
+  { name: "Similarweb", slug: 'similarweb', careerUrl: "https://www.similarweb.com/corp/careers", platform: 'greenhouse', platformIdentifier: "similarweb" },
+  { name: "Placer.ai", slug: 'placer-ai', careerUrl: "https://www.placer.ai/careers", platform: 'greenhouse', platformIdentifier: "placerlabs" },
+  // ── Lever ──────────────────────────────────
+  { name: "Contentsquare", slug: 'contentsquare', careerUrl: "https://contentsquare.com/careers", platform: 'lever', platformIdentifier: "contentsquare" },
+  { name: "Pigment", slug: 'pigment', careerUrl: "https://www.pigment.com/careers", platform: 'lever', platformIdentifier: "pigment" },
+  // ── Ashby ──────────────────────────────────
+  { name: "Ashby", slug: 'ashby', careerUrl: "https://www.ashbyhq.com/careers", platform: 'ashby', platformIdentifier: "ashby" },
+  // ── SmartRecruiters ────────────────────────
+  { name: "HireVue", slug: 'hirevue', careerUrl: "https://www.hirevue.com/careers", platform: 'smartrecruiters', platformIdentifier: "hirevue" },
+  // ── Workday ────────────────────────────────
+  { name: "Comscore", slug: 'comscore', careerUrl: "https://www.comscore.com/About/Careers", platform: 'workday', platformIdentifier: "comscore|wd5|External" },
+  { name: "BlackLine", slug: 'blackline', careerUrl: "https://careers.blackline.com", platform: 'workday', platformIdentifier: "blackline|wd108|BlackLineCareers" },
+  { name: "Guidehouse", slug: 'guidehouse', careerUrl: "https://guidehouse.com/careers", platform: 'workday', platformIdentifier: "guidehouse|wd1|External" },
+  { name: "Huron Consulting", slug: 'huron-consulting', careerUrl: "https://www.huronconsultinggroup.com/careers", platform: 'workday', platformIdentifier: "huron|wd1|huroncareers" },
+  { name: "Fractal Analytics", slug: 'fractal-analytics', careerUrl: "https://fractal.ai/careers", platform: 'workday', platformIdentifier: "fractal|wd1|Careers" },
+  { name: "LexisNexis Risk Solutions", slug: 'lexisnexis-risk-solutions', careerUrl: "https://risk.lexisnexis.com/about-us/careers", platform: 'workday', platformIdentifier: "relx|wd3|RiskSolutions" },
 
   // Job-board sources (2026-07-17) — cross-company boards; each returns direct apply
   // links with the real hiring company as companyName. Batch scripts show these as

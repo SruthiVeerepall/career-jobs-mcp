@@ -1607,6 +1607,26 @@ const PRECONFIGURED: CompanyConfig[] = [
   { name: "Firefly Aerospace", slug: 'firefly-aerospace', careerUrl: "https://fireflyspace.com/careers", platform: 'workday', platformIdentifier: "fireflyspace|wd115|Firefly" },
   { name: "Bitsight", slug: 'bitsight', careerUrl: "https://www.bitsight.com/careers", platform: 'workday', platformIdentifier: "bitsight|wd1|Bitsight" },
 
+
+  // ── Auto-discovered (verified via ATS API) ─────────────────────────────
+  // ── Greenhouse ─────────────────────────────
+  { name: "Similarweb", slug: 'similarweb', careerUrl: "https://www.similarweb.com/corp/careers", platform: 'greenhouse', platformIdentifier: "similarweb" },
+  { name: "Placer.ai", slug: 'placer-ai', careerUrl: "https://www.placer.ai/careers", platform: 'greenhouse', platformIdentifier: "placerlabs" },
+  // ── Lever ──────────────────────────────────
+  { name: "Contentsquare", slug: 'contentsquare', careerUrl: "https://contentsquare.com/careers", platform: 'lever', platformIdentifier: "contentsquare" },
+  { name: "Pigment", slug: 'pigment', careerUrl: "https://www.pigment.com/careers", platform: 'lever', platformIdentifier: "pigment" },
+  // ── Ashby ──────────────────────────────────
+  { name: "Ashby", slug: 'ashby', careerUrl: "https://www.ashbyhq.com/careers", platform: 'ashby', platformIdentifier: "ashby" },
+  // ── SmartRecruiters ────────────────────────
+  { name: "HireVue", slug: 'hirevue', careerUrl: "https://www.hirevue.com/careers", platform: 'smartrecruiters', platformIdentifier: "hirevue" },
+  // ── Workday ────────────────────────────────
+  { name: "Comscore", slug: 'comscore', careerUrl: "https://www.comscore.com/About/Careers", platform: 'workday', platformIdentifier: "comscore|wd5|External" },
+  { name: "BlackLine", slug: 'blackline', careerUrl: "https://careers.blackline.com", platform: 'workday', platformIdentifier: "blackline|wd108|BlackLineCareers" },
+  { name: "Guidehouse", slug: 'guidehouse', careerUrl: "https://guidehouse.com/careers", platform: 'workday', platformIdentifier: "guidehouse|wd1|External" },
+  { name: "Huron Consulting", slug: 'huron-consulting', careerUrl: "https://www.huronconsultinggroup.com/careers", platform: 'workday', platformIdentifier: "huron|wd1|huroncareers" },
+  { name: "Fractal Analytics", slug: 'fractal-analytics', careerUrl: "https://fractal.ai/careers", platform: 'workday', platformIdentifier: "fractal|wd1|Careers" },
+  { name: "LexisNexis Risk Solutions", slug: 'lexisnexis-risk-solutions', careerUrl: "https://risk.lexisnexis.com/about-us/careers", platform: 'workday', platformIdentifier: "relx|wd3|RiskSolutions" },
+
   // Job-board sources (2026-07-17) — cross-company boards; each returns direct apply
   // links with the real hiring company as companyName. Batch scripts show these as
   // "{Employer} (via {Board})". Indeed/ZipRecruiter/Glassdoor/Monster/CareerBuilder

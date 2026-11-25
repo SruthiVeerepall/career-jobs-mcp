@@ -101,7 +101,7 @@ export async function searchJobsForResume(options: ResumeSearchOptions): Promise
   });
   const matches = screened.kept;
   for (const m of matches) {
-    const jd = matchDescription(screened.descriptions.get(m), profile);
+    const jd = matchDescription(screened.descriptions.get(m), profile, m.company);
     m.jdMatchPercent = jd.percent;
     m.jdMatchStatus = jd.status;
     m.jdMatchedSkills = jd.matchedSkills;

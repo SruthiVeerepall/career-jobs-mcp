@@ -28,7 +28,9 @@ Greenhouse, Ashby, Lever, Workable, Workday and Eightfold applications. Follow t
    jobs unless asked. A job with no usable date is **excluded**, never assumed fresh.
 2. **Experience: junior to Senior (≤5 years).** Exclude
    `/\bprincipal\b|\bstaff\b|\blead\b|\barchitect\b|\bdirector\b|\bvp\b|\bhead of\b|\bmanager\b|\bexecutive\b|\bdistinguished\b|\bfellow\b/i`.
-   "Senior" is included.
+   "Senior" is included. In the résumé pipeline a "Manager" / "Executive" / "Architect" that
+   names the role (Product Manager, Account Executive, Solutions Architect, Scrum Master) is
+   not a rung (`ROLE_NAME_NOT_RANK` in `skill-taxonomy.ts`); "Engineering Manager" still is.
 3. **US only by default.** US or Remote without a non-US country. `isUSJob()` must accept every
    US format boards emit: `City, ST`, bare cities (`NYC`), full state names (`Dallas, Texas`),
    Workday prefixes (`TX-Dallas`), bare `US`. `test/job-filters.test.mjs` pins real strings.
@@ -74,12 +76,28 @@ Formats: `.pdf .docx .txt .md .html`; scanned PDFs are rejected. Import
 Decisions not to re-litigate:
 - **Role families come from titles the candidate has held**, not listed tools (otherwise a Java
   developer listing Docker/Terraform gets SRE jobs). `extractTitles()` rejects prose bullets.
+- **No role is blocked outright.** Non-engineering roles are families like any other
+  (`data-analytics`, `business-analysis`, `product`, `project-management`, `design`,
+  `technical-writing`, `solutions`, `sales`, `marketing`, `customer-support`, `recruiting`,
+  `finance`), so a data analyst résumé gets analyst jobs and a developer's résumé never does.
+  Their title rules come **after** the engineering ones ("Backend Engineer, Payroll" stays
+  backend). Non-engineering résumés get no "<skill> Developer" board query.
+  `test/resume-roles.test.mjs` pins this. (The fallback profile's `EXCLUDE_ROLES` is separate.)
+- **A title that names a stack needs that stack on the résumé** (`stackSkillsInTitle()`: core
+  backend / frontend / mobile / embedded skills such as Java, Python, .NET, Go, Rails, Swift,
+  Android). The backend family spans every language, so a Python résumé got "Java Developer".
+  "Java / Python Developer" passes for either; C# and .NET imply each other; "Go-to-Market" is
+  not Go. On the cached jobs it removed 743 of ~12,400 titles a Java résumé kept, all other stacks.
 - **Years come from the experience section only** (education dates added phantom years).
 - `test/resume-profile.test.mjs` pins the sample résumé's profile (families `fullstack,
   generic-swe, backend, frontend`, band Entry→Senior, "Senior Java Full Stack Developer" = 17).
 
 **JD match** (`src/resume/jd-match.ts`): `% = Σ(weight × résumé strength) of JD skills the résumé
 has ÷ weight of all JD skills`; weight = tier × emphasis (1×, +0.5× per extra mention, max 3×).
+Not counted: a skill that is the employer's own name (Snowflake's JDs name Snowflake), and a
+skill whose families are all non-engineering when the résumé neither has it nor claims one of
+them (`offRole()`: "user stories", "Salesforce" in a developer's JD; counting them moved a Java
+résumé's scores −3 points on average over 2,891 cached JDs, after the change −0.05).
 Résumé strength (`skillStrength()`, from `ProfileSkill.workMentions`): used in the experience
 section 3+ times 1.0, twice 0.9, once 0.8; only under Skills/Projects/Education 0.5; no
 experience header → total mentions on the 1.0/0.9/0.8 scale; an implied skill (SQL from

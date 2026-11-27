@@ -27,9 +27,8 @@ export async function startServer(): Promise<void> {
     'searchJobsForResume',
     'Search every configured career site and job board for roles matching a resume, and return a ranked table of direct apply links. Accepts the resume as text (resumeText) or a file path (resumePath: .pdf/.docx/.txt/.md).',
     searchJobsForResumeSchema,
-    // Read-only: it only reads job sites (and refreshes its own cache). Without this hint the
-    // Claude desktop app asks for confirmation on every call from the Job Quest Board's
-    // "Run a new search" buttons, and a dismissed prompt comes back as "cancelled".
+    // Read-only: it only reads job sites (and refreshes its own cache), so the Claude desktop
+    // app needn't ask for confirmation on every call.
     { title: 'Search jobs for a résumé', readOnlyHint: true, openWorldHint: true },
     async (args) => ({
       content: [{ type: 'text', text: await searchJobsForResume(args) }],

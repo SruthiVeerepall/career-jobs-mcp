@@ -165,13 +165,11 @@ terms**. Company scrapers are not keyed by terms (they fetch the whole board).
   `publishJobPage()` sets. A failed publish never fails the export.
 - **Publishing by hand:** publish to that same URL (never a new artifact) and omit
   `capabilities` so the stored set carries over. If you must restate it, it is
-  `{db:{}, user:{}, mcp:{servers:[{server:'host:career-jobs', tools:['searchJobsForResume','autoApplyJob','refreshJobQuest']}]}}`.
+  `{db:{}, user:{}, mcp:{servers:[{server:'host:career-jobs', tools:['autoApplyJob']}]}}`.
 - Applied ticks, streak and goal live in the viewer's private db (`data/users/<id>/`, keyed by a
   hash of the apply URL), so republishing never resets them. Don't change that hash.
-- Search buttons: in the Claude **desktop app** they call `searchJobsForResume` (instant list)
-  then `refreshJobQuest` (rewrites everything in the background). Elsewhere they open
-  `jobquest://refresh?days=N`. The desktop app's `claude_desktop_config.json` entry **must set
-  `env.CACHE_DB_PATH`**, because the app starts the server in `C:\Windows\System32`.
+- The desktop app's `claude_desktop_config.json` entry **must set `env.CACHE_DB_PATH`**,
+  because the app starts the server in `C:\Windows\System32`.
 - **Refresh:** every `--resume --page` run saves its outputs to `job-quest-outputs.json`
   (`$JOB_QUEST_OUTPUTS_PATH` overrides; set it in tests). One run at a time
   (`data/refresh.lock`, latest queued window wins). Sheet ticks are kept by apply URL; a sheet

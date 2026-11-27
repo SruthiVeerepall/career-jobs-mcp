@@ -7,9 +7,8 @@
  *   node refresh-job-quest.mjs --status          # show the saved outputs and whether one is running
  *
  * Where the outputs are comes from job-quest-outputs.json, saved by every
- * `export-jobs-xlsx.mjs --resume … --page …` run. The board's search buttons (refreshJobQuest
- * MCP tool in the Claude app, jobquest://refresh links elsewhere) and the sheet's refresh links
- * all end up here.
+ * `export-jobs-xlsx.mjs --resume … --page …` run. The refreshJobQuest MCP tool and the
+ * sheet's jobquest://refresh links both end up here.
  *
  * One refresh at a time: a second request while one runs is queued (the latest window wins)
  * and runs straight after, so clicking Today then Week ends with the Week results everywhere.

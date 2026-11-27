@@ -29,8 +29,8 @@
  *   --artifact      write ONLY the page, publish-ready (no document skeleton)
  *   --local-page <path>  with --page: ALSO write a standalone copy to open from disk
  *
- * A --resume --page run remembers its outputs in job-quest-outputs.json, so the board's
- * search buttons, the sheet's refresh links and `node refresh-job-quest.mjs --days n` rewrite
+ * A --resume --page run remembers its outputs in job-quest-outputs.json, so the sheet's refresh links
+ * and `node refresh-job-quest.mjs --days n` rewrite
  * all of them (see refresh-job-quest.mjs). If the workbook is open in Excel it is saved,
  * closed, rewritten and reopened, and its "Applied?" ticks carry over.
  */
@@ -319,7 +319,7 @@ async function run() {
     window: WINDOW_LABEL,
     matchedTo: RESUME ? 'Matched to your résumé' : 'Java / Full Stack profile',
     candidate,
-    // The page's "Run a new search" buttons pass this to the career-jobs MCP tool.
+    // The page's Auto apply button passes this to the career-jobs MCP tool.
     resumePath: RESUME ? path.resolve(RESUME) : undefined,
   };
   if (HTML) {

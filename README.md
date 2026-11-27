@@ -23,7 +23,7 @@ You ──► Claude or a script ──► Career Jobs MCP ──► company car
 | **Company sites first** | Jobs from employers' own sites are listed before job-board copies. |
 | **Excel + web page** | Applied? checkboxes, a running total, a daily goal and streak on the Job Quest Board. |
 | **Auto apply** | Fills Greenhouse, Ashby, Lever, Workable, Workday and Eightfold forms in Chrome from your résumé and your saved answers, including board jobs (LinkedIn, BuiltIn…) found on the employer's own job site (no board sign-in). **It never submits**: you review and press Submit. |
-| **One-click refresh** | Today / 3 days / Week / Month buttons update the sheet, the page and the board together. |
+| **One-command refresh** | `refresh-job-quest.mjs` or the sheet's ↻ links update the sheet, the page and the board together. |
 
 ---
 
@@ -122,20 +122,19 @@ Code (the VS Code extension's bundled copy works). A failed publish never stops 
 with `node publish-job-page.mjs <page.html>`. New users: publish your page once from Claude Code
 to get your own board link, then set `JOB_QUEST_URL` to it (or keep using `--no-publish`).
 
-## Refresh from any button
+## Refresh
 
 A `--resume … --page …` run remembers where it wrote (in the git-ignored
-`job-quest-outputs.json`). After that, choosing a window anywhere reruns the same export and
+`job-quest-outputs.json`). After that, choosing a window reruns the same export and
 **updates the sheet, the page files and the board**:
 
 | Where | How |
 |---|---|
-| Board in the Claude desktop app | Results appear instantly, and everything else updates in the background |
-| Board in a browser, local page, Excel ↻ links | A `jobquest://refresh` link opens a console window that shows progress |
+| Excel ↻ links | A `jobquest://refresh` link opens a console window that shows progress |
 | Terminal | `node refresh-job-quest.mjs --days 7` (`1`, `3`, `7`, `30`; `--detach`, `--status`) |
 
 Your Applied? ticks in the sheet are kept. If the sheet is open in Excel, it's saved, closed and
-reopened for you. Clicking another window during a refresh queues it.
+reopened for you. Asking for another window during a refresh queues it.
 
 ## Auto apply (Greenhouse, Ashby, Lever, Workable, Workday and Eightfold)
 
@@ -235,7 +234,7 @@ followed through the board's Apply button. `<url>` may be a board job page
 claude mcp add career-jobs node "/absolute/path/to/career-jobs-mcp/dist/index.js"
 ```
 
-**Claude desktop app** (needed for the board's in-app buttons). Add this to
+**Claude desktop app** (needed for the board's Auto apply button). Add this to
 `claude_desktop_config.json`. `CACHE_DB_PATH` is required because the app starts the server
 from `C:\Windows\System32`:
 
